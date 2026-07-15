@@ -260,6 +260,15 @@ def _terminate_process_tree(process: subprocess.Popen[str]) -> None:
         os.killpg(process.pid, signal.SIGKILL)
     except ProcessLookupError:
         pass
+    except PermissionError:
+        # macOS can deny a process-group signal while the owned child is
+        # concurrently exiting. Fall back to the child handle so the output
+        # cap and timeout still have deterministic termination semantics.
+        if process.poll() is None:
+            try:
+                process.kill()
+            except ProcessLookupError:
+                pass
 
 
 def _wait_for_exit(process: subprocess.Popen[str]) -> None:

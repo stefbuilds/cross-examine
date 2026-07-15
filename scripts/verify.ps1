@@ -21,6 +21,8 @@ try {
     Assert-LastExitCode 'frontend tests'
     npm run build
     Assert-LastExitCode 'frontend build'
+    npx playwright install chromium
+    Assert-LastExitCode 'Playwright Chromium install'
     npm run test:e2e
     Assert-LastExitCode 'Playwright tests'
 }

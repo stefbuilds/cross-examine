@@ -3,6 +3,8 @@ name = "cross-examine"
 version = "0.1.0"
 description = "Independent execution-grounded verification for Codex-authored Python PRs"
 requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
   "fastapi",
   "hypothesis",
@@ -23,15 +25,15 @@ dev = [
 [project.scripts]
 cross-examine = "cross_examine.cli:main"
 
+[project.urls]
+Repository = "https://github.com/stefbuilds/cross-examine"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/cross_examine"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"tests/fixtures/hero_repo/source" = "cross_examine/hero_source"
 
 [tool.hatch.build.targets.sdist]
 exclude = [

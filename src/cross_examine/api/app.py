@@ -51,6 +51,7 @@ def create_app(
     *,
     pipeline_factory: Callable[[], PipelineLike] | None = None,
     runs_root: str | Path | None = None,
+    hosted_mode: bool = False,
 ) -> FastAPI:
     database = Database(database_path)
     run_repository = RunRepository(database)
@@ -81,6 +82,7 @@ def create_app(
     app.state.runs = run_repository
     app.state.corpus = corpus
     app.state.progress = broker
+    app.state.hosted_mode = hosted_mode
 
     @app.get("/api/health", response_model=HealthResponse)
     def health() -> HealthResponse:
@@ -97,6 +99,23 @@ def create_app(
 
     @app.post("/api/hero-runs", response_model=RunAcceptedResponse, status_code=202)
     def create_hero_run() -> RunAcceptedResponse:
+        if hosted_mode:
+            report = broken_fixture_report()
+            report.repo = "Hosted evidence fixture · cross-examine/hero-normalizer"
+            report.claims[0].proposed_check = (
+                "[evidence source: checked-in hosted fixture] "
+                "Call normalize with an empty list"
+            )
+            spec = RunSpec(
+                repo=report.repo,
+                base_ref="base-empty-safe",
+                head_ref="head-empty-regression",
+                layer_b=True,
+            )
+            run = run_repository.create(spec)
+            completed = run_repository.complete(run.id, report)
+            return RunAcceptedResponse(id=completed.id, status=completed.status)
+
         hero = ensure_hero_repository(run_directory.parent / "hero")
         spec = RunSpec(
             repo=str(hero.path),
@@ -157,6 +176,14 @@ def create_app(
 
     @app.post("/api/runs", response_model=RunAcceptedResponse, status_code=202)
     def create_run(request: RunCreateRequest) -> RunAcceptedResponse:
+        if hosted_mode:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Arbitrary repositories require the trusted-input local runner. "
+                    "Use the hosted offline hero demo or install Cross-Examine locally."
+                ),
+            )
         spec = RunSpec(
             repo=request.repo,
             base_ref=request.base_ref,

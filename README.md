@@ -6,6 +6,37 @@ Cross-Examine is an independent verification harness for Codex-authored Python c
 
 The catch is the product: a plausible optimization returns `None` for an empty list, the existing happy-path test stays green, and Cross-Examine produces `BROKEN` with `[]` as the reproducing input.
 
+**Live evidence explorer:** [cross-examine-stefffs-projects.vercel.app](https://cross-examine-stefffs-projects.vercel.app)
+
+The hosted build is an explicitly labeled, checked-in evidence fixture for zero-install judging. Vercel Functions do not include the Git/runtime isolation needed to execute repositories, so arbitrary repository analysis is intentionally local-only. The quickstart below runs the real five-stage pipeline.
+
+## Judge quickstart: see the catch in 60 seconds
+
+The deterministic demo needs no API key and executes the real pipeline:
+
+```bash
+uv sync --extra dev
+uv run cross-examine demo --no-open
+```
+
+Expected receipt:
+
+```text
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +2 this run · 2 total
+Refuted claim: preserve-empty
+Reproducing input: []
+```
+
+To inspect the same evidence in the product UI:
+
+```bash
+uv run cross-examine serve
+```
+
+Open `http://127.0.0.1:8765`, click **Run offline hero demo**, then expand the refuted finding. The exact command, base output, head output, expected value, actual value, and reproducing input are all rendered from the persisted report.
+
 ## Why this is not a Codex skill
 
 A skill is part of the system being judged. You cannot ask the suspect to be the jury. Cross-Examine is a separate process with a separate state store: it characterizes behavior Codex did not record, executes checks Codex did not write, applies a deterministic verdict function, and pins verified behavior into a corpus that outlives a single run.
@@ -27,13 +58,13 @@ V1 deliberately abstains on intended-change correctness unless the contract has 
 - Python 3.12+
 - Git
 - [uv](https://docs.astral.sh/uv/)
-- Node.js 20+ only when rebuilding or testing the React frontend
-- Google Chrome for the packaged Playwright verification
+- Node.js 20.19+ only when rebuilding or testing the React frontend
+- Playwright Chromium for the packaged browser verification (`npx playwright install chromium`)
 - `OPENAI_API_KEY` for real-repository characterization; the hero demo works offline
 
-Windows is the primary verified platform. The process-control and Git paths include POSIX implementations, but macOS/Linux remain secondary Build Week targets.
+The release workflow verifies Python 3.12 on Windows, macOS, and Ubuntu. Repository targets are Python-only during Build Week. The local runner executes target code, so use only repositories you trust.
 
-## Five-minute setup
+## Windows PowerShell setup
 
 ```powershell
 uv sync --extra dev
@@ -48,25 +79,7 @@ uv run cross-examine serve
 Open the printed run URL. The packaged FastAPI server hosts both the API and React application, so direct `/runs/{id}` links work.
 The **Runs** destination lists the 50 most recent persisted runs after a restart.
 
-## Hero demo
-
-Run the complete deterministic catch:
-
-```powershell
-uv run cross-examine demo --no-open
-```
-
-Expected receipt:
-
-```text
-Characterization: deterministic hero fixture
-Verdict: BROKEN
-Corpus: +2 this run · 2 total
-Refuted claim: preserve-empty
-Reproducing input: []
-```
-
-The UI's **Run offline hero demo** action creates the stable `hero-base` and `hero-head` repository automatically, uses the visibly labeled deterministic claim fixture, and executes the real pipeline without an API key.
+The UI's **Run offline hero demo** action creates the stable `hero-base` and `hero-head` repository automatically. Its claim source is visibly labeled `deterministic hero fixture`; every finding and verdict still comes from real execution.
 
 ## Real repository run
 
@@ -82,6 +95,8 @@ Use `--no-layer-b` for a Layer-A-only compatibility pass. The web form accepts a
 
 This Build Week version is a trusted-input harness, not a hostile-code sandbox. Commands use argument vectors with `shell=False`, an executable allowlist, a minimal child environment that strips secret-shaped names, per-command and total-run deadlines, process-tree termination, a 2 MB output cap, and receipt redaction. Target code still executes locally. Use only repositories you trust; production requires real isolation and network denial.
 
+The public Vercel deployment is an evidence explorer, not a repository runner. Its report is labeled **Hosted evidence fixture**, and arbitrary repository submissions are rejected with instructions to use the trusted-input local runner.
+
 ## GPT-5.6 and Codex usage
 
 - **GPT-5.6 Sol (`gpt-5.6-sol`)** reads a bounded diff/source context and emits schema-constrained claims. It never emits verdicts. Malformed, duplicate, unknown-symbol, or verdict-injecting output is rejected.
@@ -92,6 +107,8 @@ This Build Week version is a trusted-input harness, not a hostile-code sandbox. 
 The human-provided doctrine locked the problem, Python-only scope, contract, five stages, abstain-toward-risk policy, Layer-A-before-Layer-B sequencing, trusted-input sandbox boundary, Build Week deadline, and the requirement to use 21st.dev at design time.
 
 Codex chose and implemented the detailed architecture: FastAPI/SQLite/React, worktree and subprocess mechanics, edge catalog, Hypothesis bounds, persistence and SSE protocol, CLI surface, deterministic hero construction, 21st.dev component selection/adaptation, responsive behavior, tests, and packaging. The exact UI-source provenance is recorded in [docs/provenance.md](docs/provenance.md).
+
+The Build Week work is visible in the dated Git history and the primary Codex task supplied with the Devpost submission. The human retained product authority: problem selection, scope, evidence doctrine, risk policy, and the final submission story. Codex accelerated implementation, test generation, cross-platform diagnosis, documentation, and release verification. GPT-5.6 is a deliberately constrained runtime component rather than the judge: it proposes behavioral claims, while execution and a pure deterministic function decide the outcome.
 
 ## Tests
 
@@ -115,3 +132,7 @@ The dev extra intentionally uses PyPI-verified, Pydantic-owned `httpx2`: the ins
 - **2:45–3:00 — impact:** trustworthy unattended agentic coding.
 
 The exact shot and voiceover script is in [docs/demo.md](docs/demo.md).
+
+## License
+
+[MIT](LICENSE)

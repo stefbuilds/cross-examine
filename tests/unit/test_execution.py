@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 import time
 from pathlib import Path
 
 import pytest
 
+from cross_examine import execution
 from cross_examine.execution import CommandNotAllowedError, render_command, run_command
 from cross_examine.settings import MAX_OUTPUT_BYTES
 
@@ -95,6 +97,30 @@ def test_output_beyond_two_megabytes_is_capped_and_terminated(tmp_path: Path) ->
     assert evidence.output_truncated is True
     assert len(evidence.stdout.encode("utf-8")) <= MAX_OUTPUT_BYTES
     assert "[OUTPUT TRUNCATED: limit exceeded]" in evidence.stderr
+
+
+@pytest.mark.skipif(os.name == "nt", reason="POSIX process-group fallback")
+def test_process_tree_termination_falls_back_when_group_kill_is_denied(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    process = subprocess.Popen(
+        [sys.executable, "-c", "import time; time.sleep(10)"],
+        start_new_session=True,
+    )
+
+    def deny_group_kill(_process_group: int, _signal: int) -> None:
+        raise PermissionError("process group is unavailable")
+
+    monkeypatch.setattr(os, "killpg", deny_group_kill)
+    try:
+        execution._terminate_process_tree(process)
+        process.wait(timeout=2)
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.wait(timeout=2)
+
+    assert process.returncode is not None
 
 
 def test_sensitive_environment_values_are_redacted(tmp_path: Path) -> None:
