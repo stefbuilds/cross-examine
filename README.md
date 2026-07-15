@@ -5,8 +5,8 @@
 <!-- TODO: Add a screen recording of `uv run cross-examine demo --no-open` ending on the `BROKEN` verdict, or a screenshot of the Run report page, before submission. -->
 
 [![Python >=3.12](https://img.shields.io/badge/Python-%3E%3D3.12-3776AB?logo=python&logoColor=white)](pyproject.toml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Build Week submission](https://img.shields.io/badge/Build%20Week-submission-8A2BE2)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Hackathon Submission](https://img.shields.io/badge/Build%20Week-submission-8A2BE2)
 
 Cross-Examine is an independent verification harness for Codex-authored Python changes. It captures the base revision's behavior, executes the head revision against the same inputs, hunts adversarial boundaries, and shows the exact command and captured output behind every verdict.
 
