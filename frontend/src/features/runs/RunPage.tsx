@@ -1,7 +1,8 @@
 import { useLoaderData } from "react-router-dom";
-import { AlertTriangle } from "lucide-react";
 
 import type { FixtureResponse, RunResponse } from "@/app/api";
+import { Card } from "@/components/ui/card";
+import { ErrorMessage } from "@/components/ui/error-message";
 import {
   Timeline,
   TimelineContent,
@@ -62,38 +63,26 @@ export function RunProgressView({
   const latestByStage = new Map(events.map((event) => [event.stage, event]));
 
   return (
-    <main className="mx-auto grid w-full max-w-5xl gap-7 p-4 md:p-8">
-      <header className="border-b border-border/50 pb-6">
-        <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+    <main className="page-shell">
+      <header className="page-header">
+        <div>
+        <p className="eyebrow">
           Live verification · {run.id}
         </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+        <h1 className="mt-4 max-w-3xl text-4xl font-semibold uppercase tracking-[-0.04em] md:text-6xl">
           {failed ? "Verification stopped" : "Cross-examination in progress"}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="page-copy mt-4">
           No verdict appears until executed findings have been aggregated.
         </p>
+        </div>
       </header>
 
       {failed && (
-        <div
-          role="alert"
-          className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive"
-        >
-          <AlertTriangle
-            aria-hidden="true"
-            className="mt-0.5 size-4 shrink-0"
-          />
-          <div>
-            <p className="font-semibold">
-              The worker could not finish this run.
-            </p>
-            <p className="mt-1 break-words font-mono text-xs">{run.message}</p>
-          </div>
-        </div>
+        <ErrorMessage message={run.message} title="The worker could not finish this run" />
       )}
 
-      <section className="rounded-xl border border-border/50 bg-card p-5 shadow-sm md:p-7">
+      <Card className="p-6 md:p-8">
         <Timeline>
           {STAGES.map(([id, label, description], index) => {
             const isDone = currentIndex > index;
@@ -124,7 +113,7 @@ export function RunProgressView({
             );
           })}
         </Timeline>
-      </section>
+      </Card>
     </main>
   );
 }

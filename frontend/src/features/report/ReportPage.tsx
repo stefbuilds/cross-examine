@@ -1,5 +1,6 @@
 import { Fragment, useMemo, useState } from "react";
 
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FindingEvidence } from "./FindingEvidence";
 import { VerdictStatus } from "./VerdictStatus";
 import type { Report } from "./report-model";
@@ -26,8 +27,8 @@ export function ReportPage({
   );
 
   return (
-    <main className="mx-auto grid w-full max-w-5xl gap-6 p-4 md:p-8">
-      <header className="flex flex-col gap-4 border-b border-border/50 pb-6 md:flex-row md:items-end md:justify-between">
+    <main className="page-shell">
+      <header className="page-header">
         <div className="grid gap-2">
           <div className="flex items-center gap-3">
             <VerdictStatus verdict={report.verdict} />
@@ -37,9 +38,9 @@ export function ReportPage({
               </span>
             )}
           </div>
-          <h2 className="text-xl font-semibold tracking-tight text-foreground">
+          <h1 className="mt-2 max-w-3xl break-words text-3xl font-semibold uppercase tracking-[-0.04em] text-foreground md:text-5xl">
             {report.repo}
-          </h2>
+          </h1>
           <p className="font-mono text-xs text-muted-foreground">
             {report.pr_ref}
           </p>
@@ -54,48 +55,47 @@ export function ReportPage({
 
       <section
         aria-labelledby="findings-heading"
-        className="overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm"
+        className="surface-frame"
       >
-        <div className="border-b border-border/50 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-border bg-secondary/70 px-5 py-4">
           <h2
             id="findings-heading"
-            className="text-sm font-semibold text-foreground"
+            className="font-heading text-sm font-semibold uppercase tracking-[0.1em] text-foreground"
           >
             Executed findings
           </h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left text-sm">
-            <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 font-medium" scope="col">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead scope="col">
                   Claim
-                </th>
-                <th
-                  className="hidden px-4 py-3 font-medium md:table-cell"
+                </TableHead>
+                <TableHead
+                  className="hidden md:table-cell"
                   scope="col"
                 >
                   Layer
-                </th>
-                <th className="px-4 py-3 font-medium" scope="col">
+                </TableHead>
+                <TableHead scope="col">
                   Outcome
-                </th>
-                <th
-                  className="hidden px-4 py-3 text-right font-medium sm:table-cell"
+                </TableHead>
+                <TableHead
+                  className="hidden text-right sm:table-cell"
                   scope="col"
                 >
                   Confidence
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/50">
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {report.findings.map((finding, index) => {
                 const claim = claimsById.get(finding.claim_id);
                 const rowId = `${finding.claim_id}-${finding.layer}-${index}`;
                 const expanded = selectedRowId === rowId;
                 return (
                   <Fragment key={rowId}>
-                    <tr className="transition-colors hover:bg-muted/30">
+                    <TableRow>
                       <th className="p-0 font-normal" scope="row">
                         <button
                           aria-expanded={expanded}
@@ -118,31 +118,30 @@ export function ReportPage({
                           )}
                         </button>
                       </th>
-                      <td className="hidden px-4 py-4 font-mono text-xs text-muted-foreground md:table-cell">
+                      <TableCell className="hidden font-mono text-xs text-muted-foreground md:table-cell">
                         {finding.layer}
-                      </td>
-                      <td
-                        className={`px-4 py-4 text-xs font-semibold uppercase ${outcomeColor[finding.outcome]}`}
+                      </TableCell>
+                      <TableCell
+                        className={`text-xs font-semibold uppercase ${outcomeColor[finding.outcome]}`}
                       >
                         {finding.outcome}
-                      </td>
-                      <td className="hidden px-4 py-4 text-right font-mono text-xs text-muted-foreground sm:table-cell">
+                      </TableCell>
+                      <TableCell className="hidden text-right font-mono text-xs text-muted-foreground sm:table-cell">
                         {Math.round(finding.confidence * 100)}%
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                     {expanded && (
-                      <tr>
-                        <td colSpan={4}>
+                      <TableRow className="hover:bg-transparent">
+                        <TableCell className="p-0" colSpan={4}>
                           <FindingEvidence finding={finding} />
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     )}
                   </Fragment>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
       </section>
     </main>
   );
