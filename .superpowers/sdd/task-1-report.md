@@ -47,3 +47,10 @@ The requested frontend build refreshed the tracked FastAPI/Vercel deployment bun
 - Green evidence: both sources now subscribe with `MediaQueryList.addEventListener("change", ...)` and unsubscribe on cleanup. PixelCanvas receives the updated state and cancels/restarts its source animation accordingly; dither removes its mouse handler and transition only while reduced motion is active. Neither component writes the document `dark` class.
 - Final verification: focused welcome tests passed 3/3; full `npm run test` passed 11 files and 28 tests; `npm run build` passed with the standard >500 kB output warning.
 - Sidebar audit: `sidebar-news.tsx` and its test are absent from the welcome commits. Their most recent changes are pre-existing commit `801d938` (`fix(ui): prevent sidebar card overlap`), so no unrelated sidebar code was reverted or included in this follow-up.
+
+## Final scope and generated-output cleanup
+
+- Reverted the exact `801d938` sidebar scope-creep delta: the sidebar card bottom-alignment classes, its matching assertion, and its expanded provenance claim. The intended `SessionNavBar` removal of the evidence destination/article remains untouched.
+- Focused verification passed: `npm run test -- src/components/ui/sidebar-news.test.tsx src/features/welcome/WelcomePage.test.tsx` reported 2 files and 4 tests passing.
+- Full verification passed: `npm run test` reported 11 files and 28 tests passing; `npm run build` exited 0 with the standard >500 kB output warning.
+- Rebuilt static output replaces the prior generated bundle. The generated shader template's trailing whitespace was removed safely from the fresh bundle; the post-commit `git diff --check f44d2e3..HEAD` check is recorded after committing the replacement.
