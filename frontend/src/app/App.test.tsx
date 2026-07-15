@@ -113,6 +113,22 @@ describe("application routes", () => {
     );
   });
 
+  it("renders the sourced verification-run empty state when no runs exist", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify([]), { status: 200 })),
+    );
+    const router = createMemoryRouter(appRoutes, { initialEntries: ["/runs"] });
+
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByRole("heading", { name: "No verification runs yet" })).toBeInTheDocument();
+    expect(
+      screen.getByText("Create a run to capture exact commands, outputs, and grounded verdicts."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "New verification run" })).toHaveAttribute("href", "/run");
+  });
+
   it("loads the documented trials page from primary navigation", async () => {
     const router = createMemoryRouter(appRoutes, { initialEntries: ["/trials"] });
 

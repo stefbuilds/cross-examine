@@ -3,6 +3,7 @@ import { Link, useLoaderData } from "react-router-dom";
 
 import type { RunSummary } from "@/app/api";
 import { Button } from "@/components/ui/button";
+import EmptyState from "@/components/ui/empty-state-04";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { VerdictStatus } from "@/features/report/VerdictStatus";
 
@@ -29,12 +30,7 @@ export function RunHistoryPage() {
 
       <section className="surface-frame">
         {runs.length === 0 ? (
-          <div className="grid gap-2 p-8 text-center">
-            <h2 className="font-semibold">No runs yet</h2>
-            <p className="text-sm text-muted-foreground">
-              Start a verification to create the first grounded report.
-            </p>
-          </div>
+          <EmptyState />
         ) : (
             <Table className="min-w-[720px]">
               <TableHeader className="bg-secondary/70">

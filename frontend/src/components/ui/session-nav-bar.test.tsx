@@ -79,6 +79,8 @@ describe("SessionNavBar", () => {
 
     expect(sidebar.getByTestId("sidebar-navigation")).toHaveClass("min-h-0", "flex-1", "overflow-y-auto");
     expect(sidebar.getByRole("button", { name: "Workspace shortcuts" })).toBeInTheDocument();
+    expect(sidebar.getByText("Settings")).toBeInTheDocument();
+    expect(sidebar.getByRole("button", { name: "Select theme" })).toBeInTheDocument();
   });
 
   it("keeps the sidebar toggle inside the sourced sidebar", async () => {

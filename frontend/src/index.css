@@ -1,5 +1,25 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+
+@keyframes marquee-horizontal {
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes marquee-vertical {
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
+}
+
+.animate-marquee-horizontal {
+  animation: marquee-horizontal var(--duration, 40s) linear infinite;
+}
+
+.animate-marquee-vertical {
+  animation: marquee-vertical var(--duration, 40s) linear infinite;
+}
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/space-grotesk";
 @import "@fontsource-variable/lexend";

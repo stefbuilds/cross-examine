@@ -7,3 +7,17 @@ class ResizeObserverStub implements ResizeObserver {
 }
 
 globalThis.ResizeObserver = ResizeObserverStub;
+
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: () => ({
+    matches: false,
+    media: "",
+    onchange: null,
+    addEventListener() {},
+    removeEventListener() {},
+    addListener() {},
+    removeListener() {},
+    dispatchEvent: () => false,
+  }),
+});
