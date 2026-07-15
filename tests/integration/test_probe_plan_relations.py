@@ -90,3 +90,19 @@ def test_malformed_plan_becomes_unverifiable_and_never_refutes(tmp_path: Path) -
 
     assert [finding.outcome for finding in findings] == [Outcome.UNVERIFIABLE]
     assert aggregate(findings, {"preserve-transform"}).value == "risky"
+
+
+def test_probe_plans_accept_pipeline_corpus_coverage(tmp_path: Path) -> None:
+    root = tmp_path / "root"
+    write_target(root, "def transform(items: list[int]) -> list[int]:\n    return sorted(items)\n")
+
+    findings = run_probe_plans(
+        [claim()],
+        [relation_plan("permutation_invariance", [[2, 1]])],
+        root,
+        root,
+        tmp_path / "state",
+        corpus_coverage={"sample.core:transform": 1},
+    )
+
+    assert [finding.outcome for finding in findings] == [Outcome.VERIFIED]

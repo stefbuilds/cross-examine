@@ -212,6 +212,7 @@ def run_probe_plans(
     state_dir: str | Path,
     timeout: float = DEFAULT_COMMAND_TIMEOUT_SECONDS,
     deadline: float | None = None,
+    corpus_coverage: dict[str, int] | None = None,
 ) -> list[Finding]:
     """Execute validated relation plans, preserving every execution artifact.
 
