@@ -86,4 +86,16 @@ class Characterizer:
                     kind=ClaimKind(item.kind),
                 )
             )
+        claim_by_id = {claim.id: claim for claim in claims}
+        plan_ids: set[str] = set()
+        for plan in payload.probe_plans:
+            if plan.id in plan_ids:
+                raise CharacterizationError(f"Duplicate ProbePlan ID: {plan.id}")
+            plan_ids.add(plan.id)
+            claim = claim_by_id.get(plan.claim_id)
+            if claim is None or plan.target_symbol != claim.target_symbol:
+                raise CharacterizationError("ProbePlan must target its characterized claim")
+            # The plan's values and relation eligibility are revalidated against
+            # the runtime-discovered signature immediately before execution.
+            claim.probe_plans.append(plan.model_dump(mode="json"))
         return claims

@@ -40,6 +40,7 @@ def report_from_json(raw: str) -> Report:
                 expected=item.get("expected"),
                 actual=item.get("actual"),
                 confidence=float(item.get("confidence", 1.0)),
+                provenance=item.get("provenance"),
             )
             for item in payload.get("findings", [])
         ]
@@ -52,6 +53,7 @@ def report_from_json(raw: str) -> Report:
                 proposed_check=item["proposed_check"],
                 preserve_critical=bool(item.get("preserve_critical", False)),
                 kind=ClaimKind(item.get("kind", "preservation")),
+                probe_plans=list(item.get("probe_plans", [])),
             )
             for item in payload.get("claims", [])
         ]
