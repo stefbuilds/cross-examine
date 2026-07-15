@@ -26,27 +26,27 @@
 - Consumes: `SessionNavBar` as the sidebar content component.
 - Produces: a desktop `aside` that remains fixed at viewport height while page content scrolls independently.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add a focused render assertion to `frontend/src/app/App.test.tsx` that locates the primary navigation's enclosing `aside` and expects Tailwind's `md:fixed`, `md:inset-y-0`, and `md:left-0` classes.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
-Run: `npm test -- --run frontend/src/app/App.test.tsx`
+Run from `frontend/`: `npm test -- --run src/app/App.test.tsx`
 
 Expected: FAIL because the desktop sidebar currently uses `md:static`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Replace the desktop `md:static` positioning class on `AppShell`'s `aside` with fixed viewport positioning, add a matching desktop left margin to the main content container, and retain the existing `h-screen` navigation shell.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
-Run: `npm test -- --run frontend/src/app/App.test.tsx frontend/src/components/ui/session-nav-bar.test.tsx`
+Run from `frontend/`: `npm test -- --run src/app/App.test.tsx src/components/ui/session-nav-bar.test.tsx`
 
 Expected: PASS with zero test failures.
 
-- [ ] **Step 5: Build the frontend**
+- [x] **Step 5: Build the frontend**
 
 Run: `npm run build`
 

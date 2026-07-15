@@ -36,7 +36,7 @@ function AppShell() {
     <div className="flex min-h-screen bg-background/80">
       <aside
         aria-hidden={!sidebarOpen}
-        className={`fixed inset-y-0 left-0 z-30 shrink-0 overflow-hidden bg-card shadow-xl transition-[width,opacity] duration-300 motion-reduce:transition-none md:static md:z-auto md:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-30 shrink-0 overflow-hidden bg-sidebar shadow-xl transition-[width,opacity] duration-300 motion-reduce:transition-none md:fixed md:inset-y-0 md:left-0 md:shadow-none ${
           sidebarOpen
             ? sidebarCollapsed
               ? "w-[15rem] opacity-100 md:w-[3.05rem]"
@@ -66,7 +66,11 @@ function AppShell() {
         />
       )}
 
-      <div className="min-w-0 flex-1">
+      <div
+        className={`min-w-0 flex-1 transition-[margin] duration-300 motion-reduce:transition-none ${
+          sidebarOpen ? (sidebarCollapsed ? "md:ml-[3.05rem]" : "md:ml-[15rem]") : "md:ml-0"
+        }`}
+      >
         <Outlet />
       </div>
     </div>
