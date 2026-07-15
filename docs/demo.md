@@ -38,10 +38,11 @@ Use the rehearsed `python-slugify` change with GPT-5.6 characterization enabled:
 
 ```powershell
 $env:OPENAI_API_KEY = "..."
-uv run --with text-unidecode cross-examine run https://github.com/un33k/python-slugify.git --base 45f9d33 --head 1ef698f --no-layer-b
+uv pip install -e . text-unidecode
+uv run --no-sync cross-examine run https://github.com/un33k/python-slugify.git --base 45f9d33 --head 1ef698f --no-layer-b
 ```
 
-Show its schema-constrained claims, progress, and grounded report. Record a fresh successful run before filming; do not expose the API key or local filesystem path.
+After the run completes, open the persisted report in the local product with `uv run --no-sync cross-examine serve`, then select the newest run in Runs. Show its schema-constrained claims, progress, and grounded report. Record a fresh successful run before filming; do not expose the API key or local filesystem path.
 
 Voiceover: “This is GPT-5.6 proposing what deserves scrutiny on a change it has not seen before. The verdict still belongs to execution.”
 
