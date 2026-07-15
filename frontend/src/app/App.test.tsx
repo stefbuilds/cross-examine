@@ -133,6 +133,23 @@ describe("application routes", () => {
     ).toBe(true);
   });
 
+  it("renders the sourced pinned-check empty state when the corpus is empty", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify([]), { status: 200 })),
+    );
+    const router = createMemoryRouter(appRoutes, { initialEntries: ["/corpus"] });
+
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByRole("heading", { name: "Behavioral corpus" })).toBeInTheDocument();
+    expect(screen.getByText("No pinned checks yet")).toHaveAttribute("data-slot", "empty-title");
+    expect(
+      screen.getByText("Run a verification to begin accumulating grounded behavioral checks."),
+    ).toHaveAttribute("data-slot", "empty-description");
+    expect(document.querySelector('[data-slot="empty"][data-corpus-empty]')).toBeInTheDocument();
+  });
+
   it("routes evidence to root, submissions to /run, and method to /about", async () => {
     vi.stubGlobal(
       "fetch",

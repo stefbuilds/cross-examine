@@ -1,7 +1,14 @@
-import { Database } from "lucide-react";
+import { Database, RouteIcon } from "lucide-react";
 import { Link, useLoaderData } from "react-router-dom";
 
 import type { CorpusSummary } from "@/app/api";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/cnippet-empty";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export function CorpusPage() {
@@ -23,16 +30,20 @@ export function CorpusPage() {
         <Database aria-hidden="true" className="size-12 text-primary" strokeWidth={1.25} />
       </header>
       {summaries.length === 0 ? (
-        <section className="flex min-h-72 flex-col items-center justify-center gap-3 rounded-[1.4rem] border border-dashed border-primary bg-card text-center shadow-sm">
-          <Database
-            aria-hidden="true"
-            className="size-5 text-muted-foreground"
-          />
-          <p className="font-medium">No pinned checks yet</p>
-          <p className="max-w-sm text-sm text-muted-foreground">
-            Run a verification to begin accumulating grounded behavioral checks.
-          </p>
-        </section>
+        <Empty
+          className="min-h-72 rounded-[1.4rem] border border-dashed border-primary bg-card shadow-sm"
+          data-corpus-empty
+        >
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <RouteIcon />
+            </EmptyMedia>
+            <EmptyTitle>No pinned checks yet</EmptyTitle>
+            <EmptyDescription>
+              Run a verification to begin accumulating grounded behavioral checks.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <section className="surface-frame">
             <Table>
