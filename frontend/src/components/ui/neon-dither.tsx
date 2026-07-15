@@ -17,6 +17,7 @@ export function PaperDesignBackground({
   parallax = true,
   className = "",
 }: PaperDesignBackgroundProps) {
+  const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const [isDark, setIsDark] = useState(() =>
     typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
   );
@@ -61,7 +62,7 @@ export function PaperDesignBackground({
 
   // Optional mouse parallax
   useEffect(() => {
-    if (!parallax) return
+    if (!parallax || reducedMotion) return
     const root = document.getElementById("paper-bg-parallax")
     if (!root) return
 
@@ -75,7 +76,7 @@ export function PaperDesignBackground({
     }
     window.addEventListener("mousemove", onMove)
     return () => window.removeEventListener("mousemove", onMove)
-  }, [parallax])
+  }, [parallax, reducedMotion])
 
   return (
     <div
@@ -84,13 +85,13 @@ export function PaperDesignBackground({
         "pointer-events-none fixed inset-0",
         // Default behind app; override with className if needed
         "z-0",
-        "transition-colors duration-500",
+        !reducedMotion && "transition-colors duration-500",
         className,
       ].join(" ")}
       style={{
         backgroundColor: config.bg,
-        transform: parallax ? "translate3d(var(--parallax-x,0), var(--parallax-y,0), 0)" : undefined,
-        willChange: parallax ? "transform" : undefined,
+        transform: parallax && !reducedMotion ? "translate3d(var(--parallax-x,0), var(--parallax-y,0), 0)" : undefined,
+        willChange: parallax && !reducedMotion ? "transform" : undefined,
       }}
     >
       {/* Core dithering shader */}

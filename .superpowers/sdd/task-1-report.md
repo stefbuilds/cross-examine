@@ -32,3 +32,10 @@
 ## Generated output
 
 The requested frontend build refreshed the tracked FastAPI/Vercel deployment bundle under `src/cross_examine/static/`. The refreshed bundle is included with this visual feature commit.
+
+## Reduced-motion follow-up
+
+- Added `frontend/src/features/welcome/WelcomePage.test.tsx` to exercise the supplied sources under `prefers-reduced-motion: reduce`.
+- Red evidence: `npm run test -- src/features/welcome/WelcomePage.test.tsx` exited 1 with two expected failures: the hero stylesheet still contained its infinite shimmer and Neon Dither still registered its `mousemove` parallax listener.
+- Green evidence: the same focused command exited 0 with 2 tests passing after source-faithful guards disabled the pixel-canvas animation, heading shimmer, CTA delay/transition, dither parallax, and dither color transition only for reduced-motion users. Normal-motion source behavior remains conditional and unchanged.
+- Final follow-up verification: `npm run test` exited 0 with 11 test files and 27 tests passing; `npm run build` exited 0. The build retains the standard >500 kB output warning.

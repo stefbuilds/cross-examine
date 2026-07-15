@@ -175,7 +175,7 @@ function PixelCanvas({ colors, gap = 5, speed = 30 }: PixelCanvasProps) {
     const resizeObserver = new ResizeObserver(() => init());
     if (wrapRef.current) resizeObserver.observe(wrapRef.current);
 
-    animate("appear");
+    if (!reducedMotionRef.current) animate("appear");
 
     return () => {
       resizeObserver.disconnect();
@@ -210,6 +210,7 @@ export function PixelHero({
 }: PixelHeroProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [themeColors, setThemeColors] = useState<string[]>([]);
+  const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -246,7 +247,7 @@ export function PixelHero({
             background-clip: text;
             -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.3);
             filter: drop-shadow(0 15px 35px rgba(0,0,0,0.4)) drop-shadow(0 5px 10px rgba(0,0,0,0.2));
-            animation: shimmer 8s linear infinite;
+             animation: ${reducedMotion ? "none" : "shimmer 8s linear infinite"};
         }
         @keyframes shimmer {
             0% { background-position: 200% center; }
@@ -278,8 +279,8 @@ export function PixelHero({
 
       {/* Bottom Container: CTA Row */}
       <div
-        className={cn("pointer-events-auto flex flex-row items-center justify-center gap-3 mt-4 md:mt-10 mb-4 md:mb-0 order-4 md:order-3 transition-all duration-1000 transform px-1", isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}
-        style={{ transitionDelay: "450ms" }}
+        className={cn("pointer-events-auto flex flex-row items-center justify-center gap-3 mt-4 md:mt-10 mb-4 md:mb-0 order-4 md:order-3 transition-all duration-1000 motion-reduce:transition-none transform px-1", isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8")}
+        style={{ transitionDelay: reducedMotion ? "0ms" : "450ms" }}
       >
         {primaryAction}
       </div>
