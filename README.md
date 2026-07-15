@@ -1,4 +1,4 @@
-# Cross-Examine — OpenAI Build Week 2026
+# OpenAI Build Week 2026 - Cross-Examine
 
 > **Codex writes the code. Cross-Examine puts it on the stand.**
 
