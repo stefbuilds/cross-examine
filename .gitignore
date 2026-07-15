@@ -1,0 +1,16 @@
+.worktrees/
+.venv/
+.cross-examine/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+dist/
+work/
+frontend/src/assets/
+frontend/playwright-report/
+frontend/test-results/
+*.db
+*.sqlite3
+.env
+

@@ -1,0 +1,117 @@
+# Cross-Examine
+
+> **Codex writes the code. Cross-Examine puts it on the stand.**
+
+Cross-Examine is an independent verification harness for Codex-authored Python changes. It captures the base revision's behavior, executes the head revision against the same inputs, hunts adversarial boundaries, and shows the exact command and captured output behind every verdict.
+
+The catch is the product: a plausible optimization returns `None` for an empty list, the existing happy-path test stays green, and Cross-Examine produces `BROKEN` with `[]` as the reproducing input.
+
+## Why this is not a Codex skill
+
+A skill is part of the system being judged. You cannot ask the suspect to be the jury. Cross-Examine is a separate process with a separate state store: it characterizes behavior Codex did not record, executes checks Codex did not write, applies a deterministic verdict function, and pins verified behavior into a corpus that outlives a single run.
+
+## Architecture
+
+1. **Ingest** resolves base and head into isolated Git worktrees and discovers touched Python symbols.
+2. **Characterize** asks GPT-5.6 Sol for strict `Claim` objects only. In the offline hero demo, a clearly labeled checked-in claim fixture replaces this one model call.
+3. **Cross-examine** captures base behavior, replays it against head (Layer A), uses bounded Hypothesis generation and shrinking (Layer B), and executes conservatively discovered repository tests.
+4. **Aggregate** is a pure function. A preserve-critical refutation is `BROKEN`; other refutations or critical abstentions are `RISKY`; grounded passes are `SAFE`.
+5. **Render** reads the persisted `Report`, never free-form model prose, and reveals the exact command/output receipt for every finding.
+
+See [docs/architecture.md](docs/architecture.md) for boundaries and failure behavior.
+
+V1 deliberately abstains on intended-change correctness unless the contract has an independent executable oracle. Since model prose is never an oracle, any intended-change claim without one keeps the report at least `RISKY`; preservation checks and base-versus-head repository tests remain fully grounded.
+
+## Requirements
+
+- Python 3.12+
+- Git
+- [uv](https://docs.astral.sh/uv/)
+- Node.js 20+ only when rebuilding or testing the React frontend
+- Google Chrome for the packaged Playwright verification
+- `OPENAI_API_KEY` for real-repository characterization; the hero demo works offline
+
+Windows is the primary verified platform. The process-control and Git paths include POSIX implementations, but macOS/Linux remain secondary Build Week targets.
+
+## Five-minute setup
+
+```powershell
+uv sync --extra dev
+Push-Location frontend
+npm ci
+npm run build
+Pop-Location
+uv run cross-examine demo --no-open
+uv run cross-examine serve
+```
+
+Open the printed run URL. The packaged FastAPI server hosts both the API and React application, so direct `/runs/{id}` links work.
+The **Runs** destination lists the 50 most recent persisted runs after a restart.
+
+## Hero demo
+
+Run the complete deterministic catch:
+
+```powershell
+uv run cross-examine demo --no-open
+```
+
+Expected receipt:
+
+```text
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +2 this run · 2 total
+Refuted claim: preserve-empty
+Reproducing input: []
+```
+
+The UI's **Run offline hero demo** action creates the stable `hero-base` and `hero-head` repository automatically, uses the visibly labeled deterministic claim fixture, and executes the real pipeline without an API key.
+
+## Real repository run
+
+```powershell
+$env:OPENAI_API_KEY = "..."
+uv run cross-examine run C:\code\your-python-repo --base main --head feature/candidate
+uv run cross-examine serve
+```
+
+Use `--no-layer-b` for a Layer-A-only compatibility pass. The web form accepts a local path or Git URL and streams stage progress over SSE.
+
+## Safety limitation
+
+This Build Week version is a trusted-input harness, not a hostile-code sandbox. Commands use argument vectors with `shell=False`, an executable allowlist, a minimal child environment that strips secret-shaped names, per-command and total-run deadlines, process-tree termination, a 2 MB output cap, and receipt redaction. Target code still executes locally. Use only repositories you trust; production requires real isolation and network denial.
+
+## GPT-5.6 and Codex usage
+
+- **GPT-5.6 Sol (`gpt-5.6-sol`)** reads a bounded diff/source context and emits schema-constrained claims. It never emits verdicts. Malformed, duplicate, unknown-symbol, or verdict-injecting output is rejected.
+- **Codex** authored and iterated this application: the Python pipeline, tests, React UI, CLI, packaging, documentation, and verification flow. Cross-Examine remains independent at run time; deterministic execution and `aggregate()` judge a change.
+
+## Human decisions versus Codex decisions
+
+The human-provided doctrine locked the problem, Python-only scope, contract, five stages, abstain-toward-risk policy, Layer-A-before-Layer-B sequencing, trusted-input sandbox boundary, Build Week deadline, and the requirement to use 21st.dev at design time.
+
+Codex chose and implemented the detailed architecture: FastAPI/SQLite/React, worktree and subprocess mechanics, edge catalog, Hypothesis bounds, persistence and SSE protocol, CLI surface, deterministic hero construction, 21st.dev component selection/adaptation, responsive behavior, tests, and packaging. The exact UI-source provenance is recorded in [docs/provenance.md](docs/provenance.md).
+
+## Tests
+
+The complete judge-facing verification is:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/verify.ps1
+```
+
+It syncs dependencies, runs Ruff, all Python tests, all frontend contract/accessibility tests, the production build, the packaged Playwright receipt flow, and the offline hero demo.
+
+The dev extra intentionally uses PyPI-verified, Pydantic-owned `httpx2`: the installed Starlette `TestClient` imports it directly and emits a deprecation warning when falling back to legacy `httpx`.
+
+## Three-minute video outline
+
+- **0:00–0:30 — the catch:** confident PR, `BROKEN`, open `[]`, exact command, captured difference.
+- **0:30–1:05 — independence:** why a second process and pure aggregation matter.
+- **1:05–1:50 — five stages:** live progress from Ingest through Aggregate.
+- **1:50–2:20 — state moat:** rerun and show corpus growth/deduplication.
+- **2:20–2:45 — real repository:** one unseen Python change, Layer A first.
+- **2:45–3:00 — impact:** trustworthy unattended agentic coding.
+
+The exact shot and voiceover script is in [docs/demo.md](docs/demo.md).
