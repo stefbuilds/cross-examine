@@ -1,0 +1,5 @@
+fastapi
+hypothesis
+openai
+pydantic>=2
+uvicorn[standard]
