@@ -14,7 +14,7 @@ describe("SessionNavBar", () => {
     );
 
     const navigation = within(container);
-    expect(navigation.getByRole("link", { name: "Evidence catch" })).toHaveAttribute("href", "/");
+    expect(navigation.queryByRole("link", { name: "Evidence catch" })).not.toBeInTheDocument();
     expect(navigation.getByRole("link", { name: "Trials" })).toHaveAttribute("aria-current", "page");
     expect(navigation.getByRole("button", { name: "Runs" })).toBeInTheDocument();
     expect(navigation.queryByRole("link", { name: "About" })).not.toBeInTheDocument();

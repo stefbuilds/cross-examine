@@ -117,6 +117,16 @@ describe("application routes", () => {
     );
   });
 
+  it("renders the welcome hero outside the dashboard shell", async () => {
+    const router = createMemoryRouter(appRoutes, { initialEntries: ["/welcome"] });
+
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByRole("heading", { name: "Evidence, examined." })).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Primary" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Enter dashboard" })).toHaveAttribute("href", "/");
+  });
+
   it("renders the sourced verification-run empty state when no runs exist", async () => {
     vi.stubGlobal(
       "fetch",
@@ -208,12 +218,10 @@ describe("application routes", () => {
         .getAllByRole("link", { name: "Run locally" })
         .some((link) => link.classList.contains("min-w-56") && link.classList.contains("rounded-2xl")),
     ).toBe(true);
-    for (const link of screen.getAllByRole("link", { name: "Evidence catch" })) {
-      expect(link).toHaveAttribute("href", "/");
-    }
+    expect(screen.queryByRole("link", { name: "Evidence catch" })).not.toBeInTheDocument();
 
     expect(
-      appRoutes[0].children?.some((route) => route.path === "about"),
+      appRoutes.find((route) => route.children)?.children?.some((route) => route.path === "about"),
     ).toBe(false);
   });
 });

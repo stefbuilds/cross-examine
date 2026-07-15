@@ -15,6 +15,7 @@
     "@base-ui/react": "^1.6.0",
     "@fontsource-variable/lexend": "^5.2.11",
     "@fontsource-variable/space-grotesk": "^5.2.10",
+    "@paper-design/shaders-react": "^0.0.77",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.42.2",

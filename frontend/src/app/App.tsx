@@ -11,6 +11,7 @@ import { loadBrokenFixture, loadCorpus, loadRun, loadRuns } from "@/app/api";
 import { SessionNavBar } from "@/components/ui/session-nav-bar";
 import { CorpusPage } from "@/features/corpus/CorpusPage";
 import { EvidenceLandingPage } from "@/features/evidence/EvidenceLandingPage";
+import { WelcomePage } from "@/features/welcome/WelcomePage";
 import { RunHistoryPage } from "@/features/runs/RunHistoryPage";
 import { RunLocallyPage } from "@/features/runs/RunLocallyPage";
 import { FixtureRunPage, RunPage } from "@/features/runs/RunPage";
@@ -82,6 +83,7 @@ function LoadingShell() {
 
 // oxlint-disable-next-line react/only-export-components -- route objects are exported for deterministic tests.
 export const appRoutes: RouteObject[] = [
+  { path: "welcome", element: <WelcomePage /> },
   {
     element: <AppShell />,
     hydrateFallbackElement: <LoadingShell />,

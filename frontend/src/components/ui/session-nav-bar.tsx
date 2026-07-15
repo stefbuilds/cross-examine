@@ -54,19 +54,11 @@ type NavItemData = {
 };
 
 const items: NavItemData[] = [
-  { id: "evidence", title: "Evidence catch", icon: FlaskConical, href: "/" },
   { id: "trials", title: "Trials", icon: FlaskConical, href: "/trials" },
   { id: "corpus", title: "Corpus", icon: Blocks, href: "/corpus" },
 ];
 
 const productUseArticles: NewsArticle[] = [
-  {
-    href: "/",
-    title: "Start with the catch",
-    summary: "Open with a grounded broken report so the product proves itself immediately.",
-    image: "Evidence",
-    navId: "evidence",
-  },
   {
     href: "/run",
     title: "Run a local verification",
