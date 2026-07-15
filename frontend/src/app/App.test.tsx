@@ -127,6 +127,7 @@ describe("application routes", () => {
       screen.getByText("Create a run to capture exact commands, outputs, and grounded verdicts."),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "New verification run" })).toHaveAttribute("href", "/run");
+    expect(document.querySelector('[class*="[--duration:12s]"]')).toBeInTheDocument();
   });
 
   it("loads the documented trials page from primary navigation", async () => {

@@ -19,7 +19,7 @@ export default function EmptyState() {
         <Empty className="px-0 py-8 md:px-0 md:py-8">
           <EmptyHeader>
             <div aria-hidden className="mask-y-from-60% mask-x-from-95% mb-3 w-full max-w-xs space-y-2">
-              <Marquee className="h-56 [--duration:2s]" repeat={5} vertical>
+              <Marquee className="h-56 [--duration:12s]" repeat={5} vertical>
                 <div className="flex w-full items-center gap-3 rounded-lg border border-border px-4 py-3">
                   <FolderCheck className="shrink-0 fill-muted text-muted-foreground/70" />
                   <div className="h-5 w-full rounded-lg bg-muted" />
