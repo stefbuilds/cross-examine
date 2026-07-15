@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import {
   createBrowserRouter,
   Outlet,
@@ -9,7 +8,6 @@ import {
 } from "react-router-dom";
 
 import { loadBrokenFixture, loadCorpus, loadRun, loadRuns } from "@/app/api";
-import { Button } from "@/components/ui/button";
 import { SessionNavBar } from "@/components/ui/session-nav-bar";
 import { CorpusPage } from "@/features/corpus/CorpusPage";
 import { EvidenceLandingPage } from "@/features/evidence/EvidenceLandingPage";
@@ -70,22 +68,6 @@ function AppShell() {
       )}
 
       <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-foreground/15 bg-background/90 px-4 backdrop-blur-xl md:px-6">
-          <Button
-            aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-            onClick={() => setSidebarOpen((open) => !open)}
-            size="icon-sm"
-            variant="ghost"
-          >
-            {sidebarOpen ? (
-              <PanelLeftClose aria-hidden="true" />
-            ) : (
-              <PanelLeftOpen aria-hidden="true" />
-            )}
-          </Button>
-          <span className="ml-3 mr-auto font-heading text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Independent verification harness</span>
-          <a className="hidden text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground sm:inline" href="https://deerflow.tech" rel="noreferrer" target="_blank">Created By Deerflow</a>
-        </header>
         <Outlet />
       </div>
     </div>

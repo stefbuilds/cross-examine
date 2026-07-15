@@ -2,7 +2,6 @@ import { ArrowRight } from "lucide-react";
 import { Link, useLoaderData } from "react-router-dom";
 
 import type { FixtureResponse } from "@/app/api";
-import { Button } from "@/components/ui/button";
 import { FindingEvidence } from "@/features/report/FindingEvidence";
 import { VerdictStatus } from "@/features/report/VerdictStatus";
 
@@ -28,11 +27,12 @@ export function EvidenceLandingPage() {
             Cross-Examine found.
           </p>
         </div>
-        <Button asChild>
-          <Link to="/run">
-            Run locally <ArrowRight aria-hidden="true" />
-          </Link>
-        </Button>
+        <Link
+          className="relative flex min-h-14 min-w-56 w-full max-w-md items-center justify-between gap-6 rounded-2xl border bg-card px-6 py-4 text-card-foreground shadow-xs/5 not-dark:bg-clip-padding before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-2xl)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:before:shadow-[0_-1px_--theme(--color-white/6%)]"
+          to="/run"
+        >
+          Run locally <ArrowRight aria-hidden="true" />
+        </Link>
       </header>
 
       {finding && (

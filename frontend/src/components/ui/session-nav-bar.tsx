@@ -3,7 +3,7 @@
 // with product routes, React Router navigation, and accessible link semantics.
 import type React from "react";
 import { motion } from "framer-motion";
-import { Blocks, FlaskConical, Info, LayoutDashboard } from "lucide-react";
+import { Blocks, FlaskConical, Info, LayoutDashboard, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -98,10 +98,13 @@ export function SessionNavBar({
         className="relative z-40 flex h-full shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all"
         variants={contentVariants}
       >
-        <div className="flex h-[54px] w-full shrink-0 border-b border-sidebar-border p-2">
+        <div className="flex h-[54px] w-full shrink-0 items-center border-b border-sidebar-border p-2">
           <Link
             aria-label="Cross-Examine home"
-            className="flex w-fit items-center gap-2 rounded-md px-2 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
+            className={cn(
+              "items-center gap-2 rounded-md px-2 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+              isCollapsed ? "hidden" : "flex",
+            )}
             onClick={() => onSelect("evidence")}
             to="/"
           >
@@ -110,6 +113,22 @@ export function SessionNavBar({
               {!isCollapsed && <span className="text-sm font-medium">Cross-Examine</span>}
             </motion.span>
           </Link>
+          <button
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className={cn(
+              "ml-auto grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground outline-none transition hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+              isCollapsed && "mx-auto",
+            )}
+            onClick={() => setCollapsed(!isCollapsed)}
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            type="button"
+          >
+            {isCollapsed ? (
+              <PanelLeftOpen aria-hidden="true" className="size-4" />
+            ) : (
+              <PanelLeftClose aria-hidden="true" className="size-4" />
+            )}
+          </button>
         </div>
 
         <motion.ul className="flex h-full flex-col p-2" variants={staggerVariants}>

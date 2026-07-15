@@ -1,4 +1,4 @@
-import { render, within } from "@testing-library/react";
+import { fireEvent, render, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
@@ -47,7 +47,6 @@ describe("SessionNavBar", () => {
   });
 
   it("keeps the sidebar toggle inside the sourced sidebar", async () => {
-    const user = userEvent.setup();
     const onCollapsedChange = vi.fn();
 
     const { container } = render(
@@ -57,7 +56,7 @@ describe("SessionNavBar", () => {
     );
 
     const sidebar = within(container);
-    await user.click(sidebar.getByRole("button", { name: "Expand sidebar" }));
+    fireEvent.click(sidebar.getByRole("button", { name: "Expand sidebar" }));
 
     expect(onCollapsedChange).toHaveBeenCalledWith(false);
     expect(sidebar.getByRole("button", { name: "Collapse sidebar" })).toBeInTheDocument();

@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -44,7 +43,6 @@ describe("application routes", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("loads the grounded fixture inside the sourced dashboard shell", async () => {
-    const user = userEvent.setup();
     vi.stubGlobal(
       "fetch",
       vi.fn(
@@ -67,10 +65,7 @@ describe("application routes", () => {
     expect(screen.getByRole("link", { name: "About" })).toBeInTheDocument();
     expect(screen.queryByText("Independent verification harness")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Created By Deerflow" })).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Expand sidebar" }));
-    expect(
-      screen.getByRole("button", { name: "Collapse sidebar" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Expand sidebar" })).toBeInTheDocument();
 
     const accessibility = await axe.run(document.body, {
       rules: { "color-contrast": { enabled: false } },
@@ -152,6 +147,11 @@ describe("application routes", () => {
     for (const link of screen.getAllByRole("link", { name: "Run locally" })) {
       expect(link).toHaveAttribute("href", "/run");
     }
+    expect(
+      screen
+        .getAllByRole("link", { name: "Run locally" })
+        .some((link) => link.classList.contains("min-w-56") && link.classList.contains("rounded-2xl")),
+    ).toBe(true);
     for (const link of screen.getAllByRole("link", { name: "Evidence catch" })) {
       expect(link).toHaveAttribute("href", "/");
     }
