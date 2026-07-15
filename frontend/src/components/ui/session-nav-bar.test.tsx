@@ -46,6 +46,27 @@ describe("SessionNavBar", () => {
     expect(onSelect).toHaveBeenCalledWith("trials");
   });
 
+  it("renders product-use cards at the bottom and keeps their links in-app", async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+
+    const { container } = render(
+      <MemoryRouter>
+        <SessionNavBar onSelect={onSelect} />
+      </MemoryRouter>,
+    );
+
+    const sidebar = within(container);
+    fireEvent.click(sidebar.getByRole("button", { name: "Expand sidebar" }));
+
+    expect(sidebar.getByText("How to use Cross-Examine")).toBeInTheDocument();
+    expect(sidebar.getByRole("link", { name: "Open Run a local verification" })).toHaveAttribute("href", "/run");
+    expect(sidebar.getByRole("link", { name: "Open Inspect the evidence" })).toHaveAttribute("href", "/fixtures/broken");
+
+    await user.click(sidebar.getByRole("link", { name: "Open Run a local verification" }));
+    expect(onSelect).toHaveBeenCalledWith("run");
+  });
+
   it("keeps the sidebar toggle inside the sourced sidebar", async () => {
     const onCollapsedChange = vi.fn();
 

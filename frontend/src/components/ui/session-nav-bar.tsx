@@ -7,6 +7,7 @@ import { Blocks, FlaskConical, Info, LayoutDashboard, PanelLeftClose, PanelLeftO
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
+import { News, type NewsArticle } from "@/components/ui/sidebar-news";
 import { cn } from "@/lib/utils";
 
 const sidebarVariants = {
@@ -57,6 +58,37 @@ const items: NavItemData[] = [
   { id: "runs", title: "Runs", icon: LayoutDashboard, href: "/runs" },
   { id: "corpus", title: "Corpus", icon: Blocks, href: "/corpus" },
   { id: "about", title: "About", icon: Info, href: "/about" },
+];
+
+const productUseArticles: NewsArticle[] = [
+  {
+    href: "/",
+    title: "Start with the catch",
+    summary: "Open with a grounded broken report so the product proves itself immediately.",
+    image: "Evidence",
+    navId: "evidence",
+  },
+  {
+    href: "/run",
+    title: "Run a local verification",
+    summary: "Paste a Python repository and PR refs, then let the five-stage harness run.",
+    image: "Run",
+    navId: "run",
+  },
+  {
+    href: "/fixtures/broken",
+    title: "Inspect the evidence",
+    summary: "Review exact commands, outputs, repro input, and the refuted behavior.",
+    image: "Proof",
+    navId: "runs",
+  },
+  {
+    href: "/trials",
+    title: "Review real trials",
+    summary: "See the documented compatibility trials that back the Build Week demo.",
+    image: "Trials",
+    navId: "trials",
+  },
 ];
 
 export function SessionNavBar({
@@ -166,9 +198,14 @@ export function SessionNavBar({
             })}
           </li>
           <li className="mt-auto border-t border-sidebar-border pt-2">
-            <motion.p className="px-2 text-xs leading-5 text-muted-foreground" variants={variants}>
-              {!isCollapsed && "Independent evidence"}
-            </motion.p>
+            <motion.div variants={variants}>
+              {!isCollapsed && (
+                <News
+                  articles={productUseArticles}
+                  onArticleSelect={(article) => onSelect(article.navId ?? article.href)}
+                />
+              )}
+            </motion.div>
           </li>
         </motion.ul>
       </motion.div>
