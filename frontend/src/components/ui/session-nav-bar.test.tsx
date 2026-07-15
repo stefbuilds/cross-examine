@@ -67,6 +67,20 @@ describe("SessionNavBar", () => {
     expect(onSelect).toHaveBeenCalledWith("run");
   });
 
+  it("keeps the navigation list scrollable while exposing the workspace profile shortcuts", () => {
+    const { container } = render(
+      <MemoryRouter>
+        <SessionNavBar />
+      </MemoryRouter>,
+    );
+
+    const sidebar = within(container);
+    fireEvent.click(sidebar.getByRole("button", { name: "Expand sidebar" }));
+
+    expect(sidebar.getByTestId("sidebar-navigation")).toHaveClass("min-h-0", "flex-1", "overflow-y-auto");
+    expect(sidebar.getByRole("button", { name: "Workspace shortcuts" })).toBeInTheDocument();
+  });
+
   it("keeps the sidebar toggle inside the sourced sidebar", async () => {
     const onCollapsedChange = vi.fn();
 

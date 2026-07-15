@@ -8,6 +8,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { News, type NewsArticle } from "@/components/ui/sidebar-news";
+import { WorkspaceProfile } from "@/components/ui/workspace-profile";
 import { cn } from "@/lib/utils";
 
 const sidebarVariants = {
@@ -163,17 +164,18 @@ export function SessionNavBar({
           </button>
         </div>
 
-        <motion.ul className="flex h-full flex-col p-2" variants={staggerVariants}>
+        <motion.ul className="flex min-h-0 flex-1 flex-col p-2" variants={staggerVariants}>
           <li className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             <motion.span variants={variants}>{!isCollapsed && "Workspace"}</motion.span>
           </li>
-          <li className="flex grow flex-col gap-1">
+          <li className="min-h-0 flex-1 overflow-y-auto" data-testid="sidebar-navigation">
+            <ul className="flex flex-col gap-1">
             {items.map((item) => {
               const active = item.id === activeId;
               const isRunLocally = item.id === "run";
               const Icon = item.icon;
               return (
-                <motion.div key={item.id} variants={variants}>
+                <motion.li key={item.id} variants={variants}>
                   <Link
                     aria-current={active ? "page" : undefined}
                     aria-label={item.title}
@@ -193,11 +195,12 @@ export function SessionNavBar({
                     <Icon aria-hidden="true" className="size-4 shrink-0" strokeWidth={active ? 2.25 : 1.75} />
                     {!isCollapsed && <span className="ml-2">{item.title}</span>}
                   </Link>
-                </motion.div>
+                </motion.li>
               );
             })}
+            </ul>
           </li>
-          <li className="mt-auto border-t border-sidebar-border pt-2">
+          <li className="shrink-0 border-t border-sidebar-border pt-2">
             <motion.div variants={variants}>
               {!isCollapsed && (
                 <News
@@ -205,6 +208,11 @@ export function SessionNavBar({
                   onArticleSelect={(article) => onSelect(article.navId ?? article.href)}
                 />
               )}
+            </motion.div>
+          </li>
+          <li className="shrink-0 border-t border-sidebar-border pt-2">
+            <motion.div variants={variants}>
+              {!isCollapsed && <WorkspaceProfile onSelect={onSelect} />}
             </motion.div>
           </li>
         </motion.ul>
