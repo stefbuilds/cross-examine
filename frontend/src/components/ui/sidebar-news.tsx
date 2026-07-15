@@ -53,7 +53,7 @@ export function News({
             <div
               key={article.href}
               className={cn(
-                "absolute left-0 top-0 size-full scale-[var(--scale)] transition-[opacity,transform] duration-200",
+                "absolute left-0 top-0 flex size-full flex-col justify-end scale-[var(--scale)] transition-[opacity,transform] duration-200",
                 stackDepth > 3
                   ? [
                       "opacity-0 sm:group-hover:translate-y-[var(--y)] sm:group-hover:opacity-[var(--opacity)]",

@@ -19,5 +19,6 @@ describe("News", () => {
 
     const section = within(container).getByRole("region", { name: "How to use Cross-Examine" });
     expect(section.querySelector("div.relative")).toHaveClass("h-60");
+    expect(section.querySelector("div.absolute")).toHaveClass("flex", "flex-col", "justify-end");
   });
 });
