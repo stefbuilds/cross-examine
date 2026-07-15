@@ -68,15 +68,16 @@ A skill is part of the system being judged. You cannot ask the suspect to be the
 ## Architecture
 
 ```mermaid
-flowchart TB
+flowchart LR
   PR["Python base..head diff"] --> I
 
   subgraph U["Untrusted proposal"]
+    direction LR
     I["Ingest\nGit worktrees + AST diff"] --> C["Characterize\nGPT-5.6 Sol → Claim[]"]
   end
 
   subgraph EX["Grounded execution — deterministic, no model"]
-    direction TB
+    direction LR
     LA["Layer A\nbase capture → head replay"] --> LB["Layer B\nbounded Hypothesis + shrink"]
     LB --> RT["Repository tests\ndiscovered command → finding"]
   end
@@ -84,28 +85,30 @@ flowchart TB
   C --> LA
 
   subgraph J["Pure judgment"]
+    direction LR
     AG["aggregate()\npure function, no IO"]
   end
 
   RT --> AG
 
-  AG -->|preserve-critical refutation| BROKEN[["BROKEN"]]
-  AG -->|other refutation / critical abstain| RISKY[["RISKY"]]
-  AG -->|grounded pass| SAFE[["SAFE"]]
+  AG -->|preserve-critical refutation| BROKEN["BROKEN"]
+  AG -->|other refutation / critical abstain| RISKY["RISKY"]
+  AG -->|grounded pass| SAFE["SAFE"]
 
   BROKEN --> R["Report\nSQLite + grounded UI\nexact command + output per finding"]
   RISKY --> R
   SAFE --> R
 
-  LA -.->|pins verified behavior| P[("Verified corpus")]
+  LA -.->|pins verified behavior| P["Verified corpus"]
   P -.->|replays next run| LA
 
-  classDef untrusted fill:#fff3cd,stroke:#b8860b,color:#3d2b00
-  classDef grounded fill:#d4edda,stroke:#28a745,color:#0b3d1e
-  classDef pure fill:#cce5ff,stroke:#004085,color:#00264d
-  classDef broken fill:#f8d7da,stroke:#dc3545,color:#721c24
-  classDef risky fill:#fff3cd,stroke:#ffc107,color:#856404
-  classDef safe fill:#d4edda,stroke:#28a745,color:#155724
+  classDef untrusted fill:#f7f7f7,stroke:#a3a3a3,color:#171717,stroke-width:1px
+  classDef grounded fill:#f7f7f7,stroke:#a3a3a3,color:#171717,stroke-width:1px
+  classDef pure fill:#171717,stroke:#171717,color:#ffffff,stroke-width:1px
+  classDef broken fill:#ffffff,stroke:#171717,color:#171717,stroke-width:1px
+  classDef risky fill:#f7f7f7,stroke:#525252,color:#171717,stroke-width:1px
+  classDef safe fill:#ecfdf3,stroke:#2f8f5b,color:#14532d,stroke-width:1px
+  classDef corpus fill:#ecfdf3,stroke:#2f8f5b,color:#14532d,stroke-width:1px
 
   class I,C untrusted
   class LA,LB,RT grounded
@@ -113,6 +116,12 @@ flowchart TB
   class BROKEN broken
   class RISKY risky
   class SAFE safe
+  class P corpus
+  style U fill:#fafafa,stroke:#d4d4d4,stroke-width:1px,color:#525252
+  style EX fill:#fafafa,stroke:#d4d4d4,stroke-width:1px,color:#525252
+  style J fill:#fafafa,stroke:#d4d4d4,stroke-width:1px,color:#525252
+  linkStyle default stroke:#737373,stroke-width:1px
+  linkStyle 12,13 stroke:#2f8f5b,stroke-width:1.25px
 ```
 
 1. **Ingest** resolves base and head into isolated Git worktrees and discovers touched Python symbols.
