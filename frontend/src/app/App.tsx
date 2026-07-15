@@ -10,7 +10,7 @@ import {
 
 import { loadBrokenFixture, loadCorpus, loadRun, loadRuns } from "@/app/api";
 import { Button } from "@/components/ui/button";
-import { SidebarNav } from "@/components/ui/dashboard-sidebar";
+import { SessionNavBar } from "@/components/ui/session-nav-bar";
 import { CorpusPage } from "@/features/corpus/CorpusPage";
 import { EvidenceLandingPage } from "@/features/evidence/EvidenceLandingPage";
 import { HowItWorksPage } from "@/features/method/HowItWorksPage";
@@ -23,6 +23,7 @@ function activeNavigation(pathname: string): string {
   if (pathname.startsWith("/corpus")) return "corpus";
   if (pathname.startsWith("/about")) return "about";
   if (pathname.startsWith("/run")) return "run";
+  if (pathname.startsWith("/trials")) return "trials";
   if (pathname.startsWith("/runs") || pathname.startsWith("/fixtures")) return "runs";
   return "evidence";
 }
@@ -31,6 +32,7 @@ function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(
     () => typeof window === "undefined" || window.innerWidth >= 768,
   );
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const location = useLocation();
 
   return (
@@ -38,15 +40,20 @@ function AppShell() {
       <aside
         aria-hidden={!sidebarOpen}
         className={`fixed inset-y-0 left-0 z-30 shrink-0 overflow-hidden bg-card shadow-xl transition-[width,opacity] duration-300 motion-reduce:transition-none md:static md:z-auto md:shadow-none ${
-          sidebarOpen ? "w-[276px] opacity-100" : "w-0 opacity-0"
+          sidebarOpen
+            ? sidebarCollapsed
+              ? "w-[15rem] opacity-100 md:w-[3.05rem]"
+              : "w-[15rem] opacity-100"
+            : "w-0 opacity-0"
         }`}
         inert={!sidebarOpen ? true : undefined}
       >
-        <nav aria-label="Primary" className="h-screen w-[276px]">
-          <SidebarNav
+        <nav aria-label="Primary" className="h-screen w-[15rem]">
+          <SessionNavBar
             activeId={activeNavigation(location.pathname)}
             activeWorkspace="Cross-Examine"
-            className="w-[276px]"
+            className="w-full"
+            onCollapsedChange={setSidebarCollapsed}
             onSelect={() => {
               if (window.innerWidth < 768) setSidebarOpen(false);
             }}

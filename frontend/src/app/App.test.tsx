@@ -65,9 +65,11 @@ describe("application routes", () => {
     expect(screen.getByRole("link", { name: "Runs" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Corpus" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "About" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Collapse sidebar" }));
+    expect(screen.queryByText("Independent verification harness")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Created By Deerflow" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Expand sidebar" }));
     expect(
-      screen.getByRole("button", { name: "Expand sidebar" }),
+      screen.getByRole("button", { name: "Collapse sidebar" }),
     ).toBeInTheDocument();
 
     const accessibility = await axe.run(document.body, {
@@ -129,6 +131,11 @@ describe("application routes", () => {
     for (const link of screen.getAllByRole("link", { name: "Trials" })) {
       expect(link).toHaveAttribute("href", "/trials");
     }
+    expect(
+      screen
+        .getAllByRole("link", { name: "Trials" })
+        .some((link) => link.getAttribute("aria-current") === "page"),
+    ).toBe(true);
   });
 
   it("routes evidence to root, submissions to /run, and method to /about", async () => {
