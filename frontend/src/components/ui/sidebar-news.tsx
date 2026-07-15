@@ -46,7 +46,7 @@ export function News({
       <p className="mb-3 px-1 font-heading text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         How to use Cross-Examine
       </p>
-      <div className="relative h-52 w-full">
+      <div className="relative h-60 w-full">
         {[...cards].reverse().map((article, idx) => {
           const stackDepth = cardCount - (idx + 1);
           return (
