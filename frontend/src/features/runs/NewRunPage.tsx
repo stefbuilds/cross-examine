@@ -91,6 +91,21 @@ export function NewRunPage() {
           </div>
         </div>
 
+        <aside
+          aria-label="Hosted deployment limitation"
+          className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm leading-6"
+        >
+          <p className="font-semibold text-foreground">Hosted evidence explorer only</p>
+          <p className="mt-1 text-muted-foreground">
+            This Vercel deployment cannot execute submitted repositories: Vercel
+            Functions do not provide the Git and runtime isolation required.
+            Run Cross-Examine locally instead:
+          </p>
+          <code className="mt-3 block overflow-x-auto rounded-lg bg-background px-3 py-2 font-mono text-xs text-foreground">
+            uv sync --extra dev && uv run cross-examine demo --no-open
+          </code>
+        </aside>
+
         <div className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="repo">
