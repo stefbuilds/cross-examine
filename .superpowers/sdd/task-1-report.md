@@ -46,11 +46,16 @@ The requested frontend build refreshed the tracked FastAPI/Vercel deployment bun
 - Red evidence: the focused welcome test exited 1 because neither source subscribed to the media-query change; the hero kept its shimmer and Neon Dither kept its transition class.
 - Green evidence: both sources now subscribe with `MediaQueryList.addEventListener("change", ...)` and unsubscribe on cleanup. PixelCanvas receives the updated state and cancels/restarts its source animation accordingly; dither removes its mouse handler and transition only while reduced motion is active. Neither component writes the document `dark` class.
 - Final verification: focused welcome tests passed 3/3; full `npm run test` passed 11 files and 28 tests; `npm run build` passed with the standard >500 kB output warning.
-- Sidebar audit: `sidebar-news.tsx` and its test are absent from the welcome commits. Their most recent changes are pre-existing commit `801d938` (`fix(ui): prevent sidebar card overlap`), so no unrelated sidebar code was reverted or included in this follow-up.
+- Sidebar audit: `sidebar-news.tsx` changes originated in `801d938` and require restoration to the pre-welcome baseline.
 
 ## Final scope and generated-output cleanup
 
-- Reverted the exact `801d938` sidebar scope-creep delta: the sidebar card bottom-alignment classes, its matching assertion, and its expanded provenance claim. The intended `SessionNavBar` removal of the evidence destination/article remains untouched.
-- Focused verification passed: `npm run test -- src/components/ui/sidebar-news.test.tsx src/features/welcome/WelcomePage.test.tsx` reported 2 files and 4 tests passing.
+- Initial cleanup was incomplete: it reverted only the bottom-alignment subset of `801d938`, leaving the `h-60` layout, sidebar-news test, and provenance sentence. The subsequent correction restores the exact pre-welcome baseline (`h-52`), deletes that test, and restores the prior provenance wording. The intended `SessionNavBar` removal of the evidence destination/article remains untouched.
 - Full verification passed: `npm run test` reported 11 files and 28 tests passing; `npm run build` exited 0 with the standard >500 kB output warning.
 - Rebuilt static output replaces the prior generated bundle. The generated shader template's trailing whitespace was removed safely from the fresh bundle; the post-commit `git diff --check f44d2e3..HEAD` check is recorded after committing the replacement.
+
+## Exact sidebar baseline correction
+
+- Restored the remaining original `801d938` delta exactly: `sidebar-news.tsx` now uses its pre-welcome `h-52` height, `sidebar-news.test.tsx` is deleted, and the Sidebar News provenance row is returned to its prior wording.
+- This correction does not change welcome files, `SessionNavBar`, or the intended evidence/article removal.
+- Final verification: `npm run test` exited 0 with 10 files and 27 tests passing; `npm run build` exited 0 with the standard >500 kB output warning. The rebuilt generated JavaScript had its shader-template trailing whitespace removed before staging; the requested base-range diff check is run after the correction commit.
