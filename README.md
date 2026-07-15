@@ -1,4 +1,4 @@
-# Cross-Examine
+# Cross-Examine — OpenAI Build Week 2026
 
 > **Codex writes the code. Cross-Examine puts it on the stand.**
 
@@ -16,19 +16,23 @@ The catch is the product: a plausible optimization returns `None` for an empty l
 
 The hosted build is an explicitly labeled, checked-in evidence fixture for zero-install judging. Vercel Functions do not include the Git/runtime isolation needed to execute repositories, so arbitrary repository analysis is intentionally local-only. The quickstart below runs the real five-stage pipeline.
 
+Git worktrees → GPT-5.6 Sol claims → sandboxed base/head execution → pure aggregate() → FastAPI/React report.
+
 ## Contents
 
+- [Judge quickstart: see the catch in 60 seconds](#judge-quickstart-see-the-catch-in-60-seconds)
 - [Why this is not a Codex skill](#why-this-is-not-a-codex-skill)
 - [Architecture](#architecture)
 - [Requirements](#requirements)
-- [Five-minute setup](#judge-quickstart-see-the-catch-in-60-seconds)
-- [Hero demo](#judge-quickstart-see-the-catch-in-60-seconds)
+- [Directory map](#directory-map)
+- [Windows PowerShell setup](#windows-powershell-setup)
 - [Real repository run](#real-repository-run)
 - [Safety limitation](#safety-limitation)
 - [GPT-5.6 and Codex usage](#gpt-56-and-codex-usage)
-- [Human vs. Codex decisions](#human-decisions-versus-codex-decisions)
+- [Human decisions versus Codex decisions](#human-decisions-versus-codex-decisions)
 - [Tests](#tests)
 - [Three-minute video outline](#three-minute-video-outline)
+- [License](#license)
 
 ## Judge quickstart: see the catch in 60 seconds
 
@@ -64,16 +68,51 @@ A skill is part of the system being judged. You cannot ask the suspect to be the
 ## Architecture
 
 ```mermaid
-flowchart LR
-  PR["Python base..head"] --> I["Ingest\nGit + AST"]
-  I --> C["Characterize\nGPT-5.6 Sol → Claim[]"]
-  C --> A["Layer A\nbase capture → head replay"]
-  A --> B["Layer B\nbounded Hypothesis + shrink"]
-  B --> T["Repository tests\ndiscovered command → finding"]
-  T --> G["Aggregate\npure findings → verdict"]
-  G --> R["Report\nSQLite + grounded UI"]
-  A --> P["Verified corpus"]
-  P --> A
+flowchart TB
+  PR["Python base..head diff"] --> I
+
+  subgraph U["Untrusted proposal"]
+    I["Ingest\nGit worktrees + AST diff"] --> C["Characterize\nGPT-5.6 Sol → Claim[]"]
+  end
+
+  subgraph EX["Grounded execution — deterministic, no model"]
+    direction TB
+    LA["Layer A\nbase capture → head replay"] --> LB["Layer B\nbounded Hypothesis + shrink"]
+    LB --> RT["Repository tests\ndiscovered command → finding"]
+  end
+
+  C --> LA
+
+  subgraph J["Pure judgment"]
+    AG["aggregate()\npure function, no IO"]
+  end
+
+  RT --> AG
+
+  AG -->|preserve-critical refutation| BROKEN[["BROKEN"]]
+  AG -->|other refutation / critical abstain| RISKY[["RISKY"]]
+  AG -->|grounded pass| SAFE[["SAFE"]]
+
+  BROKEN --> R["Report\nSQLite + grounded UI\nexact command + output per finding"]
+  RISKY --> R
+  SAFE --> R
+
+  LA -.->|pins verified behavior| P[("Verified corpus")]
+  P -.->|replays next run| LA
+
+  classDef untrusted fill:#fff3cd,stroke:#b8860b,color:#3d2b00
+  classDef grounded fill:#d4edda,stroke:#28a745,color:#0b3d1e
+  classDef pure fill:#cce5ff,stroke:#004085,color:#00264d
+  classDef broken fill:#f8d7da,stroke:#dc3545,color:#721c24
+  classDef risky fill:#fff3cd,stroke:#ffc107,color:#856404
+  classDef safe fill:#d4edda,stroke:#28a745,color:#155724
+
+  class I,C untrusted
+  class LA,LB,RT grounded
+  class AG pure
+  class BROKEN broken
+  class RISKY risky
+  class SAFE safe
 ```
 
 1. **Ingest** resolves base and head into isolated Git worktrees and discovers touched Python symbols.
@@ -98,6 +137,17 @@ V1 deliberately abstains on intended-change correctness unless the contract has 
 | `OPENAI_API_KEY` | for real-repository characterization; the hero demo works offline |
 
 The release workflow verifies Python 3.12 on Windows, macOS, and Ubuntu. Repository targets are Python-only during Build Week. The local runner executes target code, so use only repositories you trust.
+
+## Directory map
+
+| Path | What's there |
+| --- | --- |
+| `src/cross_examine/` | The Python package: pipeline stages, schemas and validation, execution controls, persistence, CLI, fixtures, and FastAPI application. |
+| `frontend/` | React/Vite evidence-explorer source, UI components, frontend tests, and browser end-to-end tests. |
+| `api/` | Vercel entry point that exposes the packaged application. |
+| `scripts/` | Hero-repository builder, real-repository trial runner, and PowerShell verification script. |
+| `tests/` | Python unit, integration, end-to-end, release, and hero-repository fixture tests. |
+| `docs/` | Architecture, demo, execution policy, provenance, submission, trial evidence, and probe-plan documentation. |
 
 ## Windows PowerShell setup
 

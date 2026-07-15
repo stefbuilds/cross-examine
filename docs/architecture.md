@@ -3,16 +3,51 @@
 Cross-Examine is contract-first. The renderer consumes `Report`; every upstream stage exists only to produce that structure. The model proposes claims, execution produces findings, and deterministic code decides the verdict.
 
 ```mermaid
-flowchart LR
-  PR["Python base..head"] --> I["Ingest\nGit + AST"]
-  I --> C["Characterize\nGPT-5.6 Sol → Claim[]"]
-  C --> A["Layer A\nbase capture → head replay"]
-  A --> B["Layer B\nbounded Hypothesis + shrink"]
-  B --> T["Repository tests\ndiscovered command → finding"]
-  T --> G["Aggregate\npure findings → verdict"]
-  G --> R["Report\nSQLite + grounded UI"]
-  A --> P["Verified corpus"]
-  P --> A
+flowchart TB
+  PR["Python base..head diff"] --> I
+
+  subgraph U["Untrusted proposal"]
+    I["Ingest\nGit worktrees + AST diff"] --> C["Characterize\nGPT-5.6 Sol → Claim[]"]
+  end
+
+  subgraph EX["Grounded execution — deterministic, no model"]
+    direction TB
+    LA["Layer A\nbase capture → head replay"] --> LB["Layer B\nbounded Hypothesis + shrink"]
+    LB --> RT["Repository tests\ndiscovered command → finding"]
+  end
+
+  C --> LA
+
+  subgraph J["Pure judgment"]
+    AG["aggregate()\npure function, no IO"]
+  end
+
+  RT --> AG
+
+  AG -->|preserve-critical refutation| BROKEN[["BROKEN"]]
+  AG -->|other refutation / critical abstain| RISKY[["RISKY"]]
+  AG -->|grounded pass| SAFE[["SAFE"]]
+
+  BROKEN --> R["Report\nSQLite + grounded UI\nexact command + output per finding"]
+  RISKY --> R
+  SAFE --> R
+
+  LA -.->|pins verified behavior| P[("Verified corpus")]
+  P -.->|replays next run| LA
+
+  classDef untrusted fill:#fff3cd,stroke:#b8860b,color:#3d2b00
+  classDef grounded fill:#d4edda,stroke:#28a745,color:#0b3d1e
+  classDef pure fill:#cce5ff,stroke:#004085,color:#00264d
+  classDef broken fill:#f8d7da,stroke:#dc3545,color:#721c24
+  classDef risky fill:#fff3cd,stroke:#ffc107,color:#856404
+  classDef safe fill:#d4edda,stroke:#28a745,color:#155724
+
+  class I,C untrusted
+  class LA,LB,RT grounded
+  class AG pure
+  class BROKEN broken
+  class RISKY risky
+  class SAFE safe
 ```
 
 ## Contract ownership
