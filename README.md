@@ -2,6 +2,12 @@
 
 > **Codex writes the code. Cross-Examine puts it on the stand.**
 
+<!-- TODO: Add a screen recording of `uv run cross-examine demo --no-open` ending on the `BROKEN` verdict, or a screenshot of the Run report page, before submission. -->
+
+[![Python >=3.12](https://img.shields.io/badge/Python-%3E%3D3.12-3776AB?logo=python&logoColor=white)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Build Week submission](https://img.shields.io/badge/Build%20Week-submission-8A2BE2)
+
 Cross-Examine is an independent verification harness for Codex-authored Python changes. It captures the base revision's behavior, executes the head revision against the same inputs, hunts adversarial boundaries, and shows the exact command and captured output behind every verdict.
 
 The catch is the product: a plausible optimization returns `None` for an empty list, the existing happy-path test stays green, and Cross-Examine produces `BROKEN` with `[]` as the reproducing input.
@@ -9,6 +15,20 @@ The catch is the product: a plausible optimization returns `None` for an empty l
 **Live evidence explorer:** [cross-examine-stefffs-projects.vercel.app](https://cross-examine-stefffs-projects.vercel.app)
 
 The hosted build is an explicitly labeled, checked-in evidence fixture for zero-install judging. Vercel Functions do not include the Git/runtime isolation needed to execute repositories, so arbitrary repository analysis is intentionally local-only. The quickstart below runs the real five-stage pipeline.
+
+## Contents
+
+- [Why this is not a Codex skill](#why-this-is-not-a-codex-skill)
+- [Architecture](#architecture)
+- [Requirements](#requirements)
+- [Five-minute setup](#judge-quickstart-see-the-catch-in-60-seconds)
+- [Hero demo](#judge-quickstart-see-the-catch-in-60-seconds)
+- [Real repository run](#real-repository-run)
+- [Safety limitation](#safety-limitation)
+- [GPT-5.6 and Codex usage](#gpt-56-and-codex-usage)
+- [Human vs. Codex decisions](#human-decisions-versus-codex-decisions)
+- [Tests](#tests)
+- [Three-minute video outline](#three-minute-video-outline)
 
 ## Judge quickstart: see the catch in 60 seconds
 
@@ -43,6 +63,19 @@ A skill is part of the system being judged. You cannot ask the suspect to be the
 
 ## Architecture
 
+```mermaid
+flowchart LR
+  PR["Python base..head"] --> I["Ingest\nGit + AST"]
+  I --> C["Characterize\nGPT-5.6 Sol → Claim[]"]
+  C --> A["Layer A\nbase capture → head replay"]
+  A --> B["Layer B\nbounded Hypothesis + shrink"]
+  B --> T["Repository tests\ndiscovered command → finding"]
+  T --> G["Aggregate\npure findings → verdict"]
+  G --> R["Report\nSQLite + grounded UI"]
+  A --> P["Verified corpus"]
+  P --> A
+```
+
 1. **Ingest** resolves base and head into isolated Git worktrees and discovers touched Python symbols.
 2. **Characterize** asks GPT-5.6 Sol for strict `Claim` objects only. In the offline hero demo, a clearly labeled checked-in claim fixture replaces this one model call.
 3. **Cross-examine** captures base behavior, replays it against head (Layer A), uses bounded Hypothesis generation and shrinking (Layer B), and executes conservatively discovered repository tests.
@@ -55,12 +88,14 @@ V1 deliberately abstains on intended-change correctness unless the contract has 
 
 ## Requirements
 
-- Python 3.12+
-- Git
-- [uv](https://docs.astral.sh/uv/)
-- Node.js 20.19+ only when rebuilding or testing the React frontend
-- Playwright Chromium for the packaged browser verification (`npx playwright install chromium`)
-- `OPENAI_API_KEY` for real-repository characterization; the hero demo works offline
+| Requirement | Notes |
+| --- | --- |
+| Python | 3.12+ |
+| Git | |
+| [uv](https://docs.astral.sh/uv/) | |
+| Node.js | 20.19+ only when rebuilding or testing the React frontend |
+| Playwright Chromium | for the packaged browser verification (`npx playwright install chromium`) |
+| `OPENAI_API_KEY` | for real-repository characterization; the hero demo works offline |
 
 The release workflow verifies Python 3.12 on Windows, macOS, and Ubuntu. Repository targets are Python-only during Build Week. The local runner executes target code, so use only repositories you trust.
 
