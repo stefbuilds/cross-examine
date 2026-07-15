@@ -82,6 +82,9 @@ describe("SessionNavBar", () => {
     fireEvent.click(sidebar.getByRole("button", { name: "Expand sidebar" }));
 
     expect(sidebar.getByTestId("sidebar-navigation")).toHaveClass("min-h-0", "flex-1", "overflow-y-auto");
+    expect(sidebar.getByRole("region", { name: "How to use Cross-Examine" }).closest("li")).toHaveClass(
+      "mt-auto",
+    );
     expect(sidebar.getByRole("button", { name: "Workspace shortcuts" })).toBeInTheDocument();
     expect(sidebar.getByText("Settings")).toBeInTheDocument();
     expect(sidebar.getByRole("button", { name: "Select theme" })).toBeInTheDocument();

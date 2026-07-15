@@ -112,7 +112,7 @@ export function SessionNavBar({
   return (
     <motion.div
       animate={isCollapsed ? "closed" : "open"}
-      className={cn("sidebar relative z-40 h-full shrink-0 border-r border-sidebar-border", className)}
+      className={cn("sidebar relative z-40 h-screen shrink-0 border-r border-sidebar-border", className)}
       initial={isCollapsed ? "closed" : "open"}
       onMouseEnter={() => {
         if (window.innerWidth >= 768) setCollapsed(false);
@@ -124,7 +124,7 @@ export function SessionNavBar({
       variants={sidebarVariants}
     >
       <motion.div
-        className="relative z-40 flex h-full shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all"
+        className="relative z-40 flex h-full min-h-screen shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all"
         variants={contentVariants}
       >
         <div className="flex h-[54px] w-full shrink-0 items-center border-b border-sidebar-border p-2">
@@ -236,7 +236,7 @@ export function SessionNavBar({
             </motion.li>
             </ul>
           </li>
-          <li className="shrink-0 border-t border-sidebar-border pt-2">
+          <li className="mt-auto shrink-0 border-t border-sidebar-border pt-2">
             <motion.div variants={variants}>
               {!isCollapsed && (
                 <News
