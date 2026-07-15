@@ -9,7 +9,15 @@ from pathlib import Path
 import pytest
 
 from cross_examine import execution
-from cross_examine.execution import CommandNotAllowedError, render_command, run_command
+from cross_examine.execution import (
+    BoundedHostProcessRunner,
+    CommandNotAllowedError,
+    ExecutionPolicy,
+    PolicyValidationError,
+    capability_report,
+    render_command,
+    run_command,
+)
 from cross_examine.settings import MAX_OUTPUT_BYTES
 
 
@@ -71,6 +79,32 @@ def test_timeout_terminates_the_process(tmp_path: Path) -> None:
 
     assert evidence.timed_out is True
     assert evidence.exit_code is not None
+
+
+@pytest.mark.skipif(os.name == "nt", reason="process-group assertion is POSIX-specific")
+def test_timeout_terminates_spawned_children(tmp_path: Path) -> None:
+    child_pid = tmp_path / "child.pid"
+    program = (
+        "import pathlib, subprocess, sys, time; "
+        "child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(30)']); "
+        f"pathlib.Path({str(child_pid)!r}).write_text(str(child.pid)); time.sleep(30)"
+    )
+
+    evidence = run_command([sys.executable, "-c", program], cwd=tmp_path, timeout=0.2)
+
+    assert evidence.timed_out is True
+    deadline = time.monotonic() + 2
+    while not child_pid.exists() and time.monotonic() < deadline:
+        time.sleep(0.01)
+    pid = int(child_pid.read_text())
+    while time.monotonic() < deadline:
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            break
+        time.sleep(0.01)
+    else:
+        pytest.fail("spawned child survived the process-tree cleanup")
 
 
 def test_run_deadline_caps_a_larger_command_timeout(tmp_path: Path) -> None:
@@ -137,3 +171,98 @@ def test_sensitive_environment_values_are_redacted(tmp_path: Path) -> None:
 
     assert secret not in evidence.output
     assert evidence.stdout == "absent\n"
+
+
+def test_explicit_policy_rejects_executables_and_cwds_outside_its_boundary(
+    tmp_path: Path,
+) -> None:
+    policy = ExecutionPolicy(
+        version="test-v1",
+        wall_clock_seconds=1,
+        output_limit_bytes=1024,
+        allowed_executables=frozenset({Path(sys.executable).name}),
+        environment_allowlist=frozenset({"PATH"}),
+        working_directory_roots=(tmp_path,),
+    )
+
+    with pytest.raises(CommandNotAllowedError):
+        run_command(["git", "status"], cwd=tmp_path, policy=policy)
+    with pytest.raises(CommandNotAllowedError):
+        run_command([sys.executable, "-c", "pass"], cwd=tmp_path.parent, policy=policy)
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"wall_clock_seconds": 0},
+        {"output_limit_bytes": 0},
+        {"allowed_executables": frozenset()},
+        {"environment_allowlist": frozenset({"OPENAI_API_KEY"})},
+        {"working_directory_roots": ()},
+    ],
+)
+def test_policy_validation_fails_closed_for_unsafe_or_contradictory_values(
+    tmp_path: Path, kwargs: dict[str, object]
+) -> None:
+    values: dict[str, object] = {
+        "version": "test-v1",
+        "wall_clock_seconds": 1,
+        "output_limit_bytes": 1024,
+        "allowed_executables": frozenset({Path(sys.executable).name}),
+        "environment_allowlist": frozenset({"PATH"}),
+        "working_directory_roots": (tmp_path,),
+    }
+    values.update(kwargs)
+
+    with pytest.raises(PolicyValidationError):
+        ExecutionPolicy(**values)  # type: ignore[arg-type]
+
+
+def test_manifest_is_a_redacted_auditable_receipt(tmp_path: Path) -> None:
+    secret = "manifest-secret-value"
+    policy = ExecutionPolicy(
+        version="audit-v1",
+        wall_clock_seconds=1,
+        output_limit_bytes=4096,
+        allowed_executables=frozenset({Path(sys.executable).name}),
+        environment_allowlist=frozenset({"PATH"}),
+        working_directory_roots=(tmp_path,),
+    )
+
+    evidence = run_command(
+        [sys.executable, "-c", f"print('{secret}')"],
+        cwd=tmp_path,
+        env={"OPENAI_API_KEY": secret},
+        policy=policy,
+    )
+
+    assert evidence.manifest is not None
+    assert evidence.manifest.policy_version == "audit-v1"
+    assert evidence.manifest.argv_digest
+    assert evidence.manifest.rendered_argv == evidence.command
+    assert evidence.manifest.cwd_identity.path == str(tmp_path.resolve())
+    assert evidence.manifest.executable_identity.resolved_path
+    assert evidence.manifest.redaction_applied is True
+    assert secret not in evidence.manifest.rendered_argv
+    assert secret not in evidence.output
+
+
+def test_manifest_stable_fields_are_deterministic(tmp_path: Path) -> None:
+    policy = ExecutionPolicy.default_for(tmp_path)
+    runner = BoundedHostProcessRunner()
+    argv = [sys.executable, "-c", "print('ok')"]
+
+    first = runner.run(argv, cwd=tmp_path, policy=policy).manifest
+    second = runner.run(argv, cwd=tmp_path, policy=policy).manifest
+
+    assert first is not None and second is not None
+    assert first.stable_identity() == second.stable_identity()
+
+
+def test_host_runner_capabilities_do_not_claim_sandboxing() -> None:
+    report = capability_report()
+
+    assert report.adapter == "bounded-host-process"
+    assert report.controls["filesystem_isolation"].status == "not_supported"
+    assert report.controls["network_isolation"].status == "not_supported"
+    assert report.controls["process_tree_cleanup"].status in {"enforced", "best_effort"}

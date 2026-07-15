@@ -41,6 +41,7 @@ class Claim:
     proposed_check: str
     preserve_critical: bool = False
     kind: ClaimKind = ClaimKind.PRESERVATION
+    probe_plans: list[dict[str, object]] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.kind = ClaimKind(self.kind)
@@ -57,6 +58,7 @@ class Finding:
     expected: str | None = None
     actual: str | None = None
     confidence: float = 1.0
+    provenance: dict[str, object] | None = None
 
 
 @dataclass
@@ -98,10 +100,59 @@ class CommandEvidence:
     duration_seconds: float
     timed_out: bool = False
     output_truncated: bool = False
+    manifest: "ExecutionManifest | None" = None
 
     @property
     def output(self) -> str:
         return "\n".join(part for part in (self.stdout, self.stderr) if part)
+
+
+@dataclass(frozen=True)
+class CwdIdentity:
+    path: str
+    digest: str
+
+
+@dataclass(frozen=True)
+class ExecutableIdentity:
+    requested: str
+    resolved_path: str
+    digest: str | None
+
+
+@dataclass(frozen=True)
+class ExecutionManifest:
+    """Auditable receipt for one bounded execution attempt."""
+
+    adapter: str
+    policy_version: str
+    policy_identity: str
+    argv_digest: str
+    rendered_argv: str
+    cwd_identity: CwdIdentity
+    executable_identity: ExecutableIdentity
+    runtime: str
+    operating_system: str
+    duration_seconds: float
+    exit_code: int | None
+    timed_out: bool
+    output_truncated: bool
+    redaction_applied: bool
+
+    def stable_identity(self) -> tuple[object, ...]:
+        """Fields stable across identical executions on one host/runtime."""
+
+        return (
+            self.adapter,
+            self.policy_version,
+            self.policy_identity,
+            self.argv_digest,
+            self.rendered_argv,
+            self.cwd_identity,
+            self.executable_identity,
+            self.runtime,
+            self.operating_system,
+        )
 
 
 @dataclass(frozen=True)
