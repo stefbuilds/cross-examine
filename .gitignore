@@ -14,3 +14,4 @@ frontend/test-results/
 *.sqlite3
 .env
 
+.vercel
