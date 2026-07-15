@@ -12,12 +12,29 @@ interface PaperDesignBackgroundProps {
   className?: string
 }
 
+function useReducedMotion() {
+  const [reducedMotion, setReducedMotion] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = (event: MediaQueryListEvent) => setReducedMotion(event.matches);
+    setReducedMotion(media.matches);
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  return reducedMotion;
+}
+
 export function PaperDesignBackground({
   intensity = 0.8,
   parallax = true,
   className = "",
 }: PaperDesignBackgroundProps) {
-  const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reducedMotion = useReducedMotion();
   const [isDark, setIsDark] = useState(() =>
     typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
   );

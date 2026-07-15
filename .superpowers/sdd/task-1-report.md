@@ -39,3 +39,11 @@ The requested frontend build refreshed the tracked FastAPI/Vercel deployment bun
 - Red evidence: `npm run test -- src/features/welcome/WelcomePage.test.tsx` exited 1 with two expected failures: the hero stylesheet still contained its infinite shimmer and Neon Dither still registered its `mousemove` parallax listener.
 - Green evidence: the same focused command exited 0 with 2 tests passing after source-faithful guards disabled the pixel-canvas animation, heading shimmer, CTA delay/transition, dither parallax, and dither color transition only for reduced-motion users. Normal-motion source behavior remains conditional and unchanged.
 - Final follow-up verification: `npm run test` exited 0 with 11 test files and 27 tests passing; `npm run build` exited 0. The build retains the standard >500 kB output warning.
+
+## Reduced-motion subscription follow-up
+
+- Added a focused change-event test that opens both sourced layers in normal motion, dispatches a `(prefers-reduced-motion: reduce)` media-query change, and verifies the hero shimmer/CTA delay and dither color transition/parallax update without a route reload.
+- Red evidence: the focused welcome test exited 1 because neither source subscribed to the media-query change; the hero kept its shimmer and Neon Dither kept its transition class.
+- Green evidence: both sources now subscribe with `MediaQueryList.addEventListener("change", ...)` and unsubscribe on cleanup. PixelCanvas receives the updated state and cancels/restarts its source animation accordingly; dither removes its mouse handler and transition only while reduced motion is active. Neither component writes the document `dark` class.
+- Final verification: focused welcome tests passed 3/3; full `npm run test` passed 11 files and 28 tests; `npm run build` passed with the standard >500 kB output warning.
+- Sidebar audit: `sidebar-news.tsx` and its test are absent from the welcome commits. Their most recent changes are pre-existing commit `801d938` (`fix(ui): prevent sidebar card overlap`), so no unrelated sidebar code was reverted or included in this follow-up.

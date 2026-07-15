@@ -97,15 +97,15 @@ type PixelCanvasProps = {
   colors: string[];
   gap?: number;
   speed?: number;
+  reducedMotion: boolean;
 };
 
-function PixelCanvas({ colors, gap = 5, speed = 30 }: PixelCanvasProps) {
+function PixelCanvas({ colors, gap = 5, speed = 30, reducedMotion }: PixelCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const pixelsRef = useRef<Pixel[]>([]);
   const animationRef = useRef<number>(0);
   const lastFrameRef = useRef(performance.now());
-  const reducedMotionRef = useRef(false);
 
   const init = useCallback(() => {
     const canvas = canvasRef.current;
@@ -123,7 +123,7 @@ function PixelCanvas({ colors, gap = 5, speed = 30 }: PixelCanvasProps) {
     canvas.style.width = `${w}px`;
     canvas.style.height = `${h}px`;
 
-    const effectiveSpeed = reducedMotionRef.current ? 0 : Math.min(speed, 100) * 0.001;
+    const effectiveSpeed = reducedMotion ? 0 : Math.min(speed, 100) * 0.001;
     const pixels: Pixel[] = [];
 
     for (let x = 0; x < w; x += gap) {
@@ -131,13 +131,13 @@ function PixelCanvas({ colors, gap = 5, speed = 30 }: PixelCanvasProps) {
         const color = colors[Math.floor(Math.random() * colors.length)];
         const dx = x - w / 2;
         const dy = y - h / 2;
-        const delay = reducedMotionRef.current ? 0 : Math.sqrt(dx * dx + dy * dy) * 0.65;
+        const delay = reducedMotion ? 0 : Math.sqrt(dx * dx + dy * dy) * 0.65;
         pixels.push(createPixel(ctx, canvas, x, y, color, effectiveSpeed, delay));
       }
     }
 
     pixelsRef.current = pixels;
-  }, [colors, gap, speed]);
+  }, [colors, gap, speed, reducedMotion]);
 
   const animate = useCallback((mode: "appear" | "disappear") => {
     cancelAnimationFrame(animationRef.current);
@@ -169,19 +169,18 @@ function PixelCanvas({ colors, gap = 5, speed = 30 }: PixelCanvasProps) {
   }, []);
 
   useEffect(() => {
-    reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     init();
 
     const resizeObserver = new ResizeObserver(() => init());
     if (wrapRef.current) resizeObserver.observe(wrapRef.current);
 
-    if (!reducedMotionRef.current) animate("appear");
+    if (!reducedMotion) animate("appear");
 
     return () => {
       resizeObserver.disconnect();
       cancelAnimationFrame(animationRef.current);
     };
-  }, [init, animate]);
+  }, [init, animate, reducedMotion]);
 
   return (
     <div ref={wrapRef} className="absolute inset-0 overflow-hidden">
@@ -202,6 +201,23 @@ interface PixelHeroProps {
   primaryAction: React.ReactNode;
 }
 
+function useReducedMotion() {
+  const [reducedMotion, setReducedMotion] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = (event: MediaQueryListEvent) => setReducedMotion(event.matches);
+    setReducedMotion(media.matches);
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  return reducedMotion;
+}
+
 export function PixelHero({
   word1 = "Silent",
   word2 = "Precision.",
@@ -210,7 +226,7 @@ export function PixelHero({
 }: PixelHeroProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [themeColors, setThemeColors] = useState<string[]>([]);
-  const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -257,7 +273,7 @@ export function PixelHero({
 
       {/* Permanent canvas background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        {themeColors.length > 0 && <PixelCanvas colors={themeColors} gap={6} speed={30} />}
+        {themeColors.length > 0 && <PixelCanvas colors={themeColors} gap={6} reducedMotion={reducedMotion} speed={30} />}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,var(--background)_100%)] pointer-events-none opacity-80" />
       </div>
 
