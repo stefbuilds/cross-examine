@@ -1,6 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import axe from "axe-core";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { appRoutes } from "./App";
@@ -40,7 +41,10 @@ const fixtureResponse = {
 };
 
 describe("application routes", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
 
   it("loads the grounded fixture inside the sourced dashboard shell", async () => {
     vi.stubGlobal(
@@ -60,9 +64,9 @@ describe("application routes", () => {
     expect(
       screen.getByRole("navigation", { name: "Primary" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Runs" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Runs" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Corpus" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "About" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "About" })).not.toBeInTheDocument();
     expect(screen.queryByText("Independent verification harness")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Created By Deerflow" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Expand sidebar" })).toBeInTheDocument();
@@ -130,6 +134,24 @@ describe("application routes", () => {
     expect(document.querySelector('[class*="[--duration:12s]"]')).toBeInTheDocument();
   });
 
+  it("shows the same empty-run state before opening the local verification flow", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify([]), { status: 200 })),
+    );
+    const router = createMemoryRouter(appRoutes, { initialEntries: ["/run"] });
+
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByRole("heading", { name: "No verification runs yet" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Start local verification" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "New verification run" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Start local verification" }));
+    expect(await screen.findByRole("heading", { name: "New verification run" })).toBeInTheDocument();
+  });
+
   it("loads the documented trials page from primary navigation", async () => {
     const router = createMemoryRouter(appRoutes, { initialEntries: ["/trials"] });
 
@@ -167,7 +189,7 @@ describe("application routes", () => {
     expect(document.querySelector('[data-slot="empty"][data-corpus-empty]')).toBeInTheDocument();
   });
 
-  it("routes evidence to root, submissions to /run, and method to /about", async () => {
+  it("routes evidence to root and submissions to /run without retaining an About route", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response(JSON.stringify(fixtureResponse), { status: 200 })),
@@ -190,10 +212,8 @@ describe("application routes", () => {
       expect(link).toHaveAttribute("href", "/");
     }
 
-    await router.navigate("/run");
-    expect(await screen.findByText("Hosted evidence explorer only")).toBeInTheDocument();
-
-    await router.navigate("/about");
-    expect(await screen.findByRole("heading", { name: "How it works" })).toBeInTheDocument();
+    expect(
+      appRoutes[0].children?.some((route) => route.path === "about"),
+    ).toBe(false);
   });
 });

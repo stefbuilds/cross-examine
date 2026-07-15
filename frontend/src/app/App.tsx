@@ -11,16 +11,14 @@ import { loadBrokenFixture, loadCorpus, loadRun, loadRuns } from "@/app/api";
 import { SessionNavBar } from "@/components/ui/session-nav-bar";
 import { CorpusPage } from "@/features/corpus/CorpusPage";
 import { EvidenceLandingPage } from "@/features/evidence/EvidenceLandingPage";
-import { HowItWorksPage } from "@/features/method/HowItWorksPage";
-import { NewRunPage } from "@/features/runs/NewRunPage";
 import { RunHistoryPage } from "@/features/runs/RunHistoryPage";
+import { RunLocallyPage } from "@/features/runs/RunLocallyPage";
 import { FixtureRunPage, RunPage } from "@/features/runs/RunPage";
 import { TrialsPage } from "@/features/trials/TrialsPage";
 
 function activeNavigation(pathname: string): string {
   if (pathname.startsWith("/corpus")) return "corpus";
-  if (pathname.startsWith("/about")) return "about";
-  if (pathname.startsWith("/run")) return "run";
+  if (pathname.startsWith("/run")) return "runs";
   if (pathname.startsWith("/trials")) return "trials";
   if (pathname.startsWith("/runs") || pathname.startsWith("/fixtures")) return "runs";
   return "evidence";
@@ -89,7 +87,7 @@ export const appRoutes: RouteObject[] = [
     hydrateFallbackElement: <LoadingShell />,
     children: [
       { index: true, loader: loadBrokenFixture, element: <EvidenceLandingPage /> },
-      { path: "run", element: <NewRunPage /> },
+      { path: "run", loader: loadRuns, element: <RunLocallyPage /> },
       { path: "runs", loader: loadRuns, element: <RunHistoryPage /> },
       {
         path: "runs/:runId",
@@ -103,7 +101,6 @@ export const appRoutes: RouteObject[] = [
       },
       { path: "corpus", loader: loadCorpus, element: <CorpusPage /> },
       { path: "trials", element: <TrialsPage /> },
-      { path: "about", element: <HowItWorksPage /> },
     ],
   },
 ];

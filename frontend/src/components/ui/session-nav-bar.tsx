@@ -3,12 +3,13 @@
 // with product routes, React Router navigation, and accessible link semantics.
 import type React from "react";
 import { motion } from "framer-motion";
-import { Blocks, FlaskConical, Info, LayoutDashboard, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Blocks, FlaskConical, LayoutDashboard, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 import { News, type NewsArticle } from "@/components/ui/sidebar-news";
 import { WorkspaceProfile } from "@/components/ui/workspace-profile";
+import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "@/components/ui/coss-accordion";
 import { cn } from "@/lib/utils";
 
 const sidebarVariants = {
@@ -54,11 +55,8 @@ type NavItemData = {
 
 const items: NavItemData[] = [
   { id: "evidence", title: "Evidence catch", icon: FlaskConical, href: "/" },
-  { id: "run", title: "Run locally", icon: FlaskConical, href: "/run" },
   { id: "trials", title: "Trials", icon: FlaskConical, href: "/trials" },
-  { id: "runs", title: "Runs", icon: LayoutDashboard, href: "/runs" },
   { id: "corpus", title: "Corpus", icon: Blocks, href: "/corpus" },
-  { id: "about", title: "About", icon: Info, href: "/about" },
 ];
 
 const productUseArticles: NewsArticle[] = [
@@ -104,9 +102,15 @@ export function SessionNavBar({
   activeWorkspace?: string;
   onCollapsedChange?: (collapsed: boolean) => void;
 }) {
+  const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(
     () => typeof window === "undefined" || window.innerWidth >= 768,
   );
+  const [runsOpen, setRunsOpen] = useState(activeId === "runs");
+
+  useEffect(() => {
+    if (activeId === "runs") setRunsOpen(true);
+  }, [activeId]);
 
   const setCollapsed = (collapsed: boolean) => {
     setIsCollapsed(collapsed);
@@ -172,7 +176,6 @@ export function SessionNavBar({
             <ul className="flex flex-col gap-1">
             {items.map((item) => {
               const active = item.id === activeId;
-              const isRunLocally = item.id === "run";
               const Icon = item.icon;
               return (
                 <motion.li key={item.id} variants={variants}>
@@ -181,9 +184,7 @@ export function SessionNavBar({
                     aria-label={item.title}
                     className={cn(
                       "flex w-full items-center text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
-                      isRunLocally
-                        ? "relative min-h-12 rounded-2xl border bg-card px-3 py-2 text-card-foreground shadow-xs/5 not-dark:bg-clip-padding before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-2xl)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] dark:before:shadow-[0_-1px_--theme(--color-white/6%)]"
-                        : "h-8 rounded-md px-2 py-1.5",
+                      "h-8 rounded-md px-2 py-1.5",
                       active
                         ? "bg-primary/15 text-primary"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -198,6 +199,49 @@ export function SessionNavBar({
                 </motion.li>
               );
             })}
+            <motion.li variants={variants}>
+              <Accordion
+                onValueChange={(value) => setRunsOpen(value.includes("runs"))}
+                value={!isCollapsed && runsOpen ? ["runs"] : []}
+              >
+                <AccordionItem value="runs">
+                  <AccordionTrigger
+                    aria-label="Runs"
+                    className={cn(
+                      "text-muted-foreground",
+                      activeId === "runs" && "bg-primary/15 text-primary",
+                      isCollapsed && "justify-center px-0",
+                    )}
+                    title={isCollapsed ? "Runs" : undefined}
+                  >
+                    <span className="flex items-center">
+                      <LayoutDashboard aria-hidden="true" className="size-4 shrink-0" strokeWidth={activeId === "runs" ? 2.25 : 1.75} />
+                      {!isCollapsed && <span className="ml-2">Runs</span>}
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionPanel>
+                    <div className="ml-3 flex flex-col gap-1 border-l border-sidebar-border pl-2">
+                      <Link
+                        aria-current={activeId === "runs" && location.pathname.startsWith("/runs") ? "page" : undefined}
+                        className="flex h-8 items-center rounded-md px-2 text-sm font-medium text-muted-foreground outline-none transition hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
+                        onClick={() => onSelect("runs")}
+                        to="/runs"
+                      >
+                        View runs
+                      </Link>
+                      <Link
+                        aria-current={activeId === "runs" && location.pathname.startsWith("/run") && !location.pathname.startsWith("/runs") ? "page" : undefined}
+                        className="flex h-8 items-center rounded-md px-2 text-sm font-medium text-muted-foreground outline-none transition hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
+                        onClick={() => onSelect("runs")}
+                        to="/run"
+                      >
+                        Run locally
+                      </Link>
+                    </div>
+                  </AccordionPanel>
+                </AccordionItem>
+              </Accordion>
+            </motion.li>
             </ul>
           </li>
           <li className="shrink-0 border-t border-sidebar-border pt-2">

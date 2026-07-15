@@ -1,5 +1,6 @@
 // Visual grammar adapted from the user-supplied 21st.dev Empty State 04 component.
 import { FolderCheck, PlusIcon } from "lucide-react";
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import {
 } from "@/components/ui/empty-state-04-utils/empty";
 import { Marquee } from "@/components/ui/empty-state-04-utils/marquee";
 
-export default function EmptyState() {
+export default function EmptyState({ action }: { action?: ReactNode }) {
   return (
     <div className="px-6 py-10">
       <div className="mx-auto max-w-sm pt-0">
@@ -31,11 +32,13 @@ export default function EmptyState() {
             <EmptyDescription>Create a run to capture exact commands, outputs, and grounded verdicts.</EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
-            <Button asChild>
-              <Link to="/run">
-                <PlusIcon /> New verification run
-              </Link>
-            </Button>
+            {action ?? (
+              <Button asChild>
+                <Link to="/run">
+                  <PlusIcon /> New verification run
+                </Link>
+              </Button>
+            )}
           </EmptyContent>
         </Empty>
       </div>

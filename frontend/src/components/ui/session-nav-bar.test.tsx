@@ -15,21 +15,25 @@ describe("SessionNavBar", () => {
 
     const navigation = within(container);
     expect(navigation.getByRole("link", { name: "Evidence catch" })).toHaveAttribute("href", "/");
-    expect(navigation.getByRole("link", { name: "Run locally" })).toHaveAttribute("href", "/run");
     expect(navigation.getByRole("link", { name: "Trials" })).toHaveAttribute("aria-current", "page");
-    expect(navigation.getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
+    expect(navigation.getByRole("button", { name: "Runs" })).toBeInTheDocument();
+    expect(navigation.queryByRole("link", { name: "About" })).not.toBeInTheDocument();
   });
 
-  it("gives Run locally the larger sourced card treatment without changing its route", () => {
+  it("expands Runs into the real history and local verification destinations", async () => {
+    const user = userEvent.setup();
     const { container } = render(
       <MemoryRouter>
         <SessionNavBar />
       </MemoryRouter>,
     );
 
-    const runLocally = within(container).getByRole("link", { name: "Run locally" });
-    expect(runLocally).toHaveAttribute("href", "/run");
-    expect(runLocally).toHaveClass("min-h-12", "rounded-2xl", "bg-card");
+    const sidebar = within(container);
+    await user.click(sidebar.getByRole("button", { name: "Expand sidebar" }));
+    await user.click(sidebar.getByRole("button", { name: "Runs" }));
+
+    expect(sidebar.getByRole("link", { name: "View runs" })).toHaveAttribute("href", "/runs");
+    expect(sidebar.getByRole("link", { name: "Run locally" })).toHaveAttribute("href", "/run");
   });
 
   it("notifies the shell after a navigation choice so mobile can close", async () => {

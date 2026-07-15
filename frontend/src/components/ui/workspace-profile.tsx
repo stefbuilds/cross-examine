@@ -8,7 +8,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { BookOpenCheck, FlaskConical, FolderCheck, History, Info, Library } from "lucide-react";
+import { BookOpenCheck, FlaskConical, FolderCheck, History, Library } from "lucide-react";
 import { Link } from "react-router-dom";
 
 type WorkspaceProfileProps = {
@@ -60,11 +60,6 @@ export function WorkspaceProfile({ onSelect }: WorkspaceProfileProps) {
         <ContextMenuItem asChild>
           <Link className="flex items-center" onClick={() => onSelect?.("trials")} to="/trials">
             <FolderCheck className="mr-2 size-4" /> Review trials
-          </Link>
-        </ContextMenuItem>
-        <ContextMenuItem asChild>
-          <Link className="flex items-center" onClick={() => onSelect?.("about")} to="/about">
-            <Info className="mr-2 size-4" /> How it works
           </Link>
         </ContextMenuItem>
         </ContextMenuContent>
