@@ -12,14 +12,16 @@ type NavItemData = {
 };
 
 const items: NavItemData[] = [
-  { id: "verify", title: "New examination", icon: FlaskConical, href: "/" },
+  { id: "evidence", title: "Evidence catch", icon: FlaskConical, href: "/" },
+  { id: "run", title: "Run locally", icon: FlaskConical, href: "/run" },
+  { id: "trials", title: "Trials", icon: FlaskConical, href: "/trials" },
   { id: "runs", title: "Runs", icon: LayoutDashboard, href: "/runs" },
   { id: "corpus", title: "Corpus", icon: Blocks, href: "/corpus" },
   { id: "about", title: "About", icon: Info, href: "/about" },
 ];
 
 export function SidebarNav({
-  activeId = "verify",
+  activeId = "evidence",
   className = "",
   onSelect = () => undefined,
 }: {
@@ -30,7 +32,7 @@ export function SidebarNav({
 }) {
   return (
     <div className={`flex h-full w-[276px] flex-col border-r border-sidebar-border bg-sidebar p-4 ${className}`}>
-      <Link className="group mb-8 flex items-center gap-3 px-1 py-2" onClick={() => onSelect("verify")} to="/">
+      <Link className="group mb-8 flex items-center gap-3 px-1 py-2" onClick={() => onSelect("evidence")} to="/">
         <span className="grid size-11 place-items-center rounded-xl bg-foreground font-heading text-lg font-semibold text-background shadow-[4px_4px_0_#7f76ca] transition-transform group-hover:-translate-y-0.5">X_</span>
         <span className="grid gap-0.5">
           <span className="font-heading text-base font-semibold uppercase leading-none tracking-[-0.03em]">Cross—Examine</span>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Info, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import {
   createBrowserRouter,
   Outlet,
@@ -12,42 +12,19 @@ import { loadBrokenFixture, loadCorpus, loadRun, loadRuns } from "@/app/api";
 import { Button } from "@/components/ui/button";
 import { SidebarNav } from "@/components/ui/dashboard-sidebar";
 import { CorpusPage } from "@/features/corpus/CorpusPage";
+import { EvidenceLandingPage } from "@/features/evidence/EvidenceLandingPage";
+import { HowItWorksPage } from "@/features/method/HowItWorksPage";
 import { NewRunPage } from "@/features/runs/NewRunPage";
 import { RunHistoryPage } from "@/features/runs/RunHistoryPage";
 import { FixtureRunPage, RunPage } from "@/features/runs/RunPage";
+import { TrialsPage } from "@/features/trials/TrialsPage";
 
 function activeNavigation(pathname: string): string {
   if (pathname.startsWith("/corpus")) return "corpus";
   if (pathname.startsWith("/about")) return "about";
+  if (pathname.startsWith("/run")) return "run";
   if (pathname.startsWith("/runs") || pathname.startsWith("/fixtures")) return "runs";
-  return "verify";
-}
-
-function AboutPage() {
-  return (
-    <main className="page-shell">
-      <header className="page-header">
-        <div className="grid gap-4">
-          <p className="eyebrow">Method / 05 stages</p>
-          <h1 className="page-title">About Cross—Examine</h1>
-        </div>
-        <Info aria-hidden="true" className="size-12 text-primary" strokeWidth={1.25} />
-      </header>
-      <section className="grid gap-px overflow-hidden rounded-[1.4rem] border border-foreground bg-foreground md:grid-cols-5">
-        {["Ingest", "Characterize", "Cross-examine", "Aggregate", "Render"].map((stage, index) => (
-          <div className="bg-background p-5" key={stage}>
-            <span className="font-mono text-xs text-primary">0{index + 1}</span>
-            <h2 className="mt-8 text-sm font-semibold uppercase">{stage}</h2>
-          </div>
-        ))}
-      </section>
-      <p className="page-copy">
-        An independent verification harness for Codex-authored Python changes.
-        Models propose schema-constrained checks; execution supplies evidence;
-        deterministic code decides the verdict.
-      </p>
-    </main>
-  );
+  return "evidence";
 }
 
 function AppShell() {
@@ -122,7 +99,8 @@ export const appRoutes: RouteObject[] = [
     element: <AppShell />,
     hydrateFallbackElement: <LoadingShell />,
     children: [
-      { index: true, element: <NewRunPage /> },
+      { index: true, loader: loadBrokenFixture, element: <EvidenceLandingPage /> },
+      { path: "run", element: <NewRunPage /> },
       { path: "runs", loader: loadRuns, element: <RunHistoryPage /> },
       {
         path: "runs/:runId",
@@ -135,7 +113,8 @@ export const appRoutes: RouteObject[] = [
         element: <FixtureRunPage />,
       },
       { path: "corpus", loader: loadCorpus, element: <CorpusPage /> },
-      { path: "about", element: <AboutPage /> },
+      { path: "trials", element: <TrialsPage /> },
+      { path: "about", element: <HowItWorksPage /> },
     ],
   },
 ];
