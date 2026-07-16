@@ -17,3 +17,7 @@ frontend/test-results/
 .vercel
 .env*
 public/
+
+# macOS Finder copy artifacts
+* [0-9].*
+.DS_Store

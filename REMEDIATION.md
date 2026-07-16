@@ -583,3 +583,132 @@ Raw output:
 .................................                                        [100%]
 105 passed in 25.30s
 ```
+
+## Task 6 — Remove dead Finder-copy artifacts
+
+### SPEC
+
+Only tracked numbered Finder-copy artifacts with no live references should be removed. A
+typo-looking filename must stay when its name records an intentional source and it remains
+imported. The retired dashboard sidebar must not be revived by renaming a stray copy.
+
+### PROBE
+
+Command:
+
+```text
+git ls-files | grep -E ' [0-9]\.'
+```
+
+Raw output:
+
+```text
+frontend/src/components/ui/dashboard-sidebar 2.tsx
+frontend/src/components/ui/label 2.tsx
+frontend/src/components/ui/switch 2.tsx
+src/cross_examine/static/assets/index-D4zFGBUc 2.css
+src/cross_examine/static/assets/lexend-latin-ext-wght-normal-B6JQhE1e 2.woff2
+src/cross_examine/static/assets/lexend-latin-wght-normal-ci0D1wrL 2.woff2
+src/cross_examine/static/assets/lexend-vietnamese-wght-normal-RvljkFvg 2.woff2
+src/cross_examine/static/assets/space-grotesk-latin-ext-wght-normal-D9tNdqV9 2.woff2
+src/cross_examine/static/assets/space-grotesk-latin-wght-normal-BhU9QXUp 2.woff2
+src/cross_examine/static/assets/space-grotesk-vietnamese-wght-normal-D0rl6rjA 2.woff2
+src/cross_examine/static/favicon 2.svg
+src/cross_examine/static/favicon 3.svg
+src/cross_examine/static/index 2.html
+src/cross_examine/static/index 3.html
+```
+
+Each exact self-excluding reference search for those 14 names returned empty stdout and exit
+code 1. The dashboard copy also had no surviving consumer:
+
+```text
+$ git grep -n -F -- 'SidebarNav' HEAD -- . ':(exclude)frontend/src/components/ui/dashboard-sidebar 2.tsx'
+exit_code=1
+```
+
+Its history showed that it was introduced alone as a stray artifact after the real component
+had already been replaced:
+
+```text
+$ git log --follow --format=oneline --name-status -- 'frontend/src/components/ui/dashboard-sidebar 2.tsx'
+e459fb552927aa404b8d2ddfc71654ac192c902d chore: include remaining integration assets
+A	frontend/src/components/ui/dashboard-sidebar 2.tsx
+```
+
+The earlier replacement in `c7e5751` was:
+
+```text
+-import { SidebarNav } from "@/components/ui/dashboard-sidebar";
++import { SessionNavBar } from "@/components/ui/session-nav-bar";
+```
+
+The typo-looking names were not dead. Exact references returned:
+
+```text
+frontend/src/components/ui/session-nav-bar.tsx:12:import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "@/components/ui/coss-accordion";
+docs/provenance.md:10:| Runs sidebar accordion | [Accordion by coss.com](https://21st.dev/@coss.com/components/coss-accordion) |
+frontend/src/features/corpus/CorpusPage.tsx:11:} from "@/components/ui/cnippet-empty";
+docs/provenance.md:25:| Empty corpus | Empty by cnippet.dev (user-supplied source) |
+```
+
+### VERDICT
+
+The SPEC survived. All 14 numbered paths were unreferenced copies. `coss-accordion.tsx` and
+`cnippet-empty.tsx` are live, provenance-backed source-brand names. Renaming the dashboard
+copy would resurrect deliberately retired code.
+
+### FIX
+
+Deleted exactly the 14 numbered tracked artifacts and added `* [0-9].*` plus `.DS_Store` to
+`.gitignore`. Kept the two intentional provenance filenames unchanged. Because deleting the
+unused TSX files changed Tailwind's source scan, regenerated the one canonical packaged bundle.
+
+### VERIFY
+
+Command:
+
+```text
+npm test -- --run
+```
+
+Raw output:
+
+```text
+> frontend@0.0.0 test
+> vitest --run
+
+ RUN  v4.1.10 /Users/stefanospalivos/Documents/cross examine/.worktrees/consolidated-remediation/frontend
+
+ Test Files  10 passed (10)
+      Tests  27 passed (27)
+   Duration  11.18s
+```
+
+Command:
+
+```text
+npm run build
+```
+
+Raw output (asset summary):
+
+```text
+../src/cross_examine/static/assets/index-gZ2lRzhV.css     74.85 kB │ gzip:  13.80 kB
+../src/cross_examine/static/assets/index-ChboQhj8.js     662.23 kB │ gzip: 209.88 kB
+✓ built in 388ms
+```
+
+Command:
+
+```text
+uv run pytest -q
+```
+
+Raw output:
+
+```text
+........................................................................ [ 68%]
+.................................                                        [100%]
+105 passed in 22.20s
+```
