@@ -31,5 +31,5 @@ finally {
 }
 
 $env:CROSS_EXAMINE_DEMO_CHARACTERIZER = 'fixture'
-uv run cross-examine demo --no-open
+uv run --isolated --no-editable cross-examine demo --no-open
 Assert-LastExitCode 'hero demo'

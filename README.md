@@ -29,8 +29,7 @@ Also in this repo: [requirements](#requirements) · [directory map](#directory-m
 The deterministic demo needs no API key and executes the real pipeline:
 
 ```bash
-uv sync --extra dev
-uv run cross-examine demo --no-open
+uv run --isolated --no-editable cross-examine demo --no-open
 ```
 
 Expected receipt:
@@ -184,7 +183,7 @@ Push-Location frontend
 npm ci
 npm run build
 Pop-Location
-uv run cross-examine demo --no-open
+uv run --isolated --no-editable cross-examine demo --no-open
 uv run cross-examine serve
 ```
 

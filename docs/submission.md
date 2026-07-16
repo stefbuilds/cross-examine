@@ -65,7 +65,7 @@ Python, FastAPI, SQLite, OpenAI Responses API, GPT-5.6 Sol, Pydantic, Hypothesis
 ## Testing access
 
 - Public evidence explorer: `https://cross-examine-stefffs-projects.vercel.app`
-- Real offline hero: `uv sync --extra dev && uv run cross-examine demo --no-open`
+- Real offline hero: `uv run --isolated --no-editable cross-examine demo --no-open`
 - Product UI after local installation: `uv run cross-examine serve`
 
 The public deployment intentionally serves a visibly labeled checked-in evidence fixture. Arbitrary repositories execute only in the trusted-input local runner because the hosted serverless environment is not a repository sandbox.

@@ -203,6 +203,10 @@ def aggregate(findings: list[Finding], critical_claim_ids: set[str]) -> Verdict:
     if any(finding.claim_id in critical_claim_ids for finding in refuted):
         return Verdict.BROKEN
 
+    covered_claim_ids = {finding.claim_id for finding in findings}
+    if critical_claim_ids - covered_claim_ids:
+        return Verdict.RISKY
+
     unverifiable_critical = any(
         finding.outcome is Outcome.UNVERIFIABLE
         and finding.claim_id in critical_claim_ids
