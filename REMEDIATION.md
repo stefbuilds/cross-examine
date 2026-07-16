@@ -242,3 +242,88 @@ Raw output:
 ................................                                         [100%]
 104 passed in 25.68s
 ```
+
+## Task 3 — Prefer `src` over repository root in probe imports
+
+### SPEC
+
+`_prepare_import_path()` inserts `src` and then the repository root at index zero, leaving the root first. If the same module exists in both locations, the probe imports the root copy instead of the conventional `src`-layout copy.
+
+### PROBE
+
+The probe created `collision_probe.py` in both a temporary repository root (`VALUE = 1`) and its `src` directory (`VALUE = 2`), called `_prepare_import_path()`, then printed path indexes and the imported module origin.
+
+Command:
+
+```text
+.venv/bin/python -c 'from pathlib import Path; import importlib, os, sys, tempfile; from cross_examine.cross_examine.probe_runner import _prepare_import_path; td = tempfile.TemporaryDirectory(); root = Path(td.name).resolve(); source = root / "src"; source.mkdir(); (root / "collision_probe.py").write_text("VALUE = 1\n", encoding="utf-8"); (source / "collision_probe.py").write_text("VALUE = 2\n", encoding="utf-8"); os.environ["CROSS_EXAMINE_WORKTREE"] = str(root); _prepare_import_path(); print(f"root_index={sys.path.index(str(root))}"); print(f"src_index={sys.path.index(str(source))}"); module = importlib.import_module("collision_probe"); print(f"value={module.VALUE}"); print(f"origin={module.__file__}")'
+```
+
+Raw pre-fix output:
+
+```text
+root_index=0
+src_index=1
+value=1
+origin=/private/var/folders/ff/4k4q6dpx6537djl1x0_4561r0000gn/T/tmp_2bmu_rw/collision_probe.py
+```
+
+### VERDICT
+
+The SPEC survived. The wrong ordering caused an actual import collision: the repository-root module loaded instead of the `src` module.
+
+### FIX
+
+Reverse the two candidates passed through `sys.path.insert(0, ...)`: insert the root first and `src` second, so the final path order prefers `src`. Added `tests/unit/test_probe_runner.py` to assert both the ordering and the resolved module file/value.
+
+### VERIFY
+
+The original probe was rerun unchanged.
+
+Raw output:
+
+```text
+root_index=1
+src_index=0
+value=2
+origin=/private/var/folders/ff/4k4q6dpx6537djl1x0_4561r0000gn/T/tmp2z1n28lj/src/collision_probe.py
+```
+
+Command:
+
+```text
+.venv/bin/pytest -q tests/unit/test_probe_runner.py
+```
+
+Raw output:
+
+```text
+.                                                                        [100%]
+1 passed in 0.09s
+```
+
+Command:
+
+```text
+.venv/bin/ruff check src/cross_examine/cross_examine/probe_runner.py tests/unit/test_probe_runner.py
+```
+
+Raw output:
+
+```text
+All checks passed!
+```
+
+Command:
+
+```text
+uv run pytest -q
+```
+
+Raw output:
+
+```text
+........................................................................ [ 68%]
+.................................                                        [100%]
+105 passed in 26.48s
+```

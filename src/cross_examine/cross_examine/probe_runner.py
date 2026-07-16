@@ -68,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
 
 def _prepare_import_path() -> None:
     root = Path(os.environ.get("CROSS_EXAMINE_WORKTREE", Path.cwd())).resolve()
-    for candidate in (root / "src", root):
+    for candidate in (root, root / "src"):
         if candidate.is_dir():
             sys.path.insert(0, str(candidate))
 
