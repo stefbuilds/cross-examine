@@ -10,6 +10,15 @@ export default defineConfig({
     // FastAPI and the Vercel function both serve this packaged frontend bundle.
     outDir: path.resolve(__dirname, "../src/cross_examine/static"),
     emptyOutDir: true,
+    rolldownOptions: {
+      output: {
+        entryFileNames: "assets/app.js",
+        assetFileNames: ({ names }) =>
+          names.some((name) => name.endsWith(".css"))
+            ? "assets/app.css"
+            : "assets/[name]-[hash][extname]",
+      },
+    },
   },
   resolve: {
     alias: {
