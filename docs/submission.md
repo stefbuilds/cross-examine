@@ -64,7 +64,7 @@ Python, FastAPI, SQLite, OpenAI Responses API, GPT-5.6 Sol, Pydantic, Hypothesis
 
 ## Testing access
 
-- Public evidence explorer: `https://cross-examine-stefffs-projects.vercel.app`
+- Public evidence explorer: `https://cross-examine-six.vercel.app`
 - Real offline hero: `uv run --isolated --no-editable cross-examine demo --no-open`
 - Product UI after local installation: `uv run cross-examine serve`
 
@@ -74,7 +74,7 @@ The public deployment intentionally serves a visibly labeled checked-in evidence
 
 - [ ] Join the Developer Tools category.
 - [ ] Add the public repository: `https://github.com/stefbuilds/cross-examine`.
-- [x] Add the deployed judge-demo URL: `https://cross-examine-stefffs-projects.vercel.app`.
+- [x] Add the deployed judge-demo URL: `https://cross-examine-six.vercel.app`.
 - [ ] Upload the final 2:45-or-shorter video publicly to YouTube and add its URL.
 - [ ] Run `/feedback` in the Codex task containing the majority of the core implementation and add that session ID.
 - [ ] Confirm the video audio explicitly explains both Codex collaboration and GPT-5.6 runtime use.

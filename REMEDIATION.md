@@ -890,3 +890,70 @@ pwsh_available_exit=1
 
 PowerShell was not present on this macOS host, so the Windows entry point was not executed
 locally; the workflow retains Windows and invokes that file directly.
+
+## Task 9 — Resolve the canonical hosted URL
+
+### SPEC
+
+Every judge-facing repository reference should use one verified public URL. A live alias alone
+does not make it canonical; repository metadata must identify the intended homepage.
+
+### PROBE
+
+Command:
+
+```text
+curl -sS --max-time 20 https://api.github.com/repos/stefbuilds/cross-examine | jq '{html_url, homepage, default_branch, archived}'
+```
+
+Raw output:
+
+```text
+{
+  "html_url": "https://github.com/stefbuilds/cross-examine",
+  "homepage": "https://cross-examine-six.vercel.app",
+  "default_branch": "main",
+  "archived": false
+}
+```
+
+Both documented candidates were live:
+
+```text
+host=cross-examine-stefffs-projects.vercel.app root_status=200 root_effective=https://cross-examine-stefffs-projects.vercel.app/ root_redirects=0
+host=cross-examine-stefffs-projects.vercel.app health={"status":"ok"} status=200
+host=cross-examine-six.vercel.app root_status=200 root_effective=https://cross-examine-six.vercel.app/ root_redirects=0
+host=cross-examine-six.vercel.app health={"status":"ok"} status=200
+```
+
+Before the fix, README and `docs/submission.md` contained four references to the longer
+`stefffs-projects` alias.
+
+### VERDICT
+
+The repository's public GitHub metadata makes `https://cross-examine-six.vercel.app` canonical.
+The other hostname remains a working deployment alias, but using it in judge-facing text caused
+avoidable identity drift.
+
+### FIX
+
+Replaced all four judge-facing references with the canonical GitHub homepage. No deployment,
+redirect, application code, or hosted state was changed.
+
+### VERIFY
+
+Command:
+
+```text
+rg -n 'cross-examine-(stefffs-projects|six)\.vercel\.app' . --glob '!frontend/node_modules/**' --glob '!src/cross_examine/static/assets/**' --glob '!REMEDIATION.md'
+```
+
+Raw output:
+
+```text
+./README.md:10:[![Live evidence explorer](https://img.shields.io/badge/Live-evidence%20explorer-000000)](https://cross-examine-six.vercel.app)
+./README.md:53:**Zero-install option:** the [live evidence explorer](https://cross-examine-six.vercel.app) serves an explicitly labeled, checked-in evidence fixture.
+./docs/submission.md:67:- Public evidence explorer: `https://cross-examine-six.vercel.app`
+./docs/submission.md:77:- [x] Add the deployed judge-demo URL: `https://cross-examine-six.vercel.app`.
+stale_url_matches=0
+```
