@@ -83,3 +83,68 @@ Merged `docs/coherence` into the target branch and transplanted the exact six-fi
 ### VERIFY
 
 The three probe outputs above are the post-consolidation verification evidence. All required Task 0 gates passed.
+
+## Task 1 — Resolve the `aggregate()` fail-open contradiction
+
+### SPEC
+
+`aggregate([], {"critical-claim"})` returns `Verdict.RISKY`, because a non-empty critical-claim set with no covering findings is uncovered and must resolve toward risk. If it returned `Verdict.SAFE`, the function would fail open.
+
+### PROBE
+
+Command:
+
+```text
+.venv/bin/python -c 'from cross_examine.schema import aggregate; print(aggregate([], {"critical-claim"}))'
+```
+
+Raw output:
+
+```text
+Verdict.RISKY
+```
+
+The exact settling branch in `src/cross_examine/schema.py` is:
+
+```python
+covered_claim_ids = {finding.claim_id for finding in findings}
+if critical_claim_ids - covered_claim_ids:
+    return Verdict.RISKY
+```
+
+### VERDICT
+
+The SPEC survived. Agent 1 was correct about uncovered critical claims resolving to `RISKY`; Agent 2's `SAFE` conclusion was wrong. The first two requested cases—empty findings with a critical ID, and non-matching findings with a critical ID—already existed in the decision table. The mixed case with one covered and one uncovered critical ID did not.
+
+### FIX
+
+No production fix was made because the alleged fail-open could not be reproduced. Added only the missing decision-table row: a verified `c1` finding with critical IDs `{c1, c2}` must remain `RISKY` because `c2` is uncovered.
+
+### VERIFY
+
+Command:
+
+```text
+.venv/bin/pytest -q tests/unit/test_schema.py
+```
+
+Raw output:
+
+```text
+..........                                                               [100%]
+10 passed in 0.11s
+```
+
+Command:
+
+```text
+uv run pytest -q
+```
+
+Raw output:
+
+```text
+........................................................................ [ 69%]
+...............................                                          [100%]
+103 passed in 25.07s
+```

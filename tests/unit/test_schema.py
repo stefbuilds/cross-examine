@@ -19,6 +19,7 @@ def finding(claim_id: str, outcome: Outcome) -> Finding:
         ([], set(), Verdict.SAFE),
         ([], {"c1"}, Verdict.RISKY),
         ([finding("other", Outcome.VERIFIED)], {"c1"}, Verdict.RISKY),
+        ([finding("c1", Outcome.VERIFIED)], {"c1", "c2"}, Verdict.RISKY),
         ([finding("c1", Outcome.VERIFIED)], {"c1"}, Verdict.SAFE),
         ([finding("c1", Outcome.REFUTED)], {"c1"}, Verdict.BROKEN),
         ([finding("c1", Outcome.REFUTED)], set(), Verdict.RISKY),
