@@ -1,0 +1,46 @@
+[
+  {
+    "repository": "python-slugify",
+    "repositoryUrl": "https://github.com/un33k/python-slugify/commit/1ef698fa7a265ec8971d0b641fb6e735dcd667dc",
+    "change": "reintroduce tox and tighten typing",
+    "baseRef": "45f9d33…",
+    "headRef": "1ef698f…",
+    "setup": "text-unidecode, 0.5s",
+    "layerA": { "summary": "8.797s, SAFE, 33 verified, corpus 32", "verdict": "SAFE" },
+    "layerAB": { "summary": "21.240s, SAFE, 34 verified, corpus +0 / 32", "verdict": "SAFE" },
+    "limitation": "The identical base/head repository tests passed as a separately grounded finding. The first pre-fix Layer-B run had abstained when Windows cp1252 could not emit generated U+0080; forcing UTF-8 child stdio made the same deterministic 60-example search verified."
+  },
+  {
+    "repository": "humanize",
+    "repositoryUrl": "https://github.com/python-humanize/humanize/commit/0a06a3d4a12113cd5f3d0df0cfbb3e27d92499eb",
+    "change": "empty natural_list",
+    "baseRef": "013969a…",
+    "headRef": "0a06a3d…",
+    "setup": "none",
+    "layerA": { "summary": "3.345s, RISKY, 2 unverifiable", "verdict": "RISKY" },
+    "layerAB": { "summary": "3.774s, RISKY, 3 unverifiable", "verdict": "RISKY" },
+    "limitation": "The source checkout imports build-generated humanize._version, and its tests require absent freezegun/localization dependencies. Probes and base/head tests surfaced exact import diagnostics; neither layer claimed safety."
+  },
+  {
+    "repository": "validators",
+    "repositoryUrl": "https://github.com/python-validators/validators/commit/402b3517eb09be188df13e5c57ea4d1400b7cc20",
+    "change": "reject mixed MAC separators",
+    "baseRef": "5440442…",
+    "headRef": "402b351…",
+    "setup": "none",
+    "layerA": { "summary": "5.571s, RISKY, 2 unverifiable", "verdict": "RISKY" },
+    "layerAB": { "summary": "24.045s, RISKY, 3 unverifiable", "verdict": "RISKY" },
+    "limitation": "Invalid values return a non-JSON ValidationError; the optional Ethereum test extra is also absent on both revisions. The probe reported UnserializableResult, and 17 pre-existing dependency-caused pytest failures were correctly classified as UNVERIFIABLE, not as a broken PR."
+  },
+  {
+    "repository": "packaging",
+    "repositoryUrl": "https://github.com/pypa/packaging/commit/3803ce341b59a24c598eb7b8100d5f8d6773f63e",
+    "change": "optimize canonicalize_name",
+    "baseRef": "52e57f2…",
+    "headRef": "3803ce3…",
+    "setup": "none",
+    "layerA": { "summary": "7.624s, RISKY, 8 verified / 1 unverifiable, corpus 8", "verdict": "RISKY" },
+    "layerAB": { "summary": "16.041s, BROKEN, 8 verified / 1 refuted / 1 unverifiable, corpus +0 / 8", "verdict": "BROKEN" },
+    "limitation": "Layer B found and shrank a real preservation regression: canonicalize_name(\"À\", validate=False) returned \"à\" on base and \"À\" on head. Repository tests remained UNVERIFIABLE because pretend was absent during collection; the broken verdict is grounded in the separate exact base/head probe evidence."
+  }
+]

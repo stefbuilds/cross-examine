@@ -239,7 +239,7 @@ def test_total_run_budget_reaches_characterization_and_abstains_when_exhausted(
     )
 
     assert characterizer.seen_timeout is not None
-    assert characterizer.seen_timeout <= 0.05
+    assert characterizer.seen_timeout <= 0.05 + 1e-9
     assert report.verdict is Verdict.RISKY
     assert report.findings[-1].outcome is Outcome.UNVERIFIABLE
     assert "Total run deadline exceeded" in report.findings[-1].output

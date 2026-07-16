@@ -86,3 +86,35 @@ def test_offline_hero_endpoint_uses_the_labeled_fixture_characterizer(
     assert payload["status"] == "complete"
     assert payload["report"]["verdict"] == "broken"
     assert "deterministic hero fixture" in payload["report"]["claims"][0]["proposed_check"]
+
+
+def test_hosted_mode_completes_hero_inline_and_rejects_arbitrary_repositories(
+    tmp_path: Path,
+) -> None:
+    app = create_app(
+        tmp_path / "app.db",
+        runs_root=tmp_path / "runs",
+        hosted_mode=True,
+    )
+
+    with TestClient(app) as client:
+        rejected = client.post(
+            "/api/runs",
+            json={
+                "repo": "https://github.com/example/project.git",
+                "base_ref": "main",
+                "head_ref": "candidate",
+                "layer_b": True,
+            },
+        )
+        hero = client.post("/api/hero-runs")
+
+        assert rejected.status_code == 403
+        assert "local runner" in rejected.json()["detail"]
+        assert hero.status_code == 202
+        assert hero.json()["status"] == "complete"
+
+        report = client.get(f"/api/runs/{hero.json()['id']}").json()["report"]
+        assert report["verdict"] == "broken"
+        assert "hosted evidence fixture" in report["repo"].lower()
+        assert any(finding["repro_input"] == "[]" for finding in report["findings"])

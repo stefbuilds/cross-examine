@@ -7,7 +7,11 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from cross_examine.characterize.models import CharacterizationPayload, ClaimPayload
+from cross_examine.characterize.models import (
+    CharacterizationPayload,
+    ClaimPayload,
+    ProbePlanPayload,
+)
 from cross_examine.characterize.service import CharacterizationError, Characterizer
 from cross_examine.schema import IngestResult, TouchedSymbol
 
@@ -99,6 +103,27 @@ def test_payload_forbids_a_model_supplied_verdict() -> None:
 
     with pytest.raises(ValidationError):
         CharacterizationPayload.model_validate({"claims": [values]})
+
+
+def test_characterizer_attaches_only_claim_matched_probe_plans(tmp_path: Path) -> None:
+    plan = ProbePlanPayload(
+        id="plan-1",
+        version=1,
+        claim_id="preserve-clamp",
+        target_symbol="sample.math:clamp",
+        input_domain={"parameters": {"value": [1]}},
+        relation_type="identity_idempotence",
+        relation_parameters={"parameter": "value"},
+        oracle_category="metamorphic",
+        priority=3,
+        budget=1,
+        provenance={"source": "model"},
+    )
+    claims = Characterizer(
+        FakeClient(CharacterizationPayload(claims=[claim_payload()], probe_plans=[plan]))
+    ).characterize(ingest_result(tmp_path))
+
+    assert claims[0].probe_plans[0]["id"] == "plan-1"
 
 
 @pytest.mark.parametrize(

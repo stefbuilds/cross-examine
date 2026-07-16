@@ -19,7 +19,7 @@ test("runs the offline hero from the browser without model credentials", async (
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
-  await page.goto("/");
+  await page.goto("/run");
   await page.getByRole("button", { name: "Run offline hero demo" }).click();
 
   await expect(page).toHaveURL(/\/runs\/[a-f0-9]+$/);

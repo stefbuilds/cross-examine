@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -6,7 +6,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { NewRunPage } from "./NewRunPage";
 
 describe("NewRunPage", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
 
   it("validates required inputs and starts a run", async () => {
     const user = userEvent.setup();
@@ -70,5 +73,23 @@ describe("NewRunPage", () => {
       "/api/hero-runs",
       expect.objectContaining({ method: "POST" }),
     );
+  });
+
+  it("renders the new verification run as a checkout-style summary", () => {
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <Routes>
+          <Route path="/" element={<NewRunPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("heading", { name: "New verification run" })).toBeInTheDocument();
+    expect(screen.getByText("Verification target")).toBeInTheDocument();
+    expect(screen.getByText("Execution method")).toBeInTheDocument();
+    expect(screen.getByText("Layer selection")).toBeInTheDocument();
+    expect(screen.getByText("Run summary")).toBeInTheDocument();
+    expect(screen.getByText("Ready")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cross-examine PR" })).toBeInTheDocument();
   });
 });

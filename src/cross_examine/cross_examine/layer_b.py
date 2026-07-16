@@ -23,14 +23,20 @@ def run_layer_b(
     state_dir: str | Path,
     timeout: float = DEFAULT_COMMAND_TIMEOUT_SECONDS,
     deadline: float | None = None,
+    planned_claim_ids: set[str] | None = None,
 ) -> list[Finding]:
     base = Path(base_path).resolve()
     head = Path(head_path).resolve()
     state = Path(state_dir).resolve()
     state.mkdir(parents=True, exist_ok=True)
     findings: list[Finding] = []
+    planned_claim_ids = planned_claim_ids or set()
 
     for claim in claims:
+        # A relation plan defines the property under test. Do not silently
+        # downgrade it to "any base/head difference" in the search worker.
+        if claim.id in planned_claim_ids:
+            continue
         if not claim.preserve_critical:
             continue
         claim_state = state / hashlib.sha256(claim.id.encode()).hexdigest()[:20]

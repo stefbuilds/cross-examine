@@ -17,6 +17,8 @@ def finding(claim_id: str, outcome: Outcome) -> Finding:
     ("findings", "critical", "expected"),
     [
         ([], set(), Verdict.SAFE),
+        ([], {"c1"}, Verdict.RISKY),
+        ([finding("other", Outcome.VERIFIED)], {"c1"}, Verdict.RISKY),
         ([finding("c1", Outcome.VERIFIED)], {"c1"}, Verdict.SAFE),
         ([finding("c1", Outcome.REFUTED)], {"c1"}, Verdict.BROKEN),
         ([finding("c1", Outcome.REFUTED)], set(), Verdict.RISKY),
@@ -39,4 +41,3 @@ def test_report_refuted_property_filters_findings() -> None:
     report = Report(repo="repo", pr_ref="base..head", verdict=Verdict.RISKY, findings=[refuted, verified])
 
     assert report.refuted == [refuted]
-

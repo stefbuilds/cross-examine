@@ -18,6 +18,12 @@ from cross_examine.cross_examine.probe_protocol import (
 )
 from cross_examine.execution import run_command
 from cross_examine.schema import BehaviorFixture, Claim, ClaimKind, Finding, Layer, Outcome
+from cross_examine.probe_plans import (
+    ProbePlan,
+    ProbePlanError,
+    schedule_probe_plans,
+    validate_probe_plan,
+)
 from cross_examine.settings import DEFAULT_COMMAND_TIMEOUT_SECONDS
 
 _RUNNER_MODULE = "cross_examine.cross_examine.probe_runner"
@@ -29,6 +35,7 @@ def capture_base(
     state_dir: str | Path,
     timeout: float = DEFAULT_COMMAND_TIMEOUT_SECONDS,
     deadline: float | None = None,
+    corpus_coverage: dict[str, int] | None = None,
 ) -> list[BehaviorFixture]:
     base = Path(base_path).resolve()
     state = Path(state_dir).resolve()
@@ -195,6 +202,151 @@ def run_layer_a(
                 )
             )
     return findings
+
+
+def run_probe_plans(
+    claims: Sequence[Claim],
+    plans: Sequence[ProbePlan],
+    base_path: str | Path,
+    head_path: str | Path,
+    state_dir: str | Path,
+    timeout: float = DEFAULT_COMMAND_TIMEOUT_SECONDS,
+    deadline: float | None = None,
+    corpus_coverage: dict[str, int] | None = None,
+) -> list[Finding]:
+    """Execute validated relation plans, preserving every execution artifact.
+
+    A plan only refutes when the relation holds on base and fails on head.
+    If base cannot establish the relation, execution abstains rather than
+    treating a raw base/head difference as the requested property.
+    """
+    base, head, state = Path(base_path).resolve(), Path(head_path).resolve(), Path(state_dir).resolve()
+    state.mkdir(parents=True, exist_ok=True)
+    claims_by_id = {claim.id: claim for claim in claims}
+    allowed_targets = {claim.target_symbol for claim in claims}
+    ranked = schedule_probe_plans(list(plans), corpus_coverage)
+    findings: list[Finding] = []
+    signatures: dict[str, dict[str, object]] = {}
+    for plan in ranked:
+        claim = claims_by_id.get(plan.claim_id)
+        if claim is None or claim.target_symbol != plan.target_symbol:
+            findings.append(_plan_abstention(plan, "plan does not match a characterized claim"))
+            continue
+        signature = signatures.get(plan.target_symbol)
+        if signature is None:
+            described = _probe("describe", plan.target_symbol, base, timeout=timeout, deadline=deadline)
+            if described.envelope is None or not described.envelope.get("ok") or not isinstance(described.envelope.get("value"), dict):
+                findings.append(_plan_abstention(plan, described.error or "could not discover signature", described))
+                continue
+            signature = described.envelope["value"]
+            signatures[plan.target_symbol] = signature
+        try:
+            validate_probe_plan(plan, signature, allowed_targets)
+            seed = _plan_seed(plan)
+            base_ok, base_calls = _relation_holds(plan, base, state, "base", seed, timeout, deadline)
+            head_ok, head_calls = _relation_holds(plan, head, state, "head", seed, timeout, deadline)
+        except ProbePlanError as exc:
+            findings.append(_plan_abstention(plan, str(exc)))
+            continue
+        except ValueError as exc:
+            findings.append(_plan_abstention(plan, str(exc)))
+            continue
+        if not base_ok or head_ok:
+            outcome = Outcome.UNVERIFIABLE if not base_ok else Outcome.VERIFIED
+        elif claim.preserve_critical:
+            outcome = Outcome.REFUTED
+        else:
+            outcome = Outcome.UNVERIFIABLE
+        calls = {"base": base_calls, "head": head_calls}
+        command = "\n".join(call.evidence.command for call in [*base_calls, *head_calls])
+        output = _relation_output(plan, seed, base_ok, head_ok, base_calls, head_calls)
+        findings.append(
+            Finding(
+                claim_id=claim.id,
+                layer=Layer.BEHAVIORAL_DIFF,
+                outcome=outcome,
+                command=command,
+                output=output,
+                repro_input=_canonical_json(seed),
+                expected=_canonical_json([call.envelope for call in base_calls]),
+                actual=_canonical_json([call.envelope for call in head_calls]),
+                confidence=1.0,
+                provenance={"probe_plan": plan.__dict__, "calls": _calls_provenance(calls)},
+            )
+        )
+    return findings
+
+
+def _plan_seed(plan: ProbePlan) -> object:
+    parameters = plan.input_domain["parameters"]
+    name = plan.relation_parameters["parameter"]
+    values = parameters[name]
+    value = values[0]
+    return value
+
+
+def _relation_holds(
+    plan: ProbePlan, worktree: Path, state: Path, revision: str, seed: object, timeout: float, deadline: float | None
+) -> tuple[bool, list[ProbeResult]]:
+    def call(index: int, value: object) -> ProbeResult:
+        request = _write_request(state, revision, f"{plan.id}-{index}", [value], {})
+        result = _probe("call", plan.target_symbol, worktree, request_path=request, timeout=timeout, deadline=deadline)
+        if result.envelope is None:
+            raise ValueError(result.error or "relation probe did not produce an envelope")
+        return result
+
+    first = call(0, seed)
+    if plan.relation_type == "permutation_invariance":
+        if not isinstance(seed, list):
+            raise ValueError("permutation relation seed is not a JSON list")
+        second = call(1, list(reversed(seed)))
+        return canonical_envelope(first.envelope) == canonical_envelope(second.envelope), [first, second]
+    if plan.relation_type == "partition_concatenation":
+        if not isinstance(seed, list):
+            raise ValueError("partition relation seed is not a JSON list")
+        midpoint = max(1, len(seed) // 2)
+        left, right = call(1, seed[:midpoint]), call(2, seed[midpoint:])
+        if not all(result.envelope and result.envelope.get("ok") for result in (first, left, right)):
+            return False, [first, left, right]
+        if not isinstance(left.envelope["value"], list) or not isinstance(right.envelope["value"], list):
+            return False, [first, left, right]
+        joined = left.envelope["value"] + right.envelope["value"]
+        return first.envelope["value"] == joined, [first, left, right]
+    if not first.envelope or not first.envelope.get("ok"):
+        return False, [first]
+    second = call(1, first.envelope["value"])
+    return canonical_envelope(first.envelope) == canonical_envelope(second.envelope), [first, second]
+
+
+def _calls_provenance(calls: dict[str, list[ProbeResult]]) -> dict[str, object]:
+    return {
+        revision: [
+            {"command": call.evidence.command, "output": call.evidence.output, "envelope": call.envelope}
+            for call in results
+        ]
+        for revision, results in calls.items()
+    }
+
+
+def _relation_output(plan: ProbePlan, seed: object, base_ok: bool, head_ok: bool, base_calls: list[ProbeResult], head_calls: list[ProbeResult]) -> str:
+    return (
+        f"PROBE PLAN\nplan_id={plan.id}\nrelation={plan.relation_type}\nseed={_canonical_json(seed)}\n"
+        f"base_relation_holds={base_ok}\nhead_relation_holds={head_ok}\n"
+        f"BASE RESULTS\n{_canonical_json([call.envelope for call in base_calls])}\n"
+        f"HEAD RESULTS\n{_canonical_json([call.envelope for call in head_calls])}\n"
+        f"MINIMIZED COUNTEREXAMPLE\n{_canonical_json(seed)}\n"
+    )
+
+
+def _plan_abstention(plan: ProbePlan, reason: str, result: ProbeResult | None = None) -> Finding:
+    return Finding(
+        claim_id=plan.claim_id,
+        layer=Layer.BEHAVIORAL_DIFF,
+        outcome=Outcome.UNVERIFIABLE,
+        command=result.evidence.command if result else f"probe-plan:{plan.id}",
+        output=(result.evidence.output + "\n" if result else "") + f"ProbePlan {plan.id}: {reason}",
+        provenance={"probe_plan": plan.__dict__},
+    )
 
 
 def _probe(

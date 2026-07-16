@@ -13,7 +13,7 @@ from typing import Protocol
 from uuid import uuid4
 
 from cross_examine.corpus.repository import CorpusRepository
-from cross_examine.cross_examine.layer_a import capture_base, run_layer_a
+from cross_examine.cross_examine.layer_a import capture_base, run_layer_a, run_probe_plans
 from cross_examine.cross_examine.layer_b import run_layer_b
 from cross_examine.execution import RunDeadlineExceeded, run_command
 from cross_examine.ingest.service import IngestService
@@ -31,6 +31,7 @@ from cross_examine.schema import (
     RunSpec,
     aggregate,
 )
+from cross_examine.probe_plans import ProbePlan
 from cross_examine.validation import validate_report
 
 ProgressCallback = Callable[[RunProgress], None]
@@ -112,6 +113,25 @@ class Pipeline:
                 timeout=spec.command_timeout_seconds,
                 deadline=deadline,
             )
+            plans = _probe_plans(claims)
+            if plans:
+                findings.extend(
+                    run_probe_plans(
+                        claims,
+                        plans,
+                        ingest.base_path,
+                        ingest.head_path,
+                        self.runs_root / identifier / "probe-plan-state",
+                        timeout=spec.command_timeout_seconds,
+                        deadline=deadline,
+                        corpus_coverage={
+                            claim.target_symbol: len(
+                                self.corpus.applicable(spec.repo, claim.target_symbol)
+                            )
+                            for claim in claims
+                        },
+                    )
+                )
         except Exception as exc:  # noqa: BLE001 - stage failures become abstentions
             return self._failure_report(spec, "layer_a", exc, claims, findings, emit)
 
@@ -126,6 +146,7 @@ class Pipeline:
                         self.runs_root / identifier / "layer-b-state",
                         timeout=spec.command_timeout_seconds,
                         deadline=deadline,
+                        planned_claim_ids={plan.claim_id for plan in _probe_plans(claims)},
                     )
                 )
             except Exception as exc:  # noqa: BLE001 - stage failures become abstentions
@@ -315,6 +336,33 @@ def _critical_claim_ids(claims: Sequence[Claim]) -> set[str]:
         for claim in claims
         if claim.preserve_critical or claim.kind is ClaimKind.INTENDED_CHANGE
     }
+
+
+def _probe_plans(claims: Sequence[Claim]) -> list[ProbePlan]:
+    """Deserialize proposed plans without granting malformed payloads authority."""
+    plans: list[ProbePlan] = []
+    for claim in claims:
+        for raw in claim.probe_plans:
+            try:
+                plans.append(ProbePlan(**raw))
+            except (TypeError, ValueError):
+                # Preserve a bounded abstention using a synthetic plan shape.
+                plans.append(
+                    ProbePlan(
+                        id=f"malformed-{claim.id}",
+                        version=0,
+                        claim_id=claim.id,
+                        target_symbol=claim.target_symbol,
+                        input_domain={},
+                        relation_type="malformed",
+                        relation_parameters={},
+                        oracle_category="invalid",
+                        priority=0,
+                        budget=1,
+                        provenance={"source": "malformed"},
+                    )
+                )
+    return plans
 
 
 def _run_discovered_tests(
