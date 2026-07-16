@@ -1,5 +1,7 @@
 # Cross-Examine Product Design
 
+> **Historical design record.** Written 2026-07-15/16 during the build. It describes intent at the time, not current behavior, and contains claims now superseded by the implementation. For current architecture see [docs/architecture.md](../../architecture.md). Retained for provenance.
+
 **Date:** 2026-07-15
 **Status:** Approved
 **Deadline:** 2026-07-21 at 5:00 PM PT

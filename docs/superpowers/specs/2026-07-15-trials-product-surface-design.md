@@ -1,5 +1,7 @@
 # Trials product surface design
 
+> **Historical design record.** Written 2026-07-15/16 during the build. It describes intent at the time, not current behavior, and contains claims now superseded by the implementation. For current architecture see [docs/architecture.md](../../architecture.md). Retained for provenance.
+
 ## Goal
 
 Make the real, documented public-repository compatibility trials visible as a first-class frontend destination without changing their verdicts, limits, or scope.
