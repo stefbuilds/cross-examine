@@ -175,7 +175,7 @@ The release workflow verifies Python 3.12 on Windows, macOS, and Ubuntu. Reposit
 | `src/cross_examine/` | The Python package: pipeline stages, schemas and validation, execution controls, persistence, CLI, fixtures, and FastAPI application. |
 | `frontend/` | React/Vite evidence-explorer source, UI components, frontend tests, and browser end-to-end tests. |
 | `api/` | Vercel entry point that exposes the packaged application. |
-| `scripts/` | Hero-repository builder, real-repository trial runner, and PowerShell verification script. |
+| `scripts/` | Hero-repository builder, real-repository trial runner, and cross-platform verification scripts. |
 | `tests/` | Python unit, integration, end-to-end, release, and hero-repository fixture tests. |
 | `docs/` | Architecture, demo, execution policy, provenance, submission, trial evidence, and probe-plan documentation. |
 

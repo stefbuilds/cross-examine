@@ -1211,13 +1211,14 @@ Raw output:
 63-## Execution boundary
 ```
 
-## Task 5 — Real GPT-5.6 Sol characterization trial
+## Task 5 — Regenerate the pypa/packaging Unicode trial receipt
 
 ### SPEC
 
-Run and record one real model-backed characterization only when `OPENAI_API_KEY` is already
-available in the environment. Never expose, synthesize, or request a credential as part of the
-autonomous remediation run.
+Use `scripts/run_trials.py` and the documented pypa/packaging base/head refs to test whether Layer B
+still shrinks the `canonicalize_name("À", validate=False)` regression (base `"à"`, head `"À"`).
+Restore the docs/trial row only from a newly persisted command/output receipt, and only when
+`OPENAI_API_KEY` is already available. Never synthesize a credential or receipt.
 
 ### PROBE
 
@@ -1235,15 +1236,17 @@ OPENAI_API_KEY=absent
 
 ### VERDICT
 
-The external trial was not runnable in this environment. Its result is explicitly unverified;
-the passing deterministic fixture demo is not presented as a substitute for a real model call.
+The pypa/packaging Unicode trial was not runnable in this environment, so the historical catch was
+not reproduced and its receipt was not regenerated. The passing deterministic fixture demo is not
+presented as a substitute for this unseen-repository model-backed trial.
 
 ### FIX
 
-No code or credential change. Skipped the external call exactly as specified for a missing key.
+No code, `docs/trials.md`, or `trials.fixture.json` change. Stopped this task at the required
+missing-key gate rather than inventing the Unicode receipt.
 
 ### VERIFY
 
-No external model output exists to verify. Task 8 separately records the real five-stage offline
-fixture execution; this task remains an honest external-evidence gap and contributes risk in the
-final self-assessment.
+No `scripts/run_trials.py` output exists to verify. Task 8 separately records the real five-stage
+offline fixture execution; it does not verify pypa/packaging. The missing Unicode receipt remains
+an explicit external-evidence gap and contributes risk in the final self-assessment.

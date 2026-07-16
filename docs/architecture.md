@@ -76,7 +76,7 @@ Claims declare whether they describe preservation or an intended change. Base/he
 
 ## Failure semantics
 
-Every stage exception becomes a synthetic preserve-critical `UNVERIFIABLE` finding with a grounded diagnostic. Each discovered pytest command runs identically on base and head using the product interpreter. A passing head is `VERIFIED`; a head failure is `REFUTED` only when base passed and the head diagnostic is not a concrete dependency/setup failure. Pre-existing failures, missing modules, absent extras, timeouts, and truncation are `UNVERIFIABLE`. Aggregation resolves toward risk. No stage failure is hidden and no missing critical execution can produce `SAFE`.
+Every stage exception becomes a synthetic preserve-critical `UNVERIFIABLE` finding with a grounded diagnostic. Each discovered pytest command runs identically on base and head using the product interpreter. After the base passes, a passing head is `VERIFIED`; a head failure is `REFUTED` only when the head diagnostic is not a concrete dependency/setup failure. Pre-existing failures, missing modules, absent extras, timeouts, and truncation are `UNVERIFIABLE`. Aggregation resolves toward risk. No stage failure is hidden and no missing critical execution can produce `SAFE`.
 
 ## Concurrency and persistence
 
