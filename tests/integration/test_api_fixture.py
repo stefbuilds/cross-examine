@@ -20,6 +20,23 @@ def test_fixture_report_is_renderable(tmp_path: Path) -> None:
     assert payload["report"]["findings"][0]["output"]
 
 
+def test_hosted_fixture_contains_the_hero_pipeline_receipt() -> None:
+    report = broken_fixture_report()
+    finding = report.refuted[0]
+
+    assert "cross_examine.cross_examine.probe_runner call normalizer.core:normalize" in finding.command
+    assert "BASE OUTPUT" in finding.output
+    assert '"value": []' in finding.output
+    assert "HEAD OUTPUT" in finding.output
+    assert '"value": null' in finding.output
+    assert finding.repro_input == "[]"
+    assert finding.expected == "[]"
+    assert finding.actual == "null"
+    assert report.corpus is not None
+    assert report.corpus.pinned_this_run == 2
+    assert report.corpus.corpus_total == 2
+
+
 def test_health_endpoint_reports_ready_database(tmp_path: Path) -> None:
     client = TestClient(create_app(tmp_path / "app.db"))
 
