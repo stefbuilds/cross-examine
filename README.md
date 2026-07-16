@@ -63,58 +63,72 @@ A schema-constrained `Claim` is a contract, not a description. When the head fai
 ## Architecture
 
 ```mermaid
+---
+config:
+  theme: base
+  look: neo
+  layout: dagre
+  themeVariables:
+    fontFamily: 'ui-sans-serif, -apple-system, Segoe UI, sans-serif'
+    fontSize: 14px
+    lineColor: '#64748b'
+    primaryTextColor: '#0f172a'
+  flowchart:
+    curve: basis
+    nodeSpacing: 55
+    rankSpacing: 60
+    padding: 18
+    htmlLabels: true
+---
 flowchart TB
-  PR["Python base..head diff"] --> I
+  PR["<b>Python diff</b><br/><code>base..head</code>"]:::input
 
-  subgraph U["Untrusted proposal"]
-    direction TB
-    I["<b>Ingest</b><br/>Git worktrees + AST diff"] --> C["<b>Characterize</b><br/>GPT-5.6 Sol → Claim[]"]
+  subgraph U ["UNTRUSTED PROPOSAL"]
+    direction LR
+    I["<b>Ingest</b><br/>Git worktrees · AST diff"]:::untrusted
+    C["<b>Characterize</b><br/>GPT-5.6 Sol → Claim[]<br/><b>never a verdict</b>"]:::untrusted
+    I --> C
   end
 
-  C --> LA
-
-  subgraph EX["Grounded execution — deterministic, no model"]
-    direction TB
-    LA["<b>Layer A</b><br/>base capture → head replay"] --> LB["<b>Layer B</b><br/>bounded Hypothesis + shrink"]
-    LB --> RT["<b>Repository tests</b><br/>discovered command → finding"]
+  subgraph EX ["GROUNDED EXECUTION · deterministic, no model"]
+    direction LR
+    LA["<b>Layer A</b><br/>base capture → head replay"]:::grounded
+    LB["<b>Layer B</b><br/>bounded Hypothesis + shrink"]:::grounded
+    RT["<b>Repository tests</b><br/>discovered command → finding"]:::grounded
+    LA --> LB --> RT
   end
 
-  RT --> AG
+  P[("<b>Verified corpus</b>")]:::corpus
+  AG{{"<b>aggregate()</b><br/>pure · no IO · no model"}}:::pure
+  R["<b>Report</b><br/>SQLite + grounded UI<br/>exact command + output per finding"]:::report
 
-  subgraph J["Pure judgment"]
-    AG["<b>aggregate()</b><br/>pure function, no IO"]
-  end
+  PR --> I
+  C -- "claims, unproven" --> LA
+  RT ==> AG
 
-  AG -->|"preserve-critical refutation"| BROKEN["BROKEN"]
-  AG -->|"other refutation<br/>critical abstain"| RISKY["RISKY"]
-  AG -->|"grounded pass"| SAFE["SAFE"]
+  LA -. "pins" .-> P
+  P -. "replays" .-> LA
 
-  BROKEN --> R["<b>Report</b><br/>SQLite + grounded UI<br/>exact command + output per finding"]
+  AG -- "preserve-critical refutation" --> BROKEN(["<b>BROKEN</b>"]):::broken
+  AG -- "critical abstain" --> RISKY(["<b>RISKY</b>"]):::risky
+  AG -- "grounded pass" --> SAFE(["<b>SAFE</b>"]):::safe
+
+  BROKEN --> R
   RISKY --> R
   SAFE --> R
 
-  LA -.->|"pins verified behavior"| P["Verified corpus"]
-  P -.->|"replays next run"| LA
+  classDef input fill:#ffffff,stroke:#94a3b8,stroke-width:1.5px,color:#334155
+  classDef untrusted fill:#fffbeb,stroke:#d97706,stroke-width:1.5px,color:#78350f
+  classDef grounded fill:#f0f9ff,stroke:#0369a1,stroke-width:1.5px,color:#0c4a6e
+  classDef pure fill:#0f172a,stroke:#0f172a,stroke-width:2px,color:#ffffff
+  classDef corpus fill:#f0fdf4,stroke:#15803d,stroke-width:1.5px,color:#14532d
+  classDef report fill:#ffffff,stroke:#475569,stroke-width:1.5px,color:#1e293b
+  classDef broken fill:#fef2f2,stroke:#b91c1c,stroke-width:2px,color:#7f1d1d
+  classDef risky fill:#fffbeb,stroke:#b45309,stroke-width:2px,color:#78350f
+  classDef safe fill:#f0fdf4,stroke:#15803d,stroke-width:2px,color:#14532d
 
-  classDef untrusted fill:#f7f7f7,stroke:#a3a3a3,color:#171717,stroke-width:1px
-  classDef grounded fill:#f7f7f7,stroke:#a3a3a3,color:#171717,stroke-width:1px
-  classDef pure fill:#171717,stroke:#171717,color:#ffffff,stroke-width:2px
-  classDef broken fill:#fef2f2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
-  classDef risky fill:#fffbeb,stroke:#b45309,color:#78350f,stroke-width:2px
-  classDef safe fill:#ecfdf3,stroke:#2f8f5b,color:#14532d,stroke-width:2px
-  classDef corpus fill:#ecfdf3,stroke:#2f8f5b,color:#14532d,stroke-width:1px
-
-  class I,C untrusted
-  class LA,LB,RT grounded
-  class AG pure
-  class BROKEN broken
-  class RISKY risky
-  class SAFE safe
-  class P corpus
-  style U fill:#fafafa,stroke:#d4d4d4,stroke-width:1px,color:#525252
-  style EX fill:#fafafa,stroke:#d4d4d4,stroke-width:1px,color:#525252
-  style J fill:#fafafa,stroke:#d4d4d4,stroke-width:1px,color:#525252
-  linkStyle default stroke:#737373,stroke-width:1.5px
+  style U fill:#fef3c7,stroke:#d97706,stroke-width:2px,stroke-dasharray:6 4,color:#78350f
+  style EX fill:#e0f2fe,stroke:#0369a1,stroke-width:2px,color:#0c4a6e
 ```
 
 1. **Ingest** resolves base and head into separate detached Git worktrees and discovers touched Python symbols.
