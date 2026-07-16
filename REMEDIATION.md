@@ -1005,3 +1005,47 @@ gitkeep_exists_exit=0
 headings_before=15 headings_after=15
 7:<!-- Demo GIF slot: docs/assets/demo.gif -->
 ```
+
+## Task 11 — Explain why schema-constrained claims matter
+
+### SPEC
+
+The existing “Why this is not a Codex skill” section should explain, in two or three concrete
+sentences, why a schema-constrained claim can be refuted while prose cannot. It must connect the
+hero's `preserve-empty` / `[]` receipt to the existing intended-change abstention rule.
+
+### PROBE
+
+Before the fix, the section contained only the separation-of-duties paragraph. The implementation
+already enforced the missing rationale:
+
+```text
+src/cross_examine/cross_examine/layer_a.py:178:            if claim.kind is ClaimKind.INTENDED_CHANGE:
+src/cross_examine/cross_examine/layer_a.py:195:                        if claim.kind is ClaimKind.INTENDED_CHANGE
+README.md:126:V1 deliberately abstains on intended-change correctness unless the contract has an independent executable oracle. Since model prose is never an oracle, any intended-change claim without one keeps the report at least `RISKY`;
+src/cross_examine/characterize/models.py:9:    model_config = ConfigDict(extra="forbid")
+src/cross_examine/characterize/service.py:42:            text_format=CharacterizationPayload,
+```
+
+### VERDICT
+
+The SPEC did not survive. Code and the later abstention paragraph expressed the boundary, but the
+named README section did not explain the contract-to-refutation link.
+
+### FIX
+
+Added exactly three sentences to the existing section. They identify `Claim` as a contract,
+ground the distinction in `preserve-empty` and `[]`, state that prose has no failing clause or
+oracle authority, and point forward to the existing abstention rule. Added no heading.
+
+### VERIFY
+
+Raw output:
+
+```text
+A schema-constrained `Claim` is a contract, not a description. When the head fails, the report names the exact clause—`preserve-empty`—and the input that broke it—`[]`; prose has no clause to fail and cannot serve as an oracle. The intended-change abstention rule below follows from that same boundary.
+
+claim_contract_mentions=1
+preserve_empty_mentions_in_section=1
+headings_before=15 headings_after=15
+```
