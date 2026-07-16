@@ -28,6 +28,8 @@ try {
     Assert-LastExitCode 'frontend lint'
     npm run build
     Assert-LastExitCode 'frontend build'
+    git diff --exit-code -- ../src/cross_examine/static
+    Assert-LastExitCode 'committed frontend bundle'
     npx playwright install chromium
     Assert-LastExitCode 'Playwright Chromium install'
     npm run test:e2e

@@ -16,6 +16,7 @@ uv run pytest -q
     npm test -- --run
     npm run lint
     npm run build
+    git diff --exit-code -- ../src/cross_examine/static
     if [[ "$(uname -s)" == "Linux" ]]; then
         npx playwright install --with-deps chromium
     else

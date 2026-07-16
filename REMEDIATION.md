@@ -631,6 +631,43 @@ Raw output:
 105 passed in 25.30s
 ```
 
+Final review identified that a fresh build replaced the committed bundle in place but neither
+repository verifier failed on resulting drift. Pre-fix probe against the committed scripts:
+
+```text
+scripts/verify.sh bundle_gate_search_exit=1
+scripts/verify.ps1 bundle_gate_search_exit=1
+```
+
+Added `git diff --exit-code -- ../src/cross_examine/static` after `npm run build` in both scripts.
+A transient comment in generated `index.html` proved the gate's failure side:
+
+```text
+diff --git a/src/cross_examine/static/index.html b/src/cross_examine/static/index.html
+index a1494b9..72033a3 100644
+--- a/src/cross_examine/static/index.html
++++ b/src/cross_examine/static/index.html
+@@ -13,6 +13,7 @@
+     <link rel="stylesheet" crossorigin href="/assets/index-gZ2lRzhV.css">
+   </head>
+   <body>
++    <!-- transient bundle drift probe -->
+     <div id="root"></div>
+   </body>
+ </html>
+```
+
+The command exited 1. The transient comment was removed with no generated change retained; the
+same command then returned:
+
+```text
+bundle_diff_exit=0
+```
+
+The complete updated verifier subsequently passed with 106 backend tests, 27 frontend tests,
+frontend lint, the same `ChboQhj8.js` / `gZ2lRzhV.css` build, 2 Playwright tests, and the offline
+`BROKEN` receipt. Its full raw output is repeated in Final verification.
+
 ## Task 6 — Remove dead Finder-copy artifacts
 
 ### SPEC
