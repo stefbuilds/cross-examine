@@ -16,3 +16,4 @@ frontend/test-results/
 
 .vercel
 .env*
+public/

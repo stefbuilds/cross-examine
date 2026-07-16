@@ -7,6 +7,7 @@ import path from "node:path";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
+    // FastAPI and the Vercel function both serve this packaged frontend bundle.
     outDir: path.resolve(__dirname, "../src/cross_examine/static"),
     emptyOutDir: true,
   },

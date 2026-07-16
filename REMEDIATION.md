@@ -393,3 +393,193 @@ Raw output:
 .................................                                        [100%]
 105 passed in 22.05s
 ```
+
+## Task 7 — Establish one generated frontend bundle
+
+### SPEC
+
+The packaged FastAPI server and Vercel's normal SPA routes serve `src/cross_examine/static`, while `public/` is a separately exposed, stale bundle with no configured generator. A fresh frontend build should target only the packaged tree and produce hashes matching neither stale committed set.
+
+### PROBE
+
+Command:
+
+```text
+rg -n -C 2 'static_root|assets_root|app\.mount|index = static_root' src/cross_examine/api/app.py
+```
+
+Raw output:
+
+```text
+223-        )
+224-
+225:    static_root = Path(__file__).resolve().parents[1] / "static"
+226:    assets_root = static_root / "assets"
+227:    if assets_root.is_dir():
+228:        app.mount("/assets", StaticFiles(directory=assets_root), name="frontend-assets")
+229-
+230-    @app.get("/{frontend_path:path}", include_in_schema=False)
+--
+234:        candidate = (static_root / frontend_path).resolve()
+235:        if candidate.is_relative_to(static_root) and candidate.is_file():
+236-            return FileResponse(candidate)
+237:        index = static_root / "index.html"
+```
+
+`vercel.json` rewrites `/(.*)` to `/api/index.py`; that module inserts `ROOT / "src"` and calls the same `create_app(..., hosted_mode=True)`. Before rebuilding, the two HTML files referenced different assets:
+
+```text
+src/cross_examine/static/index.html:12:    <script type="module" crossorigin src="/assets/index-2uqqDukf.js"></script>
+src/cross_examine/static/index.html:13:    <link rel="stylesheet" crossorigin href="/assets/index-HV6iRfAi.css">
+public/index.html:12:    <script type="module" crossorigin src="/assets/index-1hHMzRj_.js"></script>
+public/index.html:13:    <link rel="stylesheet" crossorigin href="/assets/index-BHf-u9Z0.css">
+```
+
+Both live aliases returned the packaged HTML for `/` with no redirect. Command pattern:
+
+```text
+curl -sS -L --max-time 20 -w '\nstatus=%{http_code} effective=%{url_effective} redirects=%{num_redirects} content_type=%{content_type}\n' <alias>/
+```
+
+Relevant raw output from each response:
+
+```text
+<script type="module" crossorigin src="/assets/index-2uqqDukf.js"></script>
+<link rel="stylesheet" crossorigin href="/assets/index-HV6iRfAi.css">
+status=200 effective=https://cross-examine-stefffs-projects.vercel.app/ redirects=0 content_type=text/html; charset=utf-8
+
+<script type="module" crossorigin src="/assets/index-2uqqDukf.js"></script>
+<link rel="stylesheet" crossorigin href="/assets/index-HV6iRfAi.css">
+status=200 effective=https://cross-examine-six.vercel.app/ redirects=0 content_type=text/html; charset=utf-8
+```
+
+The obsolete public JS remained exposed at its exact static filename and matched the committed redundant asset byte-for-byte:
+
+```text
+$ curl -sS -L --max-time 20 https://cross-examine-six.vercel.app/assets/index-1hHMzRj_.js | shasum -a 256
+7ac18395ef559067b4b9a2a05476699e8185fa3fd18c2b9b4156ffadea5d5624  -
+$ git show HEAD:public/assets/index-1hHMzRj_.js | shasum -a 256
+7ac18395ef559067b4b9a2a05476699e8185fa3fd18c2b9b4156ffadea5d5624  -
+```
+
+Command (Node 24.14.0 supplied by the workspace runtime):
+
+```text
+npm run build
+```
+
+Raw output:
+
+```text
+
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+vite v8.1.4 building client environment for production...
+transforming...✓ 2460 modules transformed.
+rendering chunks...
+computing gzip size...
+../src/cross_examine/static/index.html                                                    0.58 kB │ gzip:   0.36 kB
+../src/cross_examine/static/assets/space-grotesk-vietnamese-wght-normal-D0rl6rjA.woff2    6.71 kB
+../src/cross_examine/static/assets/lexend-vietnamese-wght-normal-RvljkFvg.woff2          13.84 kB
+../src/cross_examine/static/assets/space-grotesk-latin-ext-wght-normal-D9tNdqV9.woff2    18.94 kB
+../src/cross_examine/static/assets/space-grotesk-latin-wght-normal-BhU9QXUp.woff2        22.28 kB
+../src/cross_examine/static/assets/lexend-latin-ext-wght-normal-B6JQhE1e.woff2           34.47 kB
+../src/cross_examine/static/assets/lexend-latin-wght-normal-ci0D1wrL.woff2               39.68 kB
+../src/cross_examine/static/assets/index-BAAzL6GN.css                                    88.40 kB │ gzip:  15.19 kB
+../src/cross_examine/static/assets/index-BVC1yLbJ.js                                    662.23 kB │ gzip: 209.88 kB
+
+✓ built in 316ms
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+```
+
+### VERDICT
+
+The SPEC survived. The fresh `BVC1yLbJ.js` / `BAAzL6GN.css` set matched neither committed pair. `frontend/vite.config.ts` has exactly one `outDir`, `src/cross_examine/static`; `public/` had not changed since its creation and was redundant for normal FastAPI/Vercel SPA routes.
+
+### FIX
+
+Applied option (a): removed the tracked `public/` bundle, ignored `public/`, documented `src/cross_examine/static` as the FastAPI/Vercel source of truth beside the Vite `outDir`, and committed the freshly generated canonical bundle. No second build-copy path or dependency was added.
+
+### VERIFY
+
+The post-fix build reproduced the same asset names:
+
+```text
+../src/cross_examine/static/assets/index-BAAzL6GN.css                                    88.40 kB │ gzip:  15.19 kB
+../src/cross_examine/static/assets/index-BVC1yLbJ.js                                    662.23 kB │ gzip: 209.88 kB
+
+✓ built in 322ms
+```
+
+The packaged server was started with `CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture` at `http://127.0.0.1:8765`. Raw request log:
+
+```text
+127.0.0.1:51711 - "GET / HTTP/1.1" 200 OK
+127.0.0.1:51711 - "GET /assets/index-BVC1yLbJ.js HTTP/1.1" 200 OK
+127.0.0.1:51712 - "GET /assets/index-BAAzL6GN.css HTTP/1.1" 200 OK
+127.0.0.1:51711 - "GET /api/fixtures/broken HTTP/1.1" 200 OK
+127.0.0.1:51728 - "POST /api/hero-runs HTTP/1.1" 202 Accepted
+127.0.0.1:51728 - "GET /api/runs/a5de22ba01c546a48beb0723bcf56b49 HTTP/1.1" 200 OK
+127.0.0.1:51728 - "GET /api/runs/a5de22ba01c546a48beb0723bcf56b49/events HTTP/1.1" 200 OK
+127.0.0.1:51739 - "GET /runs/a5de22ba01c546a48beb0723bcf56b49 HTTP/1.1" 200 OK
+127.0.0.1:51740 - "GET /api/runs/a5de22ba01c546a48beb0723bcf56b49 HTTP/1.1" 200 OK
+```
+
+After clicking `Run offline hero demo`, the browser navigated to the run URL. Raw DOM snapshot excerpt after expanding the behavioral refutation:
+
+```text
+- heading "BROKEN" [level=1]
+- region "Executed findings":
+  - row "preserves empty-list normalization preservation behavioral_diff refuted 100%":
+    - button "preserves empty-list normalization preservation" [expanded] [active]
+  - row:
+    - cell:
+      - generic: Exact command
+      - code: "'/Users/stefanospalivos/Documents/cross examine/.worktrees/consolidated-remediation/.venv/bin/python' -P -m cross_examine.cross_examine.probe_runner call normalizer.core:normalize '/Users/stefanospalivos/Documents/cross examine/.worktrees/consolidated-remediation/.cross-examine/runs/a5de22ba01c546a48beb0723bcf56b49/probe-state/requests/head/f01811fb36d2136aacb7.json'"
+      - generic: Captured output
+      - code: "BASE COMMAND ... BASE OUTPUT {\"cross_examine_probe\": 1, \"exception\": null, \"ok\": true, \"probe_error\": false, \"value\": []} HEAD OUTPUT {\"cross_examine_probe\": 1, \"exception\": null, \"ok\": true, \"probe_error\": false, \"value\": null}"
+```
+
+Reloading the exact `/runs/a5de22ba01c546a48beb0723bcf56b49` URL rendered `BROKEN` and the five persisted findings. Browser console errors were `[]`; the error-overlay check was `false`.
+
+Command:
+
+```text
+npm test -- --run
+```
+
+Raw output:
+
+```text
+
+> frontend@0.0.0 test
+> vitest --run
+
+
+ RUN  v4.1.10 /Users/stefanospalivos/Documents/cross examine/.worktrees/consolidated-remediation/frontend
+
+
+ Test Files  10 passed (10)
+      Tests  27 passed (27)
+   Start at  17:39:19
+   Duration  4.07s (transform 1.77s, setup 1.80s, import 5.90s, tests 3.66s, environment 13.27s)
+```
+
+Command:
+
+```text
+uv run pytest -q
+```
+
+Raw output:
+
+```text
+........................................................................ [ 68%]
+.................................                                        [100%]
+105 passed in 25.30s
+```
