@@ -327,3 +327,69 @@ Raw output:
 .................................                                        [100%]
 105 passed in 26.48s
 ```
+
+## Task 4 — Distinguish import failure from target behavior
+
+### SPEC
+
+A hero-like target whose module import fails identically in base and head might be normalized as ordinary behavior, producing a `VERIFIED` finding and a fail-open verdict; if the probe protocol already treats import failure as infrastructure, the finding will instead be `UNVERIFIABLE` and the report `RISKY`.
+
+### PROBE
+
+A throwaway script materialized base and head `src/normalizer/core.py` files that both imported the absent `dependency_that_is_not_installed`, then ran the full `Pipeline` with a preserve-critical claim targeting `normalizer.core:normalize`.
+
+Command:
+
+```text
+.venv/bin/python .task4_probe.py
+```
+
+Raw output:
+
+```text
+verdict=Verdict.RISKY
+outcome=Outcome.UNVERIFIABLE
+output:
+{"cross_examine_probe": 1, "exception": {"message": "No module named 'dependency_that_is_not_installed'", "type": "ModuleNotFoundError"}, "ok": false, "probe_error": true, "value": null}
+ModuleNotFoundError: No module named 'dependency_that_is_not_installed'
+
+```
+
+### VERDICT
+
+The fail-open SPEC did not survive. The audit was wrong for import-time failures: `_resolve_target()` runs outside the target invocation `try` block, so an import failure reaches the outer protocol handler with `probe_error=true`; `parse_probe_output()` converts that to no envelope, and Layer A abstains.
+
+The distinguishing rule is: an exception raised before a callable is successfully resolved is an infrastructure probe error, while an exception raised by invoking a successfully resolved callable is comparable target behavior.
+
+### FIX
+
+No production or test change was made. Changing exception normalization after this failed reproduction would broaden behavior without evidence. The existing `test_matching_target_exceptions_are_verified_behavior` already guards the genuine-domain-exception side of the rule. The throwaway probe script was removed after capture.
+
+### VERIFY
+
+Command:
+
+```text
+.venv/bin/pytest -q tests/integration/test_layer_a.py::test_matching_target_exceptions_are_verified_behavior
+```
+
+Raw output:
+
+```text
+.                                                                        [100%]
+1 passed in 0.64s
+```
+
+Command:
+
+```text
+uv run pytest -q
+```
+
+Raw output:
+
+```text
+........................................................................ [ 68%]
+.................................                                        [100%]
+105 passed in 22.05s
+```
