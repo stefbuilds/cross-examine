@@ -1107,3 +1107,40 @@ Raw output:
 62-
 63-## Execution boundary
 ```
+
+## Task 5 — Real GPT-5.6 Sol characterization trial
+
+### SPEC
+
+Run and record one real model-backed characterization only when `OPENAI_API_KEY` is already
+available in the environment. Never expose, synthesize, or request a credential as part of the
+autonomous remediation run.
+
+### PROBE
+
+Command (presence check only; the value was neither read nor printed):
+
+```text
+if [[ -n "${OPENAI_API_KEY:-}" ]]; then printf 'OPENAI_API_KEY=present\n'; else printf 'OPENAI_API_KEY=absent\n'; fi
+```
+
+Raw output:
+
+```text
+OPENAI_API_KEY=absent
+```
+
+### VERDICT
+
+The external trial was not runnable in this environment. Its result is explicitly unverified;
+the passing deterministic fixture demo is not presented as a substitute for a real model call.
+
+### FIX
+
+No code or credential change. Skipped the external call exactly as specified for a missing key.
+
+### VERIFY
+
+No external model output exists to verify. Task 8 separately records the real five-stage offline
+fixture execution; this task remains an honest external-evidence gap and contributes risk in the
+final self-assessment.
