@@ -62,6 +62,8 @@ Adversarial verification of model output has largely converged on debate, prover
 
 One provenance gap remains: `validate_report()` proves only that a decided finding's command and output are non-empty; it cannot prove those strings originated at the execution boundary. A future `Finding` contract should carry the canonical invocation, captured stdout, and an `evidence_hash` over both, generated in `execution.py`; `validate_report()` can then recompute and compare that hash before allowing `VERIFIED` or `REFUTED` to reach Render.
 
+Layer B's search mechanics — Hypothesis strategies, input domains, budget allocation, shrinking approach — are tunable against a frozen oracle: a corpus of known-safe and known-regression PRs, scored by regressions discovered per unit time with zero false refutations. Because the verdict function is pure and the evidence is executed, the optimization loop cannot corrupt what it optimizes toward. Verdict semantics, evidence validation, and execution policy stay outside the loop permanently.
+
 ## Execution boundary
 
 Git and Python commands are passed as argument arrays with `shell=False`. The trusted-input boundary allows only Git, Python, and the active interpreter. Child processes inherit only required OS/runtime variables; secret-shaped names, API keys, credential helpers, and SSH-agent configuration are absent even when ambient in the operator session. Receipts still redact known secret values defensively. Output is capped at 2 MB, every command is bounded by both its own timeout and the run's monotonic deadline, and timeout triggers best-effort process-tree cleanup. Base and head execute from detached worktrees.
