@@ -2,7 +2,7 @@
 
 > **Codex writes the code. Cross-Examine puts it on the stand.**
 >
-> Git worktrees → GPT-5.6 Sol claims → sandboxed base/head execution → pure `aggregate()` → FastAPI/React report.
+> Git worktrees → GPT-5.6 Sol claims → trusted-input base/head execution → pure `aggregate()` → FastAPI/React report.
 
 [![Python >=3.12](https://img.shields.io/badge/Python-%3E%3D3.12-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -50,7 +50,7 @@ uv run cross-examine serve
 
 Open `http://127.0.0.1:8765`, click **Run offline hero demo**, then expand the refuted finding. The exact command, base output, head output, expected value, actual value, and reproducing input are all rendered from the persisted report.
 
-**Zero-install option:** the [live evidence explorer](https://cross-examine-stefffs-projects.vercel.app) serves an explicitly labeled, checked-in evidence fixture. Vercel Functions do not include the Git/runtime isolation needed to execute repositories, so arbitrary repository analysis is intentionally local-only — the quickstart above runs the real five-stage pipeline.
+**Zero-install option:** the [live evidence explorer](https://cross-examine-stefffs-projects.vercel.app) serves an explicitly labeled, checked-in evidence fixture. Vercel Functions do not provide the Git and local-runtime capabilities required to execute repositories, so arbitrary repository analysis is intentionally local-only — the quickstart above runs the real five-stage pipeline.
 
 ## Why this is not a Codex skill
 
@@ -113,7 +113,7 @@ flowchart TB
   linkStyle default stroke:#737373,stroke-width:1.5px
 ```
 
-1. **Ingest** resolves base and head into isolated Git worktrees and discovers touched Python symbols.
+1. **Ingest** resolves base and head into separate detached Git worktrees and discovers touched Python symbols.
 2. **Characterize** asks GPT-5.6 Sol for strict `Claim` objects only. In the offline hero demo, a clearly labeled checked-in claim fixture replaces this one model call.
 3. **Cross-examine** captures base behavior, replays it against head (Layer A), uses bounded Hypothesis generation and shrinking (Layer B), and executes conservatively discovered repository tests.
 4. **Aggregate** is a pure function. A preserve-critical refutation is `BROKEN`; other refutations or critical abstentions are `RISKY`; grounded passes are `SAFE`.
@@ -144,7 +144,7 @@ The human retained product authority; Codex accelerated implementation.
 | The contract and five-stage structure | Worktree and subprocess mechanics |
 | Abstain-toward-risk policy | Edge catalog and Hypothesis bounds |
 | Layer-A-before-Layer-B sequencing | Persistence and SSE protocol |
-| Trusted-input sandbox boundary | CLI surface and deterministic hero construction |
+| Trusted-input execution boundary | CLI surface and deterministic hero construction |
 | Build Week deadline | 21st.dev component selection and adaptation |
 | Requirement to use 21st.dev at design time | Responsive behavior, tests, packaging |
 | Evidence doctrine and final submission story | Cross-platform diagnosis, release verification |

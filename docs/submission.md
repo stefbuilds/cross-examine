@@ -22,7 +22,7 @@ Coding agents can produce changes faster than people can deeply review them. Mos
 
 ## What it does
 
-Cross-Examine resolves two Git revisions into isolated worktrees and discovers the changed Python symbols. GPT-5.6 may emit only validated `Claim` objects; it cannot emit findings or verdicts. Layer A captures the base behavior and replays the same inputs against the head. Layer B uses bounded Hypothesis generation and shrinking to search for minimal counterexamples. Existing repository tests run against both revisions so pre-existing setup failures are not misreported as regressions.
+Cross-Examine resolves two Git revisions into separate detached worktrees and discovers the changed Python symbols. GPT-5.6 may emit only validated `Claim` objects; it cannot emit findings or verdicts. Layer A captures the base behavior and replays the same inputs against the head. Layer B uses bounded Hypothesis generation and shrinking to search for minimal counterexamples. Existing repository tests run against both revisions so pre-existing setup failures are not misreported as regressions.
 
 Every verified or refuted finding includes an exact command and captured output. A pure deterministic function aggregates findings into SAFE, RISKY, or BROKEN, and verified behavior is pinned into a persistent corpus for later runs. If preserve-critical behavior cannot be executed, Cross-Examine resolves toward risk rather than safety.
 
@@ -56,7 +56,7 @@ Trustworthy agentic development needs separation of duties. Models are valuable 
 
 ## What's next
 
-The next step is disposable VM isolation with network denial and resource quotas, followed by explicit executable oracles for intended behavior changes. After that, Cross-Examine can become a pull-request check and a native gate in unattended agent workflows while preserving the same report contract and evidence receipts.
+Production requires disposable VMs with network denial and resource quotas, plus explicit executable oracles for intended behavior changes. Those controls preserve the same report contract and evidence receipts.
 
 ## Technology
 

@@ -50,7 +50,7 @@ Voiceover: “This is GPT-5.6 proposing what deserves scrutiny on a change it ha
 
 Show the Runs view, then return to the hero receipt.
 
-Voiceover: “I used Codex to build and test the pipeline, UI, process isolation, persistence, and cross-platform release path. I made the product decisions: independence, evidence-only verdicts, and abstaining toward risk. Today the trusted-input runner is local; production moves execution into disposable network-restricted VMs. Cross-Examine turns trust in agent-written code from an opinion into an executed artifact.”
+Voiceover: “I used Codex to build and test the pipeline, UI, bounded host-process controls, persistence, and cross-platform release path. I made the product decisions: independence, evidence-only verdicts, and abstaining toward risk. Today the trusted-input runner is local; production moves execution into disposable network-restricted VMs. Cross-Examine turns trust in agent-written code from an opinion into an executed artifact.”
 
 ## Recording checklist
 
