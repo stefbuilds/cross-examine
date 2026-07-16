@@ -6,6 +6,7 @@
 
 <!-- Demo GIF slot: docs/assets/demo.gif -->
 
+[![Verify](https://github.com/stefbuilds/cross-examine/actions/workflows/verify.yml/badge.svg)](https://github.com/stefbuilds/cross-examine/actions/workflows/verify.yml)
 [![Python >=3.12](https://img.shields.io/badge/Python-%3E%3D3.12-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Hackathon Submission](https://img.shields.io/badge/Build%20Week-submission-8A2BE2)
