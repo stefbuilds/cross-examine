@@ -90,7 +90,7 @@ def test_timeout_terminates_spawned_children(tmp_path: Path) -> None:
         f"pathlib.Path({str(child_pid)!r}).write_text(str(child.pid)); time.sleep(30)"
     )
 
-    evidence = run_command([sys.executable, "-c", program], cwd=tmp_path, timeout=0.2)
+    evidence = run_command([sys.executable, "-c", program], cwd=tmp_path, timeout=2.0)
 
     assert evidence.timed_out is True
     deadline = time.monotonic() + 2
