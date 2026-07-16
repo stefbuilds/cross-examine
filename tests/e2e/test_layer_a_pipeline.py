@@ -289,6 +289,32 @@ def test_preexisting_test_failure_does_not_blame_the_head_revision(tmp_path: Pat
     assert "HEAD OUTPUT" in findings[0].output
 
 
+def test_failing_base_test_that_passes_on_head_is_unverifiable(tmp_path: Path) -> None:
+    base = tmp_path / "base"
+    head = tmp_path / "head"
+    base.mkdir()
+    head.mkdir()
+    (base / "test_recovery.py").write_text(
+        "def test_behavior() -> None:\n    assert False\n",
+        encoding="utf-8",
+    )
+    (head / "test_recovery.py").write_text(
+        "def test_behavior() -> None:\n    assert True\n",
+        encoding="utf-8",
+    )
+
+    _claim, findings = _run_discovered_tests(
+        [["python", "-m", "pytest", "-q"]],
+        base,
+        head,
+        timeout=10,
+    )
+
+    assert findings[0].outcome is Outcome.UNVERIFIABLE
+    assert "1 failed" in findings[0].output
+    assert "1 passed" in findings[0].output
+
+
 def test_passing_base_test_that_fails_on_head_is_refuted(tmp_path: Path) -> None:
     base = tmp_path / "base"
     head = tmp_path / "head"

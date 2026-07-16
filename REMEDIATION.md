@@ -148,3 +148,97 @@ Raw output:
 ...............................                                          [100%]
 103 passed in 25.07s
 ```
+
+## Task 2 — Refuse credit without an established repository-test baseline
+
+### SPEC
+
+A repository test that fails on base and passes on head currently produces `VERIFIED`; because base never established a passing baseline, the finding must instead be `UNVERIFIABLE`.
+
+### PROBE
+
+A real pytest command was run against two temporary revision directories: base contained `assert False`, while head contained `assert True`.
+
+Command:
+
+```text
+.venv/bin/pytest -q tests/e2e/test_layer_a_pipeline.py::test_failing_base_test_that_passes_on_head_is_unverifiable
+```
+
+Raw pre-fix output:
+
+```text
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________ test_failing_base_test_that_passes_on_head_is_unverifiable __________
+
+tmp_path = PosixPath('/private/var/folders/ff/4k4q6dpx6537djl1x0_4561r0000gn/T/pytest-of-stefanospalivos/pytest-18/test_failing_base_test_that_pa0')
+
+    def test_failing_base_test_that_passes_on_head_is_unverifiable(tmp_path: Path) -> None:
+        base = tmp_path / "base"
+        head = tmp_path / "head"
+        base.mkdir()
+        head.mkdir()
+        (base / "test_recovery.py").write_text(
+            "def test_behavior() -> None:\n    assert False\n",
+            encoding="utf-8",
+        )
+        (head / "test_recovery.py").write_text(
+            "def test_behavior() -> None:\n    assert True\n",
+            encoding="utf-8",
+        )
+
+        _claim, findings = _run_discovered_tests(
+            [["python", "-m", "pytest", "-q"]],
+            base,
+            head,
+            timeout=10,
+        )
+
+>       assert findings[0].outcome is Outcome.UNVERIFIABLE
+E       assert <Outcome.VERIFIED: 'verified'> is <Outcome.UNVERIFIABLE: 'unverifiable'>
+E        +  where <Outcome.VERIFIED: 'verified'> = Finding(claim_id='system:head-tests', layer=<Layer.BEHAVIORAL_DIFF: 'behavioral_diff'>, outcome=<Outcome.VERIFIED: 've...           [100%]\n1 passed in 0.05s\n", repro_input=None, expected=None, actual=None, confidence=1.0, provenance=None).outcome
+E        +  and   <Outcome.UNVERIFIABLE: 'unverifiable'> = Outcome.UNVERIFIABLE
+
+tests/e2e/test_layer_a_pipeline.py:313: AssertionError
+=========================== short test summary info ============================
+FAILED tests/e2e/test_layer_a_pipeline.py::test_failing_base_test_that_passes_on_head_is_unverifiable
+1 failed in 1.12s
+```
+
+### VERDICT
+
+The SPEC survived. `_run_discovered_tests()` checked `head_passed` first, so a passing head bypassed the fact that `base_passed` was false. This contradicted the documented rule that pre-existing failures are `UNVERIFIABLE`.
+
+### FIX
+
+In `src/cross_examine/pipeline.py`, check `not base_passed` first and assign `Outcome.UNVERIFIABLE`; only an established passing base can reach the head-success `VERIFIED` branch or the grounded head-regression `REFUTED` branch. Added the real base-fails/head-passes regression test in `tests/e2e/test_layer_a_pipeline.py`.
+
+### VERIFY
+
+Command:
+
+```text
+.venv/bin/pytest -q tests/e2e/test_layer_a_pipeline.py::test_failing_base_test_that_passes_on_head_is_unverifiable
+```
+
+Raw output:
+
+```text
+.                                                                        [100%]
+1 passed in 1.66s
+```
+
+Command:
+
+```text
+uv run pytest -q
+```
+
+Raw output:
+
+```text
+........................................................................ [ 69%]
+................................                                         [100%]
+104 passed in 25.68s
+```

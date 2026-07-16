@@ -403,7 +403,9 @@ def _run_discovered_tests(
         output = _test_comparison_output(base, base_evidence, head, head_evidence)
         base_passed = _command_passed(base_evidence)
         head_passed = _command_passed(head_evidence)
-        if head_passed:
+        if not base_passed:
+            outcome = Outcome.UNVERIFIABLE
+        elif head_passed:
             outcome = Outcome.VERIFIED
         elif (
             head_evidence.timed_out
@@ -411,10 +413,8 @@ def _run_discovered_tests(
             or _looks_environmental_test_failure(head_evidence.output)
         ):
             outcome = Outcome.UNVERIFIABLE
-        elif base_passed:
-            outcome = Outcome.REFUTED
         else:
-            outcome = Outcome.UNVERIFIABLE
+            outcome = Outcome.REFUTED
         findings.append(
             Finding(
                 claim_id=claim.id,
