@@ -31,16 +31,5 @@
     "layerA": { "summary": "5.571s, RISKY, 2 unverifiable", "verdict": "RISKY" },
     "layerAB": { "summary": "24.045s, RISKY, 3 unverifiable", "verdict": "RISKY" },
     "limitation": "Invalid values return a non-JSON ValidationError; the optional Ethereum test extra is also absent on both revisions. The probe reported UnserializableResult, and 17 pre-existing dependency-caused pytest failures were correctly classified as UNVERIFIABLE, not as a broken PR."
-  },
-  {
-    "repository": "packaging",
-    "repositoryUrl": "https://github.com/pypa/packaging/commit/3803ce341b59a24c598eb7b8100d5f8d6773f63e",
-    "change": "optimize canonicalize_name",
-    "baseRef": "52e57f2…",
-    "headRef": "3803ce3…",
-    "setup": "none",
-    "layerA": { "summary": "7.624s, RISKY, 8 verified / 1 unverifiable, corpus 8", "verdict": "RISKY" },
-    "layerAB": { "summary": "16.041s, BROKEN, 8 verified / 1 refuted / 1 unverifiable, corpus +0 / 8", "verdict": "BROKEN" },
-    "limitation": "Layer B found and shrank a real preservation regression: canonicalize_name(\"À\", validate=False) returned \"à\" on base and \"À\" on head. Repository tests remained UNVERIFIABLE because pretend was absent during collection; the broken verdict is grounded in the separate exact base/head probe evidence."
   }
 ]
