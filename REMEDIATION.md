@@ -712,3 +712,181 @@ Raw output:
 .................................                                        [100%]
 105 passed in 22.20s
 ```
+
+## Task 8 — Make local and CI verification equivalent
+
+### SPEC
+
+macOS/Linux and Windows need documented, repository-owned verification entry points. Each must
+run locked dependency sync, Ruff, backend tests, frontend tests and lint, the production build,
+packaged Playwright tests, and the credential-free fixture demo. CI must invoke those same entry
+points on Ubuntu, macOS, and Windows.
+
+### PROBE
+
+Command and result before the fix:
+
+```text
+$ test ! -e scripts/verify.sh
+exit_code=0
+```
+
+The PowerShell entry point used `uv sync --extra dev`, did not run `npm run lint`, and removed no
+inherited model credential. The workflow ran the full frontend gate only in a separate Ubuntu
+job, while README documented only PowerShell.
+
+### VERDICT
+
+The SPEC did not survive. There was no POSIX entry point, the two existing verification paths
+diverged, and macOS/Windows CI did not exercise the frontend or packaged browser flow.
+
+### FIX
+
+Added executable `scripts/verify.sh`; made both scripts remove `OPENAI_API_KEY`, force the
+deterministic fixture, use `uv sync --locked`, and include frontend lint. Replaced the split CI
+jobs with one three-OS matrix that invokes the repository scripts. Documented both commands in
+the existing README Tests section.
+
+The first local run used the application-bundled Node 24 and exposed a host signing mismatch,
+not a repository defect:
+
+```text
+Error: Cannot find native binding.
+cause: Error: dlopen(.../rolldown-binding.darwin-arm64.node, 0x0001):
+code signature ... not valid for use in process: mapping process and mapped file
+(non-platform) have different Team IDs
+code: 'ERR_DLOPEN_FAILED'
+```
+
+Exact diagnosis:
+
+```text
+$ codesign -dv --verbose=4 /Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node
+flags=0x10000(runtime)
+TeamIdentifier=2DC432GLL2
+$ codesign -dv --verbose=4 frontend/node_modules/@rolldown/binding-darwin-arm64/rolldown-binding.darwin-arm64.node
+flags=0x20002(adhoc,linker-signed)
+TeamIdentifier=not set
+$ /opt/homebrew/opt/node@20/bin/node --version
+v20.19.6
+```
+
+Running unchanged under the normal Node 20 runtime matching CI then exposed a genuine stale e2e
+locator after Task 0's pipeline-generated fixture replacement:
+
+```text
+Error: locator.click: Error: strict mode violation:
+getByRole('button', { name: /preserves empty-list normalization/i }) resolved to 4 elements
+  1 failed
+  1 passed (5.2s)
+```
+
+The fixture contains behavioral refuted, behavioral verified, and adversarial rows for the same
+claim. Narrowed the test to the behavioral-refuted row and asserted the current captured
+`probe_runner` command plus its `[]` and `null` outputs instead of stale hand-authored pytest
+text. No production behavior changed.
+
+Focused regression command:
+
+```text
+npm run test:e2e -- --grep 'opens every grounded receipt'
+```
+
+Raw output:
+
+```text
+> frontend@0.0.0 test:e2e
+> playwright test --grep opens every grounded receipt
+
+Running 1 test using 1 worker
+
+[1/1] e2e/broken-verdict.spec.ts:3:1 › opens every grounded receipt from a packaged direct route
+  1 passed (2.3s)
+```
+
+### VERIFY
+
+Command (with Homebrew Node 20 first on `PATH`, matching CI's Node 20):
+
+```text
+bash scripts/verify.sh
+```
+
+Raw output:
+
+```text
+Resolved 43 packages in 23ms
+Checked 42 packages in 8ms
+All checks passed!
+........................................................................ [ 68%]
+.................................                                        [100%]
+105 passed in 20.86s
+
+added 525 packages, and audited 526 packages in 3s
+
+139 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+> frontend@0.0.0 test
+> vitest --run
+
+ RUN  v4.1.10 /Users/stefanospalivos/Documents/cross examine/.worktrees/consolidated-remediation/frontend
+
+ Test Files  10 passed (10)
+      Tests  27 passed (27)
+   Duration  2.93s (transform 955ms, setup 941ms, import 4.07s, tests 3.01s, environment 8.59s)
+
+> frontend@0.0.0 lint
+> oxlint
+
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+vite v8.1.4 building client environment for production...
+transforming...✓ 2460 modules transformed.
+rendering chunks...
+computing gzip size...
+../src/cross_examine/static/index.html                                                    0.58 kB │ gzip:   0.35 kB
+../src/cross_examine/static/assets/space-grotesk-vietnamese-wght-normal-D0rl6rjA.woff2    6.71 kB
+../src/cross_examine/static/assets/lexend-vietnamese-wght-normal-RvljkFvg.woff2          13.84 kB
+../src/cross_examine/static/assets/space-grotesk-latin-ext-wght-normal-D9tNdqV9.woff2    18.94 kB
+../src/cross_examine/static/assets/space-grotesk-latin-wght-normal-BhU9QXUp.woff2        22.28 kB
+../src/cross_examine/static/assets/lexend-latin-ext-wght-normal-B6JQhE1e.woff2           34.47 kB
+../src/cross_examine/static/assets/lexend-latin-wght-normal-ci0D1wrL.woff2               39.68 kB
+../src/cross_examine/static/assets/index-gZ2lRzhV.css                                    74.85 kB │ gzip:  13.80 kB
+../src/cross_examine/static/assets/index-ChboQhj8.js                                    662.23 kB │ gzip: 209.88 kB
+✓ built in 261ms
+
+> frontend@0.0.0 test:e2e
+> playwright test
+
+Running 2 tests using 1 worker
+
+[1/2] e2e/broken-verdict.spec.ts:3:1 › opens every grounded receipt from a packaged direct route
+[2/2] e2e/broken-verdict.spec.ts:26:1 › runs the offline hero from the browser without model credentials
+  2 passed (4.6s)
+   Building cross-examine @ file:///Users/stefanospalivos/Documents/cross%20examine/.worktrees/consolidated-remediation
+      Built cross-examine @ file:///Users/stefanospalivos/Documents/cross%20examine/.worktrees/consolidated-remediation
+Installed 35 packages in 39ms
+Run: http://127.0.0.1:8765/runs/c3ec76b5be144a69aa6ec63751183cc8
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +0 this run · 2 total
+Refuted claim: preserve-empty
+Exact command: /Users/stefanospalivos/.cache/uv/builds-v0/.tmpuIeumr/bin/python -P -m cross_examine.cross_examine.probe_runner call normalizer.core:normalize '/Users/stefanospalivos/Documents/cross examine/.worktrees/consolidated-remediation/.cross-examine/runs/c3ec76b5be144a69aa6ec63751183cc8/probe-state/requests/head/f01811fb36d2136aacb7.json'
+Reproducing input: []
+```
+
+Static entry-point checks:
+
+```text
+bash_syntax_exit=0
+workflow_yaml_exit=0
+verify_sh_executable_exit=0
+pwsh_available_exit=1
+```
+
+PowerShell was not present on this macOS host, so the Windows entry point was not executed
+locally; the workflow retains Windows and invokes that file directly.

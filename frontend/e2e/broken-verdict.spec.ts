@@ -6,11 +6,19 @@ test("opens every grounded receipt from a packaged direct route", async ({ page 
 
   await page.goto("/fixtures/broken");
   await expect(page.getByRole("heading", { name: "BROKEN" })).toBeVisible();
-  await page.getByRole("button", { name: /preserves empty-list normalization/i }).click();
+  await page
+    .getByRole("row", {
+      name: /preserves empty-list normalization.*behavioral_diff refuted/i,
+    })
+    .getByRole("button")
+    .click();
 
   await expect(page.getByText("Exact command")).toBeVisible();
-  await expect(page.getByText("python -m pytest -q tests/test_normalize.py -k empty")).toBeVisible();
-  await expect(page.getByText("AssertionError: assert None == []")).toBeVisible();
+  await expect(
+    page.getByText(/probe_runner call normalizer\.core:normalize/).first(),
+  ).toBeVisible();
+  await expect(page.getByText(/"value": \[\]/).first()).toBeVisible();
+  await expect(page.getByText(/"value": null/).first()).toBeVisible();
   await expect(page.getByText("Reproducing input")).toBeVisible();
   expect(pageErrors).toEqual([]);
 });

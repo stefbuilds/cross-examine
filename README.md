@@ -203,13 +203,21 @@ Use `--no-layer-b` for a Layer-A-only compatibility pass. The web form accepts a
 
 ## Tests
 
-The complete judge-facing verification is:
+The complete judge-facing verification is available on every supported platform.
+
+On macOS or Linux:
+
+```bash
+bash scripts/verify.sh
+```
+
+On Windows:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/verify.ps1
 ```
 
-It syncs dependencies, runs Ruff, all Python tests, all frontend contract/accessibility tests, the production build, the packaged Playwright receipt flow, and the offline hero demo.
+Both entry points remove `OPENAI_API_KEY` from child processes, set `CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture`, sync locked dependencies, run Ruff, all Python tests, frontend lint and contract/accessibility tests, the production build, the packaged Playwright receipt flow, and the offline hero demo.
 
 The dev extra pins `httpx2` because the installed Starlette `TestClient` imports it directly and emits a deprecation warning when falling back to legacy `httpx`.
 

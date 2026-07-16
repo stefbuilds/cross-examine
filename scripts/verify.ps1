@@ -1,12 +1,17 @@
 $ErrorActionPreference = 'Stop'
 
+Set-Location (Join-Path $PSScriptRoot '..')
+
+Remove-Item Env:OPENAI_API_KEY -ErrorAction SilentlyContinue
+$env:CROSS_EXAMINE_DEMO_CHARACTERIZER = 'fixture'
+
 function Assert-LastExitCode([string]$Step) {
     if ($LASTEXITCODE -ne 0) {
         throw "$Step failed with exit code $LASTEXITCODE"
     }
 }
 
-uv sync --extra dev
+uv sync --extra dev --locked
 Assert-LastExitCode 'uv sync'
 uv run ruff check .
 Assert-LastExitCode 'Ruff'
@@ -19,6 +24,8 @@ try {
     Assert-LastExitCode 'npm ci'
     npm test -- --run
     Assert-LastExitCode 'frontend tests'
+    npm run lint
+    Assert-LastExitCode 'frontend lint'
     npm run build
     Assert-LastExitCode 'frontend build'
     npx playwright install chromium
@@ -30,6 +37,5 @@ finally {
     Pop-Location
 }
 
-$env:CROSS_EXAMINE_DEMO_CHARACTERIZER = 'fixture'
 uv run --isolated --no-editable cross-examine demo --no-open
 Assert-LastExitCode 'hero demo'
