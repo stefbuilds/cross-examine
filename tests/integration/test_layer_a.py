@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from cross_examine.cross_examine.layer_a import capture_base, run_layer_a
-from cross_examine.schema import Claim, Outcome
+from cross_examine.schema import Claim, Outcome, Verdict, aggregate
 
 
 def write_normalizer(root: Path, implementation: str) -> None:
@@ -102,6 +102,34 @@ def test_matching_target_exceptions_are_verified_behavior(tmp_path: Path) -> Non
     assert all(finding.outcome is Outcome.VERIFIED for finding in findings)
     negative = next(finding for finding in findings if finding.repro_input == "-1")
     assert negative.expected == '{"message":"negative","type":"ValueError"}'
+
+
+def test_lazy_missing_dependency_abstains_instead_of_verifying(tmp_path: Path) -> None:
+    base = tmp_path / "base"
+    head = tmp_path / "head"
+    implementation = (
+        "def parse(value: int) -> int:\n"
+        "    import dependency_that_is_not_installed\n"
+        "    return value\n"
+    )
+    write_normalizer(base, implementation)
+    write_normalizer(head, implementation)
+    claim = Claim(
+        id="preserve-lazy-import",
+        text="preserves parsing with runtime dependencies available",
+        target_symbol="normalizer.core:parse",
+        risk="high",
+        proposed_check="call parse across the integer boundary catalog",
+        preserve_critical=True,
+    )
+
+    fixtures = capture_base([claim], base, tmp_path / "probe-state")
+    findings = run_layer_a([claim], fixtures, head, tmp_path / "probe-state")
+
+    assert fixtures == []
+    assert [finding.outcome for finding in findings] == [Outcome.UNVERIFIABLE]
+    assert "ModuleNotFoundError" in findings[0].output
+    assert aggregate(findings, {claim.id}) is Verdict.RISKY
 
 
 def test_intended_change_without_an_oracle_abstains_on_equal_behavior(tmp_path: Path) -> None:

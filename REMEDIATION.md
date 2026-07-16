@@ -332,11 +332,15 @@ Raw output:
 
 ### SPEC
 
-A hero-like target whose module import fails identically in base and head might be normalized as ordinary behavior, producing a `VERIFIED` finding and a fail-open verdict; if the probe protocol already treats import failure as infrastructure, the finding will instead be `UNVERIFIABLE` and the report `RISKY`.
+A missing dependency in base and head must be infrastructure, whether it fails while resolving the
+target module or during a lazy import inside the callable. Before the fix, the first path should
+already be `UNVERIFIABLE`/`RISKY`, while the second may be normalized as matching target behavior
+and fail open as `VERIFIED`/`SAFE`.
 
 ### PROBE
 
-A throwaway script materialized base and head `src/normalizer/core.py` files that both imported the absent `dependency_that_is_not_installed`, then ran the full `Pipeline` with a preserve-critical claim targeting `normalizer.core:normalize`.
+A throwaway script first materialized base and head modules that imported the absent dependency at
+module load, then ran the full `Pipeline` with a preserve-critical target.
 
 Command:
 
@@ -355,29 +359,72 @@ ModuleNotFoundError: No module named 'dependency_that_is_not_installed'
 
 ```
 
+That narrow import-time allegation did not reproduce. Independent final review then identified the
+uncovered lazy-import path. A regression test made the same dependency import inside a successfully
+resolved `parse()` function in base and head.
+
+Command, before the fix:
+
+```text
+.venv/bin/pytest -q tests/integration/test_layer_a.py::test_lazy_missing_dependency_abstains_instead_of_verifying
+```
+
+Raw output:
+
+```text
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________ test_lazy_missing_dependency_abstains_instead_of_verifying __________
+
+>       assert fixtures == []
+E       assert [BehaviorFixt...e": null}\n')] == []
+E         Left contains 5 more items, first extra item: BehaviorFixture(id='ead9e1910a1cb6541f4c', claim_id='preserve-lazy-import', target_symbol='normalizer.core:parse', arg...endency_that_is_not_installed\'", "type": "ModuleNotFoundError"}, "ok": false, "probe_error": false, "value": null}\n')
+
+tests/integration/test_layer_a.py:129: AssertionError
+=========================== short test summary info ============================
+FAILED tests/integration/test_layer_a.py::test_lazy_missing_dependency_abstains_instead_of_verifying
+1 failed in 1.15s
+```
+
 ### VERDICT
 
-The fail-open SPEC did not survive. The audit was wrong for import-time failures: `_resolve_target()` runs outside the target invocation `try` block, so an import failure reaches the outer protocol handler with `probe_error=true`; `parse_probe_output()` converts that to no envelope, and Layer A abstains.
+The original module-import version did not survive, but the dependency fail-open itself did. A
+lazy `ModuleNotFoundError` was captured by the broad target-exception handler with
+`probe_error=false`; five matching exception envelopes became verified fixtures and could produce
+`SAFE` for a preserve-critical claim.
 
-The distinguishing rule is: an exception raised before a callable is successfully resolved is an infrastructure probe error, while an exception raised by invoking a successfully resolved callable is comparable target behavior.
+The distinguishing rule is: any `ImportError` raised while resolving or invoking the target is an
+infrastructure probe error; any non-`ImportError` raised after the callable resolves is comparable
+target behavior.
 
 ### FIX
 
-No production or test change was made. Changing exception normalization after this failed reproduction would broaden behavior without evidence. The existing `test_matching_target_exceptions_are_verified_behavior` already guards the genuine-domain-exception side of the rule. The throwaway probe script was removed after capture.
+In `probe_runner.py`, catch `ImportError` before the general target-exception handler and emit
+`probe_error=true`. `ModuleNotFoundError` is covered as its subclass; other import failures also
+resolve toward infrastructure risk. Added one Layer-A regression test for the lazy dependency.
+The existing matching-`ValueError` test remains the genuine-domain-exception side. Exactly two
+source/test files changed.
 
 ### VERIFY
 
 Command:
 
 ```text
-.venv/bin/pytest -q tests/integration/test_layer_a.py::test_matching_target_exceptions_are_verified_behavior
+.venv/bin/pytest -q tests/integration/test_layer_a.py::test_lazy_missing_dependency_abstains_instead_of_verifying tests/integration/test_layer_a.py::test_matching_target_exceptions_are_verified_behavior
 ```
 
 Raw output:
 
 ```text
-.                                                                        [100%]
-1 passed in 0.64s
+..                                                                       [100%]
+2 passed in 1.30s
+```
+
+Command and raw output:
+
+```text
+$ uv run ruff check .
+All checks passed!
 ```
 
 Command:
@@ -389,9 +436,9 @@ uv run pytest -q
 Raw output:
 
 ```text
-........................................................................ [ 68%]
-.................................                                        [100%]
-105 passed in 22.05s
+........................................................................ [ 67%]
+..................................                                       [100%]
+106 passed in 26.60s
 ```
 
 ## Task 7 — Establish one generated frontend bundle
@@ -713,6 +760,25 @@ Raw output:
 105 passed in 22.20s
 ```
 
+Per-path post-fix reference probe (each `rg -n -F` search returned empty stdout):
+
+```text
+dashboard-sidebar 2.tsx exit=1
+label 2.tsx exit=1
+switch 2.tsx exit=1
+favicon 2.svg exit=1
+favicon 3.svg exit=1
+index 2.html exit=1
+index 3.html exit=1
+index-D4zFGBUc 2.css exit=1
+lexend-latin-ext-wght-normal-B6JQhE1e 2.woff2 exit=1
+lexend-latin-wght-normal-ci0D1wrL 2.woff2 exit=1
+lexend-vietnamese-wght-normal-RvljkFvg 2.woff2 exit=1
+space-grotesk-latin-ext-wght-normal-D9tNdqV9 2.woff2 exit=1
+space-grotesk-latin-wght-normal-BhU9QXUp 2.woff2 exit=1
+space-grotesk-vietnamese-wght-normal-D0rl6rjA 2.woff2 exit=1
+```
+
 ## Task 8 — Make local and CI verification equivalent
 
 ### SPEC
@@ -952,7 +1018,7 @@ Raw output:
 
 ```text
 ./README.md:10:[![Live evidence explorer](https://img.shields.io/badge/Live-evidence%20explorer-000000)](https://cross-examine-six.vercel.app)
-./README.md:53:**Zero-install option:** the [live evidence explorer](https://cross-examine-six.vercel.app) serves an explicitly labeled, checked-in evidence fixture.
+./README.md:53:**Zero-install option:** the [live evidence explorer](https://cross-examine-six.vercel.app) serves an explicitly labeled, checked-in evidence fixture. Vercel Functions do not provide the Git and local-runtime capabilities required to execute repositories, so arbitrary repository analysis is intentionally local-only — the quickstart above runs the real five-stage pipeline.
 ./docs/submission.md:67:- Public evidence explorer: `https://cross-examine-six.vercel.app`
 ./docs/submission.md:77:- [x] Add the deployed judge-demo URL: `https://cross-examine-six.vercel.app`.
 stale_url_matches=0

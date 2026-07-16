@@ -36,6 +36,14 @@ def main(argv: list[str] | None = None) -> int:
             raise TypeError("request args must be a list and kwargs must be an object")
         try:
             value = target(*args, **kwargs)
+        except ImportError as exc:
+            _emit(
+                ok=False,
+                value=None,
+                exception={"type": type(exc).__name__, "message": str(exc)},
+                probe_error=True,
+            )
+            return 0
         except Exception as exc:  # noqa: BLE001 - target exceptions are normalized behavior
             _emit(
                 ok=False,
