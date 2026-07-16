@@ -58,6 +58,8 @@ flowchart TB
 - `persistence/` owns SQLite records; it does not decide outcomes.
 - The React application mirrors, but does not reinterpret, the Python report contract.
 
+Adversarial verification of model output has largely converged on debate, prover-verifier, and LLM-as-judge. All three terminate in a model deciding who won. Cross-Examine substitutes execution for the judge: the model proposes schema-constrained claims, subprocesses produce the evidence, and a pure function decides. The adversary cannot be argued with.
+
 One provenance gap remains: `validate_report()` proves only that a decided finding's command and output are non-empty; it cannot prove those strings originated at the execution boundary. A future `Finding` contract should carry the canonical invocation, captured stdout, and an `evidence_hash` over both, generated in `execution.py`; `validate_report()` can then recompute and compare that hash before allowing `VERIFIED` or `REFUTED` to reach Render.
 
 ## Execution boundary
