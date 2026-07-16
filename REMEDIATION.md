@@ -1049,3 +1049,61 @@ claim_contract_mentions=1
 preserve_empty_mentions_in_section=1
 headings_before=15 headings_after=15
 ```
+
+## Task 12 — Name the receipt provenance gap
+
+### SPEC
+
+Architecture documentation should distinguish “non-empty evidence fields” from structural proof
+that those fields came from the execution boundary. It should name a future `Finding` hash over
+the canonical invocation and captured stdout, produced by `execution.py` and recomputed by
+`validate_report()`, without implementing that larger contract now.
+
+### PROBE
+
+Command:
+
+```text
+.venv/bin/python -c 'from cross_examine.schema import Finding, Layer, Outcome, Report, Verdict; from cross_examine.validation import validate_report; finding = Finding(claim_id="invented", layer=Layer.BEHAVIORAL_DIFF, outcome=Outcome.VERIFIED, command="invented-command", output="invented-output"); report = Report(repo="repo", pr_ref="base..head", verdict=Verdict.SAFE, findings=[finding]); print(f"accepted={validate_report(report) is report}")'
+```
+
+Raw output:
+
+```text
+accepted=True
+```
+
+The existing validator's complete grounding predicate was:
+
+```text
+if finding.outcome in {Outcome.VERIFIED, Outcome.REFUTED} and (
+    not finding.command.strip() or not finding.output.strip()
+):
+```
+
+`Finding` carried plain `command` and `output` strings plus optional unstructured provenance.
+`execution.py` constructed an `ExecutionManifest` beside stdout/stderr, but no digest bound the
+captured stream to the later finding.
+
+### VERDICT
+
+The SPEC did not survive. Current validation enforces the Build Week non-empty receipt invariant,
+but does not prove receipt origin or integrity.
+
+### FIX
+
+Added one paragraph after Contract ownership that names the gap and the future structural remedy.
+Deliberately did not change `schema.py`, `validation.py`, `execution.py`, codecs, migrations, or
+verdict logic.
+
+### VERIFY
+
+Raw output:
+
+```text
+59-- The React application mirrors, but does not reinterpret, the Python report contract.
+60-
+61:One provenance gap remains: `validate_report()` proves only that a decided finding's command and output are non-empty; it cannot prove those strings originated at the execution boundary. A future `Finding` contract should carry the canonical invocation, captured stdout, and an `evidence_hash` over both, generated in `execution.py`; `validate_report()` can then recompute and compare that hash before allowing `VERIFIED` or `REFUTED` to reach Render.
+62-
+63-## Execution boundary
+```
