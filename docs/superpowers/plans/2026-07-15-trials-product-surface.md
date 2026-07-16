@@ -1,5 +1,7 @@
 # Trials Product Surface Implementation Plan
 
+> **Historical design record.** Written 2026-07-15/16 during the build. It describes intent at the time, not current behavior, and contains claims now superseded by the implementation. For current architecture see [docs/architecture.md](../../architecture.md). Retained for provenance.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Render every documented public-repository trial as an evidence-first frontend page.
@@ -185,4 +187,3 @@ Expected: both commands exit 0.
 git add frontend/src/app/App.tsx frontend/src/components/ui/dashboard-sidebar.tsx frontend/src/app/App.test.tsx
 git commit -m "feat: add trials destination"
 ```
-

@@ -31,4 +31,4 @@ The remaining two results are explicit v1 support boundaries, not hidden failure
 - repositories that require a build step to generate importable source need a future setup/install hook;
 - return values must be JSON-compatible for stable cross-process comparison.
 
-No multi-language support, package installer, object serializer, or broader sandbox was added during hardening.
+No multi-language support, package installer, object serializer, or hostile-code containment was added during hardening.

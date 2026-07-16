@@ -1,5 +1,7 @@
 # How it works page design
 
+> **Historical design record.** Written 2026-07-15/16 during the build. It describes intent at the time, not current behavior, and contains claims now superseded by the implementation. For current architecture see [docs/architecture.md](../../architecture.md). Retained for provenance.
+
 ## Purpose
 
 Make Cross-Examine's trust boundary visible at `/about`: the model proposes

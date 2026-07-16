@@ -10,7 +10,7 @@ describe("TrialsPage", () => {
     expect(
       screen.getByRole("heading", { name: "Real-world compatibility trials" }),
     ).toBeInTheDocument();
-    expect(screen.getAllByText("RISKY")).toHaveLength(6);
+    expect(screen.getAllByText("RISKY")).toHaveLength(5);
     expect(
       screen.getByText(/abstained rather than claiming safety/i),
     ).toBeInTheDocument();

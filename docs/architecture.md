@@ -60,7 +60,7 @@ flowchart TB
 
 ## Execution boundary
 
-Git and Python commands are passed as argument arrays with `shell=False`. The trusted-input boundary allows only Git, Python, and the active interpreter. Child processes inherit only required OS/runtime variables; secret-shaped names, API keys, credential helpers, and SSH-agent configuration are absent even when ambient in the operator session. Receipts still redact known secret values defensively. Output is capped at 2 MB, every command is bounded by both its own timeout and the run's monotonic deadline, and timeout kills the process tree. Base and head execute from detached worktrees.
+Git and Python commands are passed as argument arrays with `shell=False`. The trusted-input boundary allows only Git, Python, and the active interpreter. Child processes inherit only required OS/runtime variables; secret-shaped names, API keys, credential helpers, and SSH-agent configuration are absent even when ambient in the operator session. Receipts still redact known secret values defensively. Output is capped at 2 MB, every command is bounded by both its own timeout and the run's monotonic deadline, and timeout triggers best-effort process-tree cleanup. Base and head execute from detached worktrees.
 
 This is deliberate hackathon scope. It reduces accidental damage and command injection; it does not isolate malicious target code. A production service must run targets inside disposable, network-restricted VMs or containers with resource quotas.
 
