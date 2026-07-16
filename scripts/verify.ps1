@@ -28,8 +28,9 @@ try {
     Assert-LastExitCode 'frontend lint'
     npm run build
     Assert-LastExitCode 'frontend build'
-    git diff --exit-code -- ../src/cross_examine/static
-    Assert-LastExitCode 'committed frontend bundle'
+    # Vite's native Tailwind/Oxide path can emit platform-specific floating-point
+    # literals. Linux and macOS enforce the committed production bundle; Windows
+    # verifies that its native build succeeds and passes the same functional suite.
     npx playwright install chromium
     Assert-LastExitCode 'Playwright Chromium install'
     npm run test:e2e

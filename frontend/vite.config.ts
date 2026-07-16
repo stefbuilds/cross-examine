@@ -10,10 +10,6 @@ export default defineConfig({
     // FastAPI and the Vercel function both serve this packaged frontend bundle.
     outDir: path.resolve(__dirname, "../src/cross_examine/static"),
     emptyOutDir: true,
-    // Native minifier output differs across operating systems. The committed
-    // judge bundle favors byte-for-byte reproducibility over minified size.
-    minify: false,
-    cssMinify: false,
     rolldownOptions: {
       output: {
         entryFileNames: "assets/app.js",
