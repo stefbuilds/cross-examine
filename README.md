@@ -13,6 +13,8 @@
 
 Cross-Examine is an independent verification harness for Codex-authored Python changes. It captures the base revision's behavior, executes the head revision against the same inputs, hunts adversarial boundaries, and shows the exact command and captured output behind every verdict.
 
+Agent-authored code passes the tests that exist. Nothing checked whether the behavior it replaced still holds — so the model fixes one bug, introduces another, and the suite stays green throughout.
+
 The catch is the product: a plausible optimization returns `None` for an empty list, the existing happy-path test stays green, and Cross-Examine produces `BROKEN` with `[]` as the reproducing input.
 
 ## Contents
