@@ -1250,3 +1250,282 @@ missing-key gate rather than inventing the Unicode receipt.
 No `scripts/run_trials.py` output exists to verify. Task 8 separately records the real five-stage
 offline fixture execution; it does not verify pypa/packaging. The missing Unicode receipt remains
 an explicit external-evidence gap and contributes risk in the final self-assessment.
+
+## Final verification
+
+### Complete judge-facing verifier
+
+After the final code and CI fixes, the repository-owned POSIX entry point ran every gate.
+
+Command (with the installed ordinary Node 20 runtime first on `PATH`):
+
+```text
+bash scripts/verify.sh
+```
+
+Raw output:
+
+```text
+Resolved 43 packages in 33ms
+Checked 42 packages in 42ms
+All checks passed!
+........................................................................ [ 67%]
+..................................                                       [100%]
+106 passed in 22.92s
+
+added 525 packages, and audited 526 packages in 4s
+
+139 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+> frontend@0.0.0 test
+> vitest --run
+
+ RUN  v4.1.10 /Users/stefanospalivos/Documents/cross examine/.worktrees/consolidated-remediation/frontend
+
+ Test Files  10 passed (10)
+      Tests  27 passed (27)
+   Duration  7.55s (transform 6.06s, setup 12.48s, import 14.21s, tests 3.47s, environment 17.51s)
+
+> frontend@0.0.0 lint
+> oxlint
+
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+vite v8.1.4 building client environment for production...
+transforming...✓ 2460 modules transformed.
+rendering chunks...
+computing gzip size...
+../src/cross_examine/static/index.html                                                    0.58 kB │ gzip:   0.35 kB
+../src/cross_examine/static/assets/space-grotesk-vietnamese-wght-normal-D0rl6rjA.woff2    6.71 kB
+../src/cross_examine/static/assets/lexend-vietnamese-wght-normal-RvljkFvg.woff2          13.84 kB
+../src/cross_examine/static/assets/space-grotesk-latin-ext-wght-normal-D9tNdqV9.woff2    18.94 kB
+../src/cross_examine/static/assets/space-grotesk-latin-wght-normal-BhU9QXUp.woff2        22.28 kB
+../src/cross_examine/static/assets/lexend-latin-ext-wght-normal-B6JQhE1e.woff2           34.47 kB
+../src/cross_examine/static/assets/lexend-latin-wght-normal-ci0D1wrL.woff2               39.68 kB
+../src/cross_examine/static/assets/index-gZ2lRzhV.css                                    74.85 kB │ gzip:  13.80 kB
+../src/cross_examine/static/assets/index-ChboQhj8.js                                    662.23 kB │ gzip: 209.88 kB
+✓ built in 328ms
+
+> frontend@0.0.0 test:e2e
+> playwright test
+
+Running 2 tests using 1 worker
+
+[1/2] e2e/broken-verdict.spec.ts:3:1 › opens every grounded receipt from a packaged direct route
+[2/2] e2e/broken-verdict.spec.ts:26:1 › runs the offline hero from the browser without model credentials
+  2 passed (4.5s)
+Installed 35 packages in 116ms
+Run: http://127.0.0.1:8765/runs/08a0645f7d5e473096c4321252c6237f
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +0 this run · 2 total
+Refuted claim: preserve-empty
+Exact command: /Users/stefanospalivos/.cache/uv/builds-v0/.tmpneYyiL/bin/python -P -m cross_examine.cross_examine.probe_runner call normalizer.core:normalize '/Users/stefanospalivos/Documents/cross examine/.worktrees/consolidated-remediation/.cross-examine/runs/08a0645f7d5e473096c4321252c6237f/probe-state/requests/head/f01811fb36d2136aacb7.json'
+Reproducing input: []
+```
+
+The bundle drift check is intentionally silent on success; the independent post-build probe was:
+
+```text
+bundle_diff_exit=0
+```
+
+### Required final command outputs
+
+Command:
+
+```text
+uv run ruff check .
+```
+
+Raw output:
+
+```text
+All checks passed!
+```
+
+Command:
+
+```text
+uv run pytest -q
+```
+
+Raw output:
+
+```text
+........................................................................ [ 67%]
+..................................                                       [100%]
+106 passed in 28.38s
+```
+
+Command:
+
+```text
+cd frontend && npm test -- --run
+```
+
+Raw output:
+
+```text
+> frontend@0.0.0 test
+> vitest --run
+
+ RUN  v4.1.10 /Users/stefanospalivos/Documents/cross examine/.worktrees/consolidated-remediation/frontend
+
+ Test Files  10 passed (10)
+      Tests  27 passed (27)
+   Start at  18:41:30
+   Duration  4.78s (transform 1.54s, setup 3.45s, import 6.61s, tests 2.84s, environment 16.28s)
+```
+
+Command:
+
+```text
+cd frontend && npm run build
+```
+
+Raw output:
+
+```text
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+vite v8.1.4 building client environment for production...
+transforming...✓ 2460 modules transformed.
+rendering chunks...
+computing gzip size...
+../src/cross_examine/static/index.html                                                    0.58 kB │ gzip:   0.35 kB
+../src/cross_examine/static/assets/space-grotesk-vietnamese-wght-normal-D0rl6rjA.woff2    6.71 kB
+../src/cross_examine/static/assets/lexend-vietnamese-wght-normal-RvljkFvg.woff2          13.84 kB
+../src/cross_examine/static/assets/space-grotesk-latin-ext-wght-normal-D9tNdqV9.woff2    18.94 kB
+../src/cross_examine/static/assets/space-grotesk-latin-wght-normal-BhU9QXUp.woff2        22.28 kB
+../src/cross_examine/static/assets/lexend-latin-ext-wght-normal-B6JQhE1e.woff2           34.47 kB
+../src/cross_examine/static/assets/lexend-latin-wght-normal-ci0D1wrL.woff2               39.68 kB
+../src/cross_examine/static/assets/index-gZ2lRzhV.css                                    74.85 kB │ gzip:  13.80 kB
+../src/cross_examine/static/assets/index-ChboQhj8.js                                    662.23 kB │ gzip: 209.88 kB
+✓ built in 295ms
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+```
+
+Command:
+
+```text
+CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture uv run cross-examine demo --no-open
+```
+
+Raw output:
+
+```text
+Run: http://127.0.0.1:8765/runs/81794ab234da4cdbb01e126d10af2d18
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +0 this run · 2 total
+Refuted claim: preserve-empty
+Exact command: '/Users/stefanospalivos/Documents/cross examine/.worktrees/consolidated-remediation/.venv/bin/python3' -P -m cross_examine.cross_examine.probe_runner call normalizer.core:normalize '/Users/stefanospalivos/Documents/cross examine/.worktrees/consolidated-remediation/.cross-examine/runs/81794ab234da4cdbb01e126d10af2d18/probe-state/requests/head/f01811fb36d2136aacb7.json'
+Reproducing input: []
+```
+
+### Invariant audit
+
+Raw output:
+
+```text
+schema_imports=__future__,dataclasses,enum
+aggregate_top_level=True
+readme_headings_base=15 readme_headings_head=15
+dependency_manifest_changes=0
+```
+
+`schema.py` gained no import and `aggregate()` remains its top-level pure function. No dependency
+manifest changed and the README heading count stayed constant.
+
+## Explicitly not fixed
+
+- **pypa/packaging trial receipt:** not regenerated because `OPENAI_API_KEY` was absent. No trial
+  row or fixture was restored without a real command/output receipt.
+- **Production deployment:** not mutated from this repository remediation branch. The canonical
+  endpoint still serves the previous fixture:
+
+  ```text
+  {
+    "verdict": "broken",
+    "corpus": {
+      "corpus_total": 47,
+      "pinned_this_run": 6
+    },
+    "finding_count": 1,
+    "commands": [
+      "python -m pytest -q tests/test_normalize.py -k empty"
+    ]
+  }
+  ```
+
+  The committed grounded fixture has corpus `2/2`, five findings, and real probe/test commands.
+  Deploying and probing this revision is a post-merge release action, not a repository code fix.
+- **Structural receipt hashing:** deliberately not implemented. Task 12 documents it as the
+  future fix; building a partial execution contract was explicitly out of scope.
+- **Task 6 provenance filenames:** `coss-accordion.tsx` and `cnippet-empty.tsx` were not renamed or
+  deleted because live imports, file headers, history, and `docs/provenance.md` prove the names are
+  intentional.
+- **A second frontend bundle:** not preserved. `public/` was proven redundant and removed under
+  Task 7 option (a); the one packaged bundle is now rebuilt and diff-checked.
+- **Windows execution on this host:** `verify.ps1` was not run because neither `pwsh` nor Windows
+  PowerShell was installed. Its syntax and step parity were reviewed, and CI retains the Windows
+  leg, but the local result remains unknown until CI runs.
+- **Fixes reverted for exceeding scope:** none. The first Task 4 proposal was withheld when its
+  narrow probe did not reproduce; Task 12's structural change was never started. No speculative
+  production fix entered the tree and therefore none required a later revert.
+
+## Self-check
+
+1. **Did I reproduce every bug before fixing it?** Every newly changed code behavior was first
+   reproduced: base-fail/head-pass, root/src import collision, lazy dependency false-`SAFE`, stale
+   e2e locator, and bundle drift. Task 4's first module-import probe did *not* reproduce the audit;
+   no change followed that probe. Final review then found and reproduced the distinct lazy-import
+   path before its two-file fix. Task 5 was not reproduced and was not fixed. Task 0 consolidated
+   the explicitly pre-approved changes rather than re-litigating their closed investigation.
+2. **Is any claim in this ledger unsupported by raw output?** Every outcome/verdict or pass/fail
+   claim has a command and captured result. The two deliberate absences are also raw: the missing
+   API-key check and unavailable PowerShell command. The production-release gap is backed by the
+   exact hosted response above. Narrative source-ownership statements are backed by quoted source
+   or Git history, not invented runtime results.
+3. **Did I document anything I did not personally run?** The Windows entry point is documented but
+   was not executable on this macOS host; that limitation is stated rather than converted into a
+   pass. The `evidence_hash` design is explicitly future work and was intentionally not run or
+   implemented. No real pypa/packaging result is documented.
+4. **Did any fix grow beyond its spec, and was it reverted?** Task 8 necessarily touched the four
+   paths named by its own multi-part spec. Its first complete run additionally reproduced a stale
+   fixture e2e assertion, so one test-only file was corrected; reverting it would leave the
+   mandated verifier red without restoring any product behavior. Task 4 stayed within its explicit
+   two-file semantic-risk limit. No other fix grew beyond its named behavior. No out-of-scope
+   execution-contract fix was begun or needed reverting; Task 12 remained documentation-only.
+5. **What would this repository's own aggregate policy return on this work?** `RISKY`, not `SAFE`.
+   The repository gates are grounded and green, but the critical pypa/packaging external trial is
+   unexecuted, Windows has not run locally, and production has not deployed this branch. Treating
+   those unknowns as `SAFE` would violate the policy this remediation just tightened.
+
+## Merge readiness
+
+Independent re-review after the critical and important fixes reported:
+
+```text
+No remaining Critical or Important issues in bcf82f8..696d896.
+Lazy missing dependencies now produce UNVERIFIABLE and RISKY; matching ValueError remains comparable and VERIFIED.
+Full backend suite: 106 passed; Ruff: clean.
+Bash verifier returned 1 on deliberate tracked bundle drift and 0 when clean.
+Ready to merge: Yes.
+```
+
+The branch is repository-merge-ready: the full local verifier and every required final command
+passed, the independent re-review found no remaining code blocker, and the work preserves the
+pure-aggregation/evidence invariants. It is not production-release-complete until this revision is
+deployed and the canonical hosted fixture is probed again; that external release gap is why the
+self-assessment remains `RISKY`.
