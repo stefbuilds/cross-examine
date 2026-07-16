@@ -957,3 +957,51 @@ Raw output:
 ./docs/submission.md:77:- [x] Add the deployed judge-demo URL: `https://cross-examine-six.vercel.app`.
 stale_url_matches=0
 ```
+
+## Task 10 — Reserve the demo GIF slot safely
+
+### SPEC
+
+README should reserve the requested `docs/assets/demo.gif` location immediately below the pitch,
+without adding a heading or rendering a broken image before the recording exists. The expected
+asset directory should be trackable now.
+
+### PROBE
+
+Commands and raw results before the fix:
+
+```text
+$ rg -n -F 'docs/assets/demo.gif' README.md docs
+exit_code=1
+$ test -d docs/assets
+exit_code=1
+$ git ls-files --stage -- docs/assets
+exit_code=0
+stdout=(empty)
+```
+
+### VERDICT
+
+The SPEC did not survive: neither the placeholder nor the asset directory existed.
+
+### FIX
+
+Inserted a non-rendering HTML comment between the two-line pitch blockquote and the badges, and
+created `docs/assets/.gitkeep`. No image element or README heading was added.
+
+### VERIFY
+
+Raw output:
+
+```text
+     3  > **Codex writes the code. Cross-Examine puts it on the stand.**
+     4  >
+     5  > Git worktrees → GPT-5.6 Sol claims → trusted-input base/head execution → pure `aggregate()` → FastAPI/React report.
+     6
+     7  <!-- Demo GIF slot: docs/assets/demo.gif -->
+     8
+     9  [![Python >=3.12](https://img.shields.io/badge/Python-%3E%3D3.12-3776AB?logo=python&logoColor=white)](pyproject.toml)
+gitkeep_exists_exit=0
+headings_before=15 headings_after=15
+7:<!-- Demo GIF slot: docs/assets/demo.gif -->
+```

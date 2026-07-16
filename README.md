@@ -4,6 +4,8 @@
 >
 > Git worktrees → GPT-5.6 Sol claims → trusted-input base/head execution → pure `aggregate()` → FastAPI/React report.
 
+<!-- Demo GIF slot: docs/assets/demo.gif -->
+
 [![Python >=3.12](https://img.shields.io/badge/Python-%3E%3D3.12-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Hackathon Submission](https://img.shields.io/badge/Build%20Week-submission-8A2BE2)
