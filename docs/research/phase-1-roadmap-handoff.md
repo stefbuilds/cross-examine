@@ -361,3 +361,184 @@ loopback posture, top-level-only allowlist, one-seed/non-minimizing ProbePlan,
 and narrow browser/axe evidence. The focused documentation contract passed with
 `2 passed`; exact-path whitespace and scope checks were clean. Task 2 is ready
 for its exact-path commit but P1 remains `in_progress` through Tasks 3-4.
+
+## Task 3A public narrative and executable roadmap
+
+Task 3A status: `in_progress`; uncommitted pending independent review and combination
+with the separate frontend/static Task 3B slice. This append does not rewrite Task 1 or
+Task 2 history.
+
+### Public-copy decisions
+
+1. Public receipt promises now apply only to `VERIFIED` and `REFUTED` findings.
+   Abstentions may show attempted evidence or a deterministic diagnostic.
+2. The advertised offline hero clears `OPENAI_API_KEY`, forces
+   `CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture`, and uses a newly allocated explicit
+   workspace. Its first run is `BROKEN/+2/2`; the same command and workspace repeat as
+   `BROKEN/+0/2`.
+3. A Claim and optional ProbePlan are untrusted schema-constrained proposals. Ingest
+   catalogues broad candidate definitions in changed Python files; only a narrower
+   synchronous/signature/value subset is probe-eligible.
+4. A visible bounded-`SAFE` warning names the non-critical preservation false-safety
+   path, omitted candidate coverage, incomplete semantic/read validation, mutable
+   locator-only corpus authority/non-atomic completion, and unsupported unauthenticated
+   non-loopback service exposure.
+5. Corpus v1 is eligible verified Layer-A fixture replay by literal locator/symbol, not
+   Git-identity/ancestry authority or a compounding moat. The demo proves repeat insertion
+   with the run receipt's `+0`; it does not use the current Corpus summary as that proof.
+6. Release copy distinguishes tested Python 3.12 from metadata `>=3.12`, configured CI
+   from a cited immutable green run, wheel smoke from absent sdist smoke, semantic fixture
+   checking from byte equality, and focused Vitest/axe/Chromium evidence from
+   accessibility or cross-browser compliance.
+7. The paid-model scene is conditional on current-pin P2 offline gates, independent
+   review, spend/key authority, and an explicit one-request gate. Historical manual
+   trials are labeled unblinded compatibility shadow evidence; no public change is called
+   unseen by a model.
+8. `REMEDIATION.md` retains its raw branch-era commands/output, with a top historical
+   banner that directs current readers to the matrix, roadmap, and ledger.
+
+Rejected alternatives were keeping a convenient ambient-credential hero, describing
+manual trials as real-model proof, calling bounded exhaustion compatibility, using the
+Corpus page's touched-row query as inserted growth, retaining the receipt-only “next
+slice,” or presenting configuration/design as completed release evidence. Each would
+contradict executable behavior or available authority.
+
+### Roadmap reconciliation
+
+The dated roadmap now carries the `ea14e2f` superseding status and publishes the stable
+P0-P9 graph. P1 remains current; P2 offline preflight/local integrity can proceed while
+paid execution is externally blocked. Before P3-P7 expansion, the P2 local gate must
+make preservation criticality unable to hide an observed mismatch, make omitted
+candidate coverage unable to produce `SAFE`, validate verdict/IDs/linkage/read semantics,
+terminate aggregation-validation failure without recursion, and make current lossy or
+ambiguous values abstain.
+
+P3 first refuses unsafe non-loopback service exposure and aligns the API/executor timeout
+contract, then adds deterministic setup/recovery/provenance. P4 corpus migration precedes
+P5 intended oracles and P7 value persistence. P6 builds an explicitly unblinded
+development benchmark after setup and intended-case prerequisites; G4 still blocks
+qualification. P7 adds new value families only after P4 and the P6 development contract,
+without deferring the P2 current-value integrity work. P8 repeats a broader adversarial
+sweep. P9 owns demo, package, accessibility/browser, deployed, and release completion.
+
+External G1-G5 gates remain distinct: paid-model spend/one-request authority; intended
+approval; lifecycle signing; hostile-target isolation/evaluator truth; and public
+publication/final human approval. Repository work cannot synthesize any of them.
+
+### Task 3A evidence scope
+
+The tracked candidate is limited to `README.md`, `docs/submission.md`, `docs/demo.md`,
+`docs/trials.md`, the dated roadmap and decision record, `REMEDIATION.md`, and this
+handoff. It changes no runtime, frontend, static asset, source handoff, test, ledger,
+index, commit, or remote state. Claim, stale-pin, status, local-link, safety-boundary,
+whitespace, and exact-name results are appended after their commands execute. Task 3A
+and P1 remain `in_progress` until independent review and Task 3 integration.
+
+### Task 3A verification register
+
+The exact post-edit scans were:
+
+```text
+rg -ni "every findin[g]|behind every verdic[t]|complete five-stag[e]|complete judge-facin[g]|pins verified behavio[r]|discovers touched Python symbol[s]|Claim objects onl[y]|minimized deterministic counterexampl[e]|frozen oracl[e]|cross-platform release check[s]|dev extra pin[s]|unsee[n]" README.md docs/submission.md docs/demo.md docs/trials.md docs/2026-07-18-ordered-implementation-roadmap.md docs/2026-07-18-verification-foundations-decision-record.md REMEDIATION.md docs/research/phase-1-roadmap-handoff.md
+rg -ni "next slic[e]|Exact next implementation promp[t]|current pinning can preced[e]|implementation remains gate[d]|structural receipt hashing.*not implemente[d]" README.md docs/submission.md docs/demo.md docs/trials.md docs/2026-07-18-ordered-implementation-roadmap.md docs/2026-07-18-verification-foundations-decision-record.md REMEDIATION.md docs/research/phase-1-roadmap-handoff.md
+rg -n "^(Status:|\\*\\*Status:\\*\\*|> \\*\\*Superseding status)|implemented|development-only|blocked external|future|configured|tested" README.md docs/submission.md docs/demo.md docs/trials.md docs/2026-07-18-ordered-implementation-roadmap.md docs/2026-07-18-verification-foundations-decision-record.md REMEDIATION.md docs/research/phase-1-roadmap-handoff.md
+rg -n "OPENAI_API_KEY|CROSS_EXAMINE_DEMO_CHARACTERIZER|mktemp|Guid|\\+2 this run|\\+0 this run" README.md docs/submission.md docs/demo.md
+rg -n "P0|P1|P2|P3|P4|P5|P6|P7|P8|P9|G1|G2|G3|G4|G5|P4 corpus migration|P6 development" docs/2026-07-18-ordered-implementation-roadmap.md docs/2026-07-18-verification-foundations-decision-record.md docs/research/phase-1-roadmap-handoff.md
+rg -n "SAFE|false.?SAFE|coverage|semantic|corpus|loopback|sandbox|trusted-input|receipt|manifest|provenance|wheel|sdist|Chromium|axe|CI" README.md docs/submission.md docs/demo.md docs/trials.md docs/2026-07-18-ordered-implementation-roadmap.md docs/2026-07-18-verification-foundations-decision-record.md REMEDIATION.md docs/research/phase-1-roadmap-handoff.md
+rg -n "\\]\\(" README.md docs/submission.md docs/demo.md docs/trials.md docs/2026-07-18-ordered-implementation-roadmap.md docs/2026-07-18-verification-foundations-decision-record.md REMEDIATION.md docs/research/phase-1-roadmap-handoff.md
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest -q tests/unit/test_documentation.py
+git diff --check -- README.md docs/submission.md docs/demo.md docs/trials.md docs/2026-07-18-ordered-implementation-roadmap.md docs/2026-07-18-verification-foundations-decision-record.md REMEDIATION.md docs/research/phase-1-roadmap-handoff.md
+git diff --name-only -- README.md docs/submission.md docs/demo.md docs/trials.md docs/2026-07-18-ordered-implementation-roadmap.md docs/2026-07-18-verification-foundations-decision-record.md REMEDIATION.md docs/research/phase-1-roadmap-handoff.md
+```
+
+The claim scan returned only explicitly historical or negated text: the Task 2A prior-
+implication row, the handoff rule that no public change is called unseen, two historical
+`REMEDIATION.md` lines covered by its new top banner, and the historical manual-trial
+label immediately disclaimed in `docs/trials.md`. No current public overclaim remained.
+
+The stale scan returned only `REMEDIATION.md`'s historical “Structural receipt hashing:
+deliberately not implemented” line. The new top banner explicitly supersedes that
+snapshot with `ea14e2f` receipt v1 and names the remaining context/semantic gaps. Status,
+hero, dependency, and safety scans showed the four current-state labels, explicit
+external blocks, both credential-cleared fresh/repeat hero states, the complete P0-P9 and
+G1-G5 graph, and bounded limitations rather than an unqualified current claim.
+
+The local-link inventory was inspected: new links resolve to the capability matrix,
+roadmap, README heading, mission ledger, architecture/provenance/demo files, and Phase 1
+plan/handoff. The focused documentation contract then exited 0 with `2 passed in 2.26s`.
+
+`git diff --check` exited 0 with no output. The exact scoped name result was:
+
+```text
+README.md
+REMEDIATION.md
+docs/2026-07-18-ordered-implementation-roadmap.md
+docs/2026-07-18-verification-foundations-decision-record.md
+docs/demo.md
+docs/research/phase-1-roadmap-handoff.md
+docs/submission.md
+docs/trials.md
+```
+
+These are implementation results, not completion evidence. The exact advertised hero
+commands, frontend/static Task 3B work, full verification, independent review, and commit
+remain later integration gates. Task 3A and P1 stay `in_progress`.
+
+## Task 3B frontend presentation-copy evidence
+
+Task 3B used test-first copy contracts without changing the corpus API or execution
+behavior. The first ordinary npm invocation stopped before collection because the shell
+provided Node 18 while the locked toolchain requires Node 20.19 or later. Direct worker
+runs then stalled on macOS dataless `node_modules` placeholders. A lockfile-driven
+Node 20 `npm ci` hydrated the ignored dependency tree; this was an environment repair,
+not product evidence.
+
+After hydration, the test-only candidate reached the intended RED state:
+
+```text
+Test Files  2 failed (2)
+Tests       3 failed | 8 passed (11)
+```
+
+The new Trials assertion could not find the historical/manual/unblinded shadow label,
+and the Corpus assertion could not find `Rows observed in latest run`. Adding a second
+Trials render also exposed the file's missing explicit cleanup; the test now registers
+`afterEach(cleanup)` so test isolation is deterministic.
+
+The minimal production change replaces the unqualified Trials evidence/model-authorship
+copy and scopes the Corpus description/metric label to eligible locator/symbol Layer-A
+fixtures. It intentionally continues to display the API's `latest_growth` value because
+P4, not presentation copy, owns the touched-row metric correction. Focused GREEN was:
+
+```text
+Test Files  2 passed (2)
+Tests       11 passed (11)
+```
+
+The complete frontend suite then passed `10` files and `29` tests; Oxlint exited 0; and
+the production TypeScript/Vite build transformed 2,460 modules and exited 0. The rebuild
+changed `app.js` as expected. It also added exactly one Tailwind rule, `.shadow`, to
+`app.css`: Tailwind's lexical source scan recognizes the required visible phrase
+“unblinded shadow evidence” as the `shadow` utility candidate. A PostCSS rule-set
+comparison found zero removed rules and that single added rule. Keeping the regenerated
+CSS is therefore required for checked-in bundle equality; it is a reviewed generated-
+asset scope expansion, not an unrelated style change.
+
+The combined Task 3 candidate changes the eight Task 3A documentation paths, four
+frontend source/test paths, and two generated static assets. It remains unstaged and
+`in_progress` pending an independent combined public-copy, TDD, and generated-bundle
+review. P1 remains `in_progress` through Task 4.
+
+### Task 3 independent review
+
+The independent combined review passed with no Critical, Important, or Minor findings.
+It confirmed the exact 14-path scope, public-copy requirements and dependency graph,
+copy/assertion-only frontend change, unchanged corpus API field, resolving current-doc
+links, and the RED/GREEN evidence. Its independent PostCSS comparison reproduced
+709 old rules, 710 new rules, zero removals, and `.shadow` as the sole addition; it
+accepted `app.css` as a necessary canonical generated-bundle output rather than a style
+feature or unrelated edit.
+
+Task 3 is ready for its exact-path commit. P1 remains `in_progress`: Task 4 still owns
+the fresh/repeat executable hero proof, complete backend/frontend/package/Playwright
+verification, final Phase 1 ledger transition, closure review, and remote delivery.

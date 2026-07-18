@@ -199,6 +199,48 @@ describe("application routes", () => {
     expect(document.querySelector('[data-slot="empty"][data-corpus-empty]')).toBeInTheDocument();
   });
 
+  it("presents the corpus metric and Layer-A fixture scope truthfully", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify([
+              {
+                repo: "owner/repo",
+                corpus_total: 7,
+                latest_growth: 3,
+                last_run_id: "run-latest",
+                updated_at: "2026-07-19T00:00:00Z",
+              },
+            ]),
+            { status: 200 },
+          ),
+      ),
+    );
+    const router = createMemoryRouter(appRoutes, { initialEntries: ["/corpus"] });
+
+    render(<RouterProvider router={router} />);
+
+    expect(
+      await screen.findByRole("columnheader", {
+        name: "Rows observed in latest run",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Eligible locator/symbol Layer-A fixtures are retained for later runs on the same repository.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("+3")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("columnheader", { name: "Latest growth" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Passing executed checks become durable regression evidence/i),
+    ).not.toBeInTheDocument();
+  });
+
   it("routes evidence to root and submissions to /run without retaining an About route", async () => {
     vi.stubGlobal(
       "fetch",

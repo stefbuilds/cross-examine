@@ -1,126 +1,219 @@
-# Ordered implementation roadmap: verification foundations
+# Ordered implementation roadmap: P0-P9 verification program
 
-**Goal:** Safely extend Cross-Examine for Python repositories while preserving the five stages, deterministic verdict authority, pure `aggregate()`, and fail-toward-risk behavior.
+> **Superseding status — 2026-07-19.** The original 2026-07-18 receipt-first sequence is
+> no longer the current execution order. EvidenceReceipt v1 and validation-before-pin
+> landed in `ea14e2f`. Receipt v1 still binds only command/output substrings; contextual
+> binding, complete semantic report/read validation, and atomic completion remain open.
+> The [capability matrix](capability-status.md) owns current truth, and this page is the
+> executable presentation of the stable P0-P9 mission graph.
 
-**Global gate:** Every backend change runs `uv run pytest` before commit. Every decided finding keeps exact command, captured output, and valid receipt. No phase expands beyond its listed scope.
+## Invariants
 
-## 0. Receipt-integrity foundation — next slice
+- Preserve Ingest → Characterize → Cross-examine → Aggregate → Render.
+- Models propose schema-constrained Claims and optional ProbePlans only. Deterministic
+  code owns outcomes, benchmark scoring, and verdicts.
+- Every `VERIFIED` or `REFUTED` finding keeps exact command/output and a valid receipt;
+  abstentions may carry attempted evidence or a deterministic diagnostic.
+- Keep `aggregate()` pure: no IO, model, network, subprocess, database, benchmark, or
+  framework imports.
+- Work Layer A end to end before its corresponding Layer B extension. Build Week target
+  scope remains Python repositories.
+- Unavailable authority is `blocked external`; it never becomes inferred success.
 
-**Depends on:** Current receipt WIP only.
-**Do not start:** value, setup, lifecycle, intended-oracle, benchmark, or Layer B feature work first.
+## Current status and dependency graph
 
-**Work:** Complete `EvidenceReceipt` across execution, Layer A/B, pipeline, codec, persistence, corpus replay, rendering validation, and tests. Preserve legacy decoding but never let a blank/reconstructed legacy hash decide a new finding. Do not mistake substring evidence association for context-bound provenance.
+```text
+P0 audit/design -------------------------- complete
+ |
+ +--> P1 truthful docs ------------------- in_progress
+ |      |
+ |      +--> P2 paid execution/publication gate
+ |
+ +--> P2 offline preflight + local integrity gate (may proceed without a request)
+          |
+          +--> P3 policy closure + deterministic setup
+                    |
+                    +--> P4 corpus lifecycle v2
+                    |      |
+                    |      +--> P5 intended-change adapter
+                    |      |      |
+                    |      |      +--> P6 intended benchmark cases
+                    |      |
+                    |      +--------------------------+
+                    |                                 |
+                    +--> P6 development benchmark ----+--> P7 value-family expansion
 
-**Acceptance gate:**
+P2 + P3 + P4 + P5 + P6 + P7 --> P8 broader adversarial hardening
+P1 + P8 + truthful P2/P6 state --> P9 demo/developer experience/release
+P0 + P1 + P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9 --> FINAL
+```
 
-- Decided findings reject missing, tampered, or unrelated receipts; attempted commands retain exact receipts even when failing.
-- Every supported execution path persists and round-trips a valid receipt.
-- Legacy rows decode without fabricated proof and cannot decide a new result without fresh evidence.
-- Report validation occurs before any corpus pin or completed-run side effect; a rejected report cannot create evidence authority.
-- `aggregate()` remains pure and verdict behavior is unchanged.
-- `uv run pytest` exits 0 with captured output.
+P2's paid request may remain externally blocked while its offline tooling and local
+integrity work complete. That external lane is never a prerequisite for conservative
+P3-P8 repository work. P4 corpus migration and the P6 development benchmark contract
+both precede P7 value-family persistence/expansion. P8 repeats a broader independent
+adversarial sweep; it does not postpone known false-safety defects from the early gate.
 
-**Terminal:** `COMPLETE-LAYER-A-RECEIPTS`; otherwise stop with preserve-critical `RISKY`.
+## Now
 
-## 1. Corpus lifecycle v2 through Layer A
+### P1 — truthful documentation and status
 
-**Depends on:** settled receipt/persistence contracts and external signing authority for promotion.
+**State:** `in_progress`.
 
-**Work:** Freeze v1 hazards; capture Git identity/ancestry; deterministic migration/quarantine; add families, aliases, immutable versions, observations, and frontiers; atomic run/corpus completion; externally signed lifecycle actions; API/UI provenance. B cannot consume v2 coverage.
+**Work:** Reconcile the capability matrix, README, architecture, execution policy,
+submission, demo, trials, provenance, dated decisions, and research status. Label
+historical/manual evidence and every external gate. Correct trial/corpus presentation
+copy without changing runtime semantics.
 
-**Acceptance gate:**
+**Measurable exit:** Local links and status vocabulary pass; claim/stale-pin/safety scans
+contain no unresolved current overclaim; fresh and repeated credential-cleared fixture
+runs produce `BROKEN/+2/2` then `BROKEN/+0/2`; repository verification passes; an
+independent reviewer reports no Critical or Important contradiction.
 
-- Locator equality is only a hint; Git proof controls sharing.
-- Unknown/shallow/disconnected ancestry, conflicts, missing targets, and policy mismatch abstain toward risk.
-- Base revalidation precedes head mismatch; observations do not overwrite baseline evidence; promotion cannot alter historical reports.
-- Promotion needs an external allowlisted signature inaccessible to model/worker/target, one-use challenge, CAS, and atomic receipt.
-- Layer A passes end-to-end and `uv run pytest` exits 0.
+### P2 — local integrity gate and offline real-model tooling
 
-**Terminal:** `COMPLETE-LAYER-A-LIFECYCLE`; invalid provenance stays critical risk.
+**State:** local work is pending/integrity-critical; paid evidence is `blocked external`
+until G1 and the P1/current-pin review gate clear.
 
-## 2. Lossless codec and Layer-A value support
+**Local integrity work that must precede P3-P7 expansion:**
 
-**Depends on:** `COMPLETE-LAYER-A-RECEIPTS`; this is independent of lifecycle semantics but cannot reuse incompatible v1 corpus observations.
+1. An observed preservation mismatch cannot produce `SAFE` because model output set
+   `preserve_critical=False`.
+2. If changed-file candidate definitions are omitted from characterization, the pipeline
+   rejects incomplete coverage or records critical abstentions; omission cannot produce
+   `SAFE`.
+3. Report verdict, reserved/duplicate IDs, claim/finding linkage, receipt association,
+   and read-time semantics are validated before decision use.
+4. Aggregation-stage validation failure terminates as one valid `RISKY` abstention without
+   recursion or partial corpus authority.
+5. Existing tuple, optional-argument, subclass, nominal-type, and non-string-key paths
+   either round-trip exactly or abstain; lossy ambiguity never refutes.
 
-**Work:** Only value-support Phase 0 and Phase 1A: strict versioned observation envelopes, lossless compatibility filtering, resource limits, and top-level plain Enum results for existing JSON-compatible inputs. No Enum input, tuple reconstruction, arbitrary object, or Hypothesis-domain addition.
+**Offline trial work:** Strict artifact schema, malformed-claim rejection, deterministic
+replay, report/DB/export/Render equality, current-pin identities, one-request accounting,
+and redaction tests. No network request is needed to complete these gates.
 
-**Acceptance gate:**
+**Measurable exit:** The five named integrity scenarios have failing-then-passing tests;
+offline trial fixtures pass strict validation/replay/render/redaction; the paid lane
+either records an independently authorized single current-pin request or an explicit G1
+blocked receipt. A paid result never gains verdict authority.
 
-- Tuple/list coercion and unsupported/derived/nested values abstain rather than exercise an incorrect runtime type.
-- Supported matching/changed Enums verify/refute with receipts; version incompatibility abstains.
-- Layer A completes end-to-end before any B value extension.
-- `aggregate()` stays pure and `uv run pytest` exits 0.
+## Next
 
-**Terminal:** `COMPLETE-LAYER-A-VALUE-CODEC`; unsupported behavior is `UNVERIFIABLE`/`RISKY`.
+### P3 — execution-policy closure and deterministic Python setup
 
-## 3. Closed Python setup through installed Layer A
+**Dependencies:** P1 truth plus the P2 local integrity gate; paid P2 evidence is not
+required.
 
-**Depends on:** `COMPLETE-LAYER-A-RECEIPTS` and settled codec/persistence interfaces.
+**First prerequisite:** Refuse unauthenticated non-loopback serving and reconcile the API
+timeout range with the executor's effective 120-second ceiling before adding setup
+capability.
 
-**Work:** (a) strict `none|wheel-no-deps` contract/persistence; (b) fixed product-owned setup plan/identity binding; (c) per-revision wheel/venv and installed Layer A; (d) installed repository tests; (e) API/CLI/UI/restart provenance. Keep `none` compatible. Do not start setup B.
+**Setup work:** Versioned, losslessly persisted product-owned `none` and
+`wheel-no-deps` plans; symmetric base/head prepared environments; installed Layer A and
+repository tests; persisted RunSpec/setup/manifest evidence; deterministic restart
+recovery. A venv is setup, not hostile-target isolation.
 
-**Acceptance gate:**
+**Measurable exit:** Root, `src`, and build-generated fixtures pass paired installed
+Layer A/tests without source-import fallback; every setup asymmetry yields one critical
+setup abstention and `RISKY`; stale jobs recover or terminate deterministically; API,
+CLI, DB/export, and React expose the same validated setup/manifest identity.
 
-- No model/caller/repository command-like setup field reaches execution.
-- Both roles use the same plan; imports prove resolution inside each role venv and outside both worktrees.
-- Any asymmetry, failed proof, context mismatch, timeout, or truncation creates exactly one critical `system:python-setup` abstention, skips later evidence work, and yields `RISKY`.
-- Build-generated, flat, and `src` fixtures pass installed Layer A/test gates; `none` remains unchanged.
-- `uv run pytest` exits 0.
+### P4 — corpus lifecycle v2
 
-**Terminals:** `COMPLETE-LAYER-A-SETUP` or `BLOCKED-UNTRUSTED-REPOSITORY-EXECUTION` if hostile-code isolation is claimed without a verified adapter.
+**Dependencies:** P3 schema, persistence, identity, and recovery conventions.
 
-## 4. Authenticated intended-change oracles
+**Work:** Git repository identity and ancestry, deterministic v1 migration/quarantine,
+immutable contracts/versions, append-only observations, inherited-base revalidation,
+atomic report/corpus completion, retention, and inspection. Promotion, rebinding, and
+retirement remain disabled without G3 signing authority.
 
-**Depends on:** `COMPLETE-LAYER-A-RECEIPTS`, `COMPLETE-LAYER-A-LIFECYCLE`, strict codecs, and fresh snapshots.
+**Measurable exit:** Every legacy row is deterministically active or quarantined;
+repointed/disconnected/shallow locators inherit no unsafe checks; clone/ancestry cases
+select the same authorized frontier; duplicate replay reports inserted growth zero; fault
+injection commits both run/corpus effects or neither.
 
-**Work:** Freeze no-authorization abstention tests; pure strict identity/contracts; external approval challenge/store; one hermetic exact pytest-leaf adapter after Layer A; typed evidence/persistence; then UI. No arbitrary commands, globs, `-k`, or head-authored authority.
+### P5 — authenticated intended-change executable oracles
 
-**Acceptance gate:**
+**Dependencies:** P3 and P4. Each decision still needs external G2 approval.
 
-- Model candidates, broad tests, base/head differences, and head fixtures cannot decide intended claims without external authenticated complete bindings.
-- Missing, forged, stale, ambiguous, incomplete, or mismatched authority is critical `UNVERIFIABLE`/`RISKY`.
-- Approved leaf executes once from a fresh verified head snapshot; skip/xfail, collection anomaly, mutation, timeout, or receipt mismatch abstains.
-- `aggregate()` stays pure and `uv run pytest` exits 0.
+**Work:** Strict repository/head/claim/oracle/setup/expiry bindings; approval verification;
+one hermetic exact-pytest-leaf adapter; pure classification, persistence, rendering, and
+adversarial rejection. Model prose, broad tests, globs, `-k`, and head-authored authority
+never approve intent.
 
-**Terminals:** `BLOCKED-INTENDED-AUTHORITY` per unbound claim, or `COMPLETE-LAYER-A-INTENDED-ORACLES`.
+**Measurable exit:** One approved exact leaf collects and executes exactly once; every
+missing, forged, stale, broad, incomplete, skipped, xfailed, or mismatched binding emits
+`BLOCKED-INTENDED-AUTHORITY`, a critical abstention, and `RISKY`.
 
-## 5. Benchmark admission and isolated Layer-A qualification
+### P6 — frozen benchmark development baseline
 
-**Depends on:** prior Layer-A gates and demonstrated P0 isolation plus oracle coverage.
+**Dependencies:** P3 reproducible setup; P5 for intended-change cases. Qualification is
+separately blocked on G4 target/evaluator isolation and total witness truth.
 
-**Work:** External pure scorer; runner/evaluator packs and mutation-controlled admission; disposable network-off target container/VM limited to runner pack; evaluator-only witness replay; frozen Layer A arm first in fresh identical state. Existing trials remain shadow evidence.
+**Work:** Versioned case/release/result contracts, admission and mutation controls,
+immutable manifests, evaluator witness replay, telemetry, deterministic pure scorer
+outside `aggregate()`, CI smoke, and an explicitly labeled unblinded development baseline.
 
-**Acceptance gate:**
+**Measurable exit:** A frozen development release run twice yields identical identities;
+all admitted refutations have evaluator witness classifications; false and unvalidated
+refutations, invalid receipts, and truth leaks are zero. Without G4, no qualification or
+population-safety score is published.
 
-- Target images, mounts, environment, logs, and caches contain no evaluator truth/oracle/label/witness or discoverable digest path.
-- Each admitted refutation replays as `PROHIBITED`; all other witness classifications fail the hard safety gate.
-- Compatible cases have total frozen-witness coverage; regression oracle accepts base, rejects head, and passes mutation control.
-- Paired A runs have fresh identical initial state, valid receipts, and frozen expectations; `uv run pytest` exits 0.
+### P7 — new values, exceptions, types, signatures, and serialization
 
-**Terminals:** `BLOCKED-BENCHMARK-TRUTH-ISOLATION`, `BLOCKED-BENCHMARK-ORACLE-COVERAGE`, or `COMPLETE-BENCHMARK-A-PAIRED`.
+**Dependencies:** P3 setup, P4 corpus migration, and P6 development benchmark contract.
+The P2 current-value integrity gate is already required; P7 is expansion, not its deferral.
 
-## 6. Layer B extensions and qualification
+**Work:** Separate probe and observation-codec versions; add new lossless value families,
+including scoped Enum results, one Layer-A increment at a time. Add matching Layer B only
+after that Layer-A slice and its development-benchmark gate pass.
 
-**Depends on:** its corresponding Layer-A terminal state; benchmark B also needs `COMPLETE-BENCHMARK-A-PAIRED`.
+**Measurable exit:** Supported values preserve exact type and canonical bytes across fresh
+processes and hash seeds; unsupported/ambiguous/incompatible values abstain; no tuple,
+subclass, or non-string-key coercion occurs; each new Layer B domain leaves common Layer A
+semantics unchanged.
 
-**Work:** One B extension at a time: supported Enum-result comparison; installed runtime; lifecycle coverage; intended-oracle B; then telemetry and paired A+B qualification. For each benchmark case run A before A+B cold and isolated, with equal common-stage semantic findings.
+## Later
 
-**Acceptance gate:**
+### P8 — broader adversarial product hardening
 
-- No source-import fallback, receipt/context bypass, or changed Layer-A common semantics.
-- Frozen strategy/domain/version identities, counts, shrink data, resources, and exact evidence are emitted without giving verdict authority to the model.
-- A+B meets frozen fatal/case thresholds; false and unvalidated refutations are zero.
-- `uv run pytest` exits 0.
+**Dependencies:** Local evidence from P2-P7. An externally blocked paid P2 lane does not
+stop local hardening.
 
-**Terminal:** `COMPLETE-BENCHMARK-A+B-QUALIFICATION`; unverifiable critical behavior remains `RISKY`.
+**Work:** Repeat an independent sweep across false-safety, complete coverage, semantic
+validation/read validation, receipts, executor/service policy, corruption, migration,
+atomicity, redaction, malformed input, timeouts, accessibility, packaging, and
+cross-platform risks. Mechanically enforce the pure-aggregate import boundary.
 
-## Human authority required
+**Measurable exit:** Every named P0/P1/security/release risk has a reproducing invariant
+test before its fix; zero known false-`SAFE` path remains in the covered matrix; all
+focused/full checks pass; independent reviewers report no unresolved Critical or
+Important finding.
 
-1. Operator/trusted requirement authority: authenticate complete intended-change claim-to-oracle bindings and semantic sufficiency.
-2. Signing authority unavailable to model/worker/target: authorize corpus promotions, rebinds, retirements, and conflict resolutions.
-3. Release authority: provision/attest benchmark target-evaluator isolation and admit cases after oracle/mutation receipts.
-4. Human trial operator: run a paid real-GPT trial in the prescribed disposable low-privilege environment; it does not substitute for the authorities above.
+### P9 — demo, developer experience, and release
 
-## Exact next implementation prompt
+**Dependencies:** P1 and P8; P2 and P6 must be complete or truthfully represented by
+explicit blocked evidence.
 
-> Implement and test the receipt-integrity foundation only: make every `VERIFIED` and `REFUTED` finding carry an exact command/output `EvidenceReceipt` hash from every execution path; persist and round-trip it; reject tampered, missing, or unrelated receipts at report validation; preserve legacy decoding without allowing legacy data to decide a new finding; keep `aggregate()` pure; make no Layer B behavior changes; target Python repositories only; and run `uv run pytest` before committing.
+**Work:** Lead with the working offline path; accessible evidence/corpus affordances;
+wheel and sdist installs; supported Python/OS matrix; static-bundle and hosted-fixture byte
+equality; keyboard/mobile/zoom/contrast/reduced-motion/touch checks; deployed smoke; demo
+rehearsal; exact narrative synchronization. Public submission and approval require G5.
+
+**Measurable exit:** Fresh/repeat hero outputs match published copy; package, browser,
+accessibility, fixture, bundle, CI, and deployed gates pass at immutable pins; secrets and
+local paths are absent; final public locations and a human go/no-go are recorded.
+
+## External authority gates
+
+| Gate | Missing authority | Safe fallback |
+| --- | --- | --- |
+| G1 | API key, spend permission, explicit one-request authorization, current-pin review | Finish offline tooling; record paid evidence `blocked external`; make zero request |
+| G2 | Authenticated complete intended-change approval | Emit `BLOCKED-INTENDED-AUTHORITY` and `RISKY` |
+| G3 | Independent lifecycle signer for promotion/rebind/retire | Keep authority-changing operations disabled; continue conservative replay/inspection |
+| G4 | Disposable network-denied target plus evaluator-only truth and total witnesses | Label results `UNBLINDED_DEVELOPMENT`; publish no qualification score |
+| G5 | Public video/submission locations and final human release approval | Verify local artifacts without claiming publication or approval |
+
+No local implementation, model output, shared key, or successful test run can substitute
+for one of these distinct authorities.

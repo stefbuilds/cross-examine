@@ -12,7 +12,11 @@
 ![Hackathon Submission](https://img.shields.io/badge/Build%20Week-submission-8A2BE2)
 [![Live evidence explorer](https://img.shields.io/badge/Live-evidence%20explorer-000000)](https://cross-examine-six.vercel.app)
 
-Cross-Examine is an independent verification harness for Codex-authored Python changes. It captures the base revision's behavior, executes the head revision against the same inputs, hunts adversarial boundaries, and shows the exact command and captured output behind every verdict.
+Cross-Examine is an independent verification harness for Codex-authored Python changes.
+It captures the base revision's behavior, executes the head revision against the same
+inputs, hunts adversarial boundaries, and shows the exact command and captured output for
+every `VERIFIED` or `REFUTED` finding. Abstentions show attempted evidence or a
+deterministic diagnostic instead of fabricating a receipt.
 
 Agent-authored code passes the tests that exist. Nothing checked whether the behavior it replaced still holds — so the model fixes one bug, introduces another, and the suite stays green throughout.
 
@@ -31,13 +35,18 @@ Also in this repo: [requirements](#requirements) · [directory map](#directory-m
 
 ## Judge quickstart: see the catch in 60 seconds
 
-The deterministic demo needs no API key and executes the real pipeline:
+On macOS or Linux, allocate a fresh workspace, clear any ambient model credential, and
+force the checked-in characterization fixture. The findings still come from the real
+local pipeline:
 
 ```bash
-uv run --isolated --no-editable cross-examine demo --no-open
+hero_workspace=$(mktemp -d)
+env -u OPENAI_API_KEY CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture \
+  uv run --isolated --no-editable cross-examine demo --no-open \
+  --workspace "$hero_workspace"
 ```
 
-Expected receipt:
+The first run in that new workspace reports:
 
 ```text
 Characterization: deterministic hero fixture
@@ -46,6 +55,10 @@ Corpus: +2 this run · 2 total
 Refuted claim: preserve-empty
 Reproducing input: []
 ```
+
+Run the same credential-cleared command again with the same `hero_workspace`. The
+verdict remains `BROKEN`; corpus output becomes `+0 this run · 2 total`. A new workspace
+is what makes the advertised first-run `+2` exact.
 
 To inspect the same evidence in the product UI:
 
@@ -59,9 +72,17 @@ Open `http://127.0.0.1:8765`, click **Run offline hero demo**, then expand the r
 
 ## Why this is not a Codex skill
 
-A skill is part of the system being judged. You cannot ask the suspect to be the jury. Cross-Examine is a separate process with a separate state store: it characterizes behavior Codex did not record, executes checks Codex did not write, applies a deterministic verdict function, and pins verified behavior into a corpus that outlives a single run.
+A skill is part of the system being judged. You cannot ask the suspect to be the jury.
+Cross-Examine is a separate process with a separate state store: it proposes and executes
+checks, then applies a deterministic verdict function. Corpus v1 persists eligible
+verified Layer-A fixtures for literal repository-locator and symbol replay; it is not yet
+Git-identity or ancestry authority.
 
-A schema-constrained `Claim` is a contract, not a description. When the head fails, the report names the exact clause—`preserve-empty`—and the input that broke it—`[]`; prose has no clause to fail and cannot serve as an oracle. The intended-change abstention rule below follows from that same boundary.
+A schema-constrained `Claim` is an untrusted proposal, not an oracle. Characterization
+may also propose an optional untrusted `ProbePlan`; neither can carry an outcome or
+verdict. Executed base behavior and deterministic policy, not claim prose, decide a
+preservation finding. The intended-change abstention rule below follows from that same
+boundary.
 
 ## Architecture
 
@@ -88,12 +109,12 @@ flowchart TB
 
   subgraph U ["UNTRUSTED PROPOSAL"]
     direction LR
-    I["<b>Ingest</b><br/>Git worktrees · AST diff"]:::untrusted
-    C["<b>Characterize</b><br/>GPT-5.6 Sol → Claim[]<br/><b>never a verdict</b>"]:::untrusted
+    I["<b>Ingest</b><br/>Git worktrees · changed-file candidates"]:::untrusted
+    C["<b>Characterize</b><br/>Claims + optional ProbePlans<br/><b>never a verdict</b>"]:::untrusted
     I --> C
   end
 
-  subgraph EX ["GROUNDED EXECUTION · deterministic, no model"]
+  subgraph EX ["GROUNDED EXECUTION · model-free bounded"]
     direction LR
     LA["<b>Layer A</b><br/>base capture → head replay"]:::grounded
     LB["<b>Layer B</b><br/>bounded Hypothesis + shrink"]:::grounded
@@ -101,9 +122,9 @@ flowchart TB
     LA --> LB --> RT
   end
 
-  P[("<b>Verified corpus</b>")]:::corpus
+  P[("<b>Development corpus v1</b>")]:::corpus
   AG{{"<b>aggregate()</b><br/>pure · no IO · no model"}}:::pure
-  R["<b>Report</b><br/>SQLite + grounded UI<br/>exact command + output per finding"]:::report
+  R["<b>Report</b><br/>SQLite + grounded UI<br/>exact receipt for decided findings"]:::report
 
   PR --> I
   C -- "claims, unproven" --> LA
@@ -114,7 +135,7 @@ flowchart TB
 
   AG -- "preserve-critical refutation" --> BROKEN(["<b>BROKEN</b>"]):::broken
   AG -- "critical abstain" --> RISKY(["<b>RISKY</b>"]):::risky
-  AG -- "grounded pass" --> SAFE(["<b>SAFE</b>"]):::safe
+  AG -- "no represented critical refutation/abstain" --> SAFE(["<b>SAFE · bounded</b>"]):::safe
 
   BROKEN --> R
   RISKY --> R
@@ -134,26 +155,64 @@ flowchart TB
   style EX fill:#e0f2fe,stroke:#0369a1,stroke-width:2px,color:#0c4a6e
 ```
 
-1. **Ingest** resolves base and head into separate detached Git worktrees and discovers touched Python symbols.
-2. **Characterize** asks GPT-5.6 Sol for strict `Claim` objects only. In the offline hero demo, a clearly labeled checked-in claim fixture replaces this one model call.
-3. **Cross-examine** captures base behavior, replays it against head (Layer A), uses bounded Hypothesis generation and shrinking (Layer B), and executes conservatively discovered repository tests.
-4. **Aggregate** is a pure function. A preserve-critical refutation is `BROKEN`; other refutations or critical abstentions are `RISKY`; grounded passes are `SAFE`.
-5. **Render** reads the persisted `Report`, never free-form model prose, and reveals the exact command/output receipt for every finding.
+1. **Ingest** resolves base and head into detached Git worktrees and catalogues class,
+   function, async, and nested candidate definitions in changed Python files. This is
+   file-level discovery, not changed-line precision.
+2. **Characterize** asks GPT-5.6 Sol for strict Claims and optional ProbePlans. Both are
+   untrusted proposals. In the offline hero, a labeled checked-in Claim fixture replaces
+   the model call.
+3. **Cross-examine** probes only a narrower eligible subset: current execution excludes
+   classes, async functions, generators, unsupported signatures, and unsupported or
+   ambiguous values. Layer B is a bounded search, not exhaustive proof.
+4. **Aggregate** is a pure function. A represented preserve-critical refutation is
+   `BROKEN`; other represented refutations or critical abstentions are `RISKY`.
+5. **Render** reads the persisted `Report`. `VERIFIED` and `REFUTED` findings reveal an
+   exact command/output receipt; abstentions may instead show a deterministic diagnostic.
 
 See [docs/architecture.md](docs/architecture.md) for boundaries and failure behavior.
 
-V1 deliberately abstains on intended-change correctness unless the contract has an independent executable oracle. Since model prose is never an oracle, any intended-change claim without one keeps the report at least `RISKY`; preservation checks and base-versus-head repository tests remain fully grounded.
+V1 deliberately abstains on intended-change correctness unless the proposal has an
+independent executable oracle. Since model prose is never an oracle, a represented
+intended-change claim without one keeps the report at least `RISKY`.
 
 ## Safety limitation
 
-This Build Week version is a trusted-input harness, not a hostile-code sandbox. Commands use argument vectors with `shell=False`, an executable allowlist, a minimal child environment that strips secret-shaped names, per-command and total-run deadlines, process-tree termination, a 2 MB output cap, and receipt redaction. Target code still executes locally. Use only repositories you trust; production requires real isolation and network denial.
+> **`SAFE` is bounded, not proof that a PR is correct.** It means pure aggregation found
+> no critical refutation or critical abstention among the characterized, represented,
+> supported findings it received.
+
+Current release blockers are visible rather than converted into confidence:
+
+- a model-controlled non-critical preservation mismatch can currently avoid a
+  `BROKEN`/`RISKY` result;
+- characterization can omit a changed-file candidate, so complete coverage is not
+  enforced;
+- report verdict, IDs, claim/finding linkage, read-time semantics, and one aggregation
+  failure path lack complete validation;
+- corpus v1 uses mutable locator/symbol authority without Git ancestry or inherited-base
+  revalidation, and run/corpus completion is not atomic; and
+- the supported service posture is `127.0.0.1`, but the CLI does not enforce it;
+  unauthenticated non-loopback serving is unsafe.
+
+This Build Week version is a trusted-input harness, not a hostile-code sandbox. Commands
+use argument vectors with `shell=False`, a top-level executable-basename allowlist, a
+minimal child environment that strips secret-shaped names, deadlines, a 2 MB output cap,
+best-effort process-tree cleanup, and receipt redaction. Those controls do not constrain
+commands spawned by target code or remove its local filesystem/network authority. Use
+only repositories you trust; production requires real isolation and network denial.
 
 The public Vercel deployment is an evidence explorer, not a repository runner. Its report is labeled **Hosted evidence fixture**, and arbitrary repository submissions are rejected with instructions to use the trusted-input local runner.
 
 ## GPT-5.6 and Codex usage
 
-- **GPT-5.6 Sol (`gpt-5.6-sol`)** reads a bounded diff/source context and emits schema-constrained claims. It never emits verdicts. Malformed, duplicate, unknown-symbol, or verdict-injecting output is rejected.
-- **Codex** authored and iterated this application: the Python pipeline, tests, React UI, CLI, packaging, documentation, and verification flow. Cross-Examine remains independent at run time; deterministic execution and `aggregate()` judge a change.
+- **GPT-5.6 Sol (`gpt-5.6-sol`)** reads bounded diff/source context and emits
+  schema-constrained Claims plus optional ProbePlans. It never emits outcomes or
+  verdicts. Malformed, duplicate, unknown-target, or forbidden structured fields are
+  rejected; proposal text remains untrusted and complete candidate coverage is open.
+- **Codex** authored and iterated this application: the Python pipeline, tests, React UI,
+  CLI, packaging, documentation, and verification flow. Cross-Examine remains independent
+  at run time; model-free bounded execution supplies evidence and pure `aggregate()`
+  decides the product verdict.
 
 ## Human decisions versus Codex decisions
 
@@ -176,14 +235,16 @@ The exact UI-source provenance is recorded in [docs/provenance.md](docs/provenan
 
 | Requirement | Notes |
 | --- | --- |
-| Python | 3.12+ |
+| Python | 3.12 is tested; package metadata currently permits `>=3.12` |
 | Git | |
 | [uv](https://docs.astral.sh/uv/) | |
 | Node.js | 20.19+ only when rebuilding or testing the React frontend |
 | Playwright Chromium | for the packaged browser verification (`npx playwright install chromium`) |
 | `OPENAI_API_KEY` | for real-repository characterization; the hero demo works offline |
 
-The release workflow verifies Python 3.12 on Windows, macOS, and Ubuntu. Repository targets are Python-only during Build Week. The local runner executes target code, so use only repositories you trust.
+CI is configured for Python 3.12 on Windows, macOS, and Ubuntu. Cite an immutable green
+run before calling that matrix verified. Repository targets are Python-only during Build
+Week. The local runner executes target code, so use only repositories you trust.
 
 ## Directory map
 
@@ -204,13 +265,24 @@ Push-Location frontend
 npm ci
 npm run build
 Pop-Location
-uv run --isolated --no-editable cross-examine demo --no-open
+$env:CROSS_EXAMINE_DEMO_CHARACTERIZER = "fixture"
+Remove-Item Env:OPENAI_API_KEY -ErrorAction SilentlyContinue
+$heroWorkspace = Join-Path ([System.IO.Path]::GetTempPath()) ("cross-examine-hero-" + [Guid]::NewGuid())
+uv run --isolated --no-editable cross-examine demo --no-open --workspace $heroWorkspace
 uv run cross-examine serve
 ```
 
-Open the printed run URL. The packaged FastAPI server hosts both the API and React application, so direct `/runs/{id}` links work. The **Runs** destination lists the 50 most recent persisted runs after a restart.
+Repeat the same demo command with the same `$heroWorkspace` to see `+0 this run · 2
+total` after the fresh run's `+2 this run · 2 total`.
 
-The UI's **Run offline hero demo** action creates the stable `hero-base` and `hero-head` repository automatically. Its claim source is visibly labeled `deterministic hero fixture`; every finding and verdict still comes from real execution.
+Open the printed run URL. The packaged FastAPI server hosts both the API and React
+application, so direct `/runs/{id}` links work. Completed reports persist; worker queues
+and SSE history are in memory, and stale queued/running work is not resumed after restart.
+
+The UI's **Run offline hero demo** action creates the stable `hero-base` and `hero-head`
+repository automatically. Its claim source is visibly labeled `deterministic hero
+fixture`; decided findings still require real execution, and deterministic code owns the
+verdict.
 
 ## Real repository run
 
@@ -224,7 +296,7 @@ Use `--no-layer-b` for a Layer-A-only compatibility pass. The web form accepts a
 
 ## Tests
 
-The complete judge-facing verification is available on every supported platform.
+The repository's current verification entry points are:
 
 On macOS or Linux:
 
@@ -238,17 +310,28 @@ On Windows:
 powershell -ExecutionPolicy Bypass -File scripts/verify.ps1
 ```
 
-Both entry points remove `OPENAI_API_KEY` from child processes, set `CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture`, sync locked dependencies, run Ruff, all Python tests, frontend lint and contract/accessibility tests, the production build, the packaged Playwright receipt flow, and the offline hero demo.
+Both entry points remove `OPENAI_API_KEY` from child processes, force the fixture, sync
+locked dependencies, and run the current backend/frontend/build/demo checks. The POSIX
+script also asserts checked-in static-bundle equality; the PowerShell script builds and
+tests the bundle but does not perform the same byte-drift assertion.
 
-The dev extra pins `httpx2` because the installed Starlette `TestClient` imports it directly and emits a deprecation warning when falling back to legacy `httpx`.
+Current evidence is narrower than a complete release claim: Python 3.12 is tested;
+release smoke installs a wheel but not an sdist; the hosted-fixture test checks semantic
+fields rather than checked-in byte equality; frontend coverage includes focused component
+tests, one axe smoke with color contrast disabled, and two Chromium flows rather than
+WCAG or cross-browser proof. The dev metadata does not pin `httpx2`; the lock currently
+resolves 2.7.0 because Starlette `TestClient` imports it directly.
 
 ## Three-minute video outline
 
 - **0:00–0:30 — the catch:** confident PR, `BROKEN`, open `[]`, exact command, captured difference.
 - **0:30–1:05 — independence:** why a second process and pure aggregation matter.
 - **1:05–1:50 — five stages:** live progress from Ingest through Aggregate.
-- **1:50–2:20 — state moat:** rerun and show corpus growth/deduplication.
-- **2:20–2:45 — real repository:** one unseen Python change, Layer A first.
+- **1:50–2:20 — repeat receipt:** rerun and show `+0 this run · 2 total`; do not use
+  the current Corpus summary as proof of inserted growth.
+- **2:20–2:45 — conditional real repository:** include only after P2 current-pin
+  preflight, review, and explicit one-request authority pass; otherwise stay with the
+  deterministic replay and limitations.
 - **2:45–3:00 — impact:** trustworthy unattended agentic coding.
 
 The exact shot and voiceover script is in [docs/demo.md](docs/demo.md).

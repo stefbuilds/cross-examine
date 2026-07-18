@@ -1,9 +1,26 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { TrialsPage } from "./TrialsPage";
 
 describe("TrialsPage", () => {
+  afterEach(cleanup);
+
+  it("labels the rows as historical manual, unblinded shadow evidence", () => {
+    render(<TrialsPage />);
+
+    expect(
+      screen.getByText("Historical manual trials · unblinded shadow evidence"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /not qualification evidence or proof of model-authored characterization/i,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Product evidence")).not.toBeInTheDocument();
+    expect(screen.queryByText(/These are real runs/i)).not.toBeInTheDocument();
+  });
+
   it("frames RISKY trials as correct abstention and shows lessons", () => {
     render(<TrialsPage />);
 

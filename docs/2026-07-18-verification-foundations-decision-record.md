@@ -1,12 +1,36 @@
 # Decision record: verification foundations before capability expansion
 
 **Date:** 2026-07-18
-**Status:** Accepted for planning; implementation remains gated
+**Status:** Superseded as the current sequence; retained as historical decision input
 **Scope:** Python repositories during Build Week
 
-## Decision
+> **Superseding status — 2026-07-19.** EvidenceReceipt v1 and
+> validation-before-corpus-pin landed in `ea14e2f`. Receipt v1 remains context-free
+> command/output substring integrity metadata; semantic report/read validation, complete
+> candidate coverage, contextual binding, corpus identity/atomicity, and external
+> authorities remain open. The current dependency order is the
+> [P0-P9 executable roadmap](2026-07-18-ordered-implementation-roadmap.md), and current
+> implementation truth is the [capability matrix](capability-status.md).
 
-Complete and validate the receipt-integrity foundation already present in the working tree before any new capability. Next stabilize Layer-A corpus lifecycle because current pinning can precede report validation and mutable locator-keyed baselines are P0 integrity defects. Then take the independent Layer-A value-codec and setup tracks, authenticated intended-change oracles, isolated Layer-A benchmark qualification, and only then corresponding Layer B extensions.
+## Current superseding decision
+
+Known false-`SAFE`, omitted-candidate, semantic report/read-validation,
+aggregation-recursion, and lossy current-value paths form an early local integrity gate
+before P3-P7 capability expansion. P3 first closes the non-loopback/timeout policy
+inconsistencies, then establishes deterministic setup. P4 corpus migration and the P6
+development benchmark contract both precede P7 value-family expansion. P8 repeats a
+broader hardening sweep rather than postponing those known blockers. Paid-model evidence,
+intended approval, lifecycle signing, benchmark isolation/truth, publication, and final
+human release approval remain distinct external gates.
+
+## Original decision context (historical)
+
+At the original snapshot, complete receipt integrity before any new capability. Then
+stabilize Layer-A corpus lifecycle because the snapshot could pin before report validation
+and used mutable locator-keyed baselines. Continue with Layer-A value/setup tracks,
+authenticated intended-change oracles, isolated Layer-A benchmark qualification, and only
+then corresponding Layer B extensions. `ea14e2f` later closed validation-before-pin; the
+current sequence above supersedes this ordering.
 
 The product stays an independent five-stage harness: **Ingest → Characterize → Cross-examine → Aggregate → Render**. `aggregate()` stays unchanged and pure: it imports no IO, model, network, subprocess, database, benchmark, or framework code. Model output remains schema-constrained proposals; deterministic code assigns findings and verdicts. Missing, invalid, ambiguous, or unprovable preserve-critical evidence resolves to `UNVERIFIABLE` and risk, never `SAFE`.
 
@@ -15,7 +39,7 @@ The product stays an independent five-stage harness: **Ingest → Characterize �
 | Evidence | Conclusion | Consequence |
 | --- | --- | --- |
 | `AGENTS.md` | Decided findings need exact command/output; Layer A precedes B; Python only. | Receipts are first and every gate preserves the five stages. |
-| Receipt-integrity WIP in `schema.py`, `execution.py`, `codec.py`, `validation.py`, persistence, pipeline, Layer A/B, and tests | V1 binds rendered command/output and rejects missing, invalid, unrelated receipts. The current pipeline can pin corpus evidence before `validate_report()` and v1 is not context-bound. | It is an in-progress foundation, not a complete trust boundary; validation must precede any pin and invalid reports cannot persist corpus effects. |
+| Receipt-integrity work in `schema.py`, `execution.py`, `codec.py`, `validation.py`, persistence, pipeline, Layer A/B, and tests at the original snapshot | V1 binds rendered command/output and rejects missing, invalid, unrelated receipts. Before `ea14e2f`, the pipeline could pin corpus evidence before `validate_report()`; v1 was and remains not context-bound. | `ea14e2f` moved validation before pinning. Receipt context and full semantic validation remain incomplete trust boundaries. |
 | `value-support-handoff.md` §§6, 28, 310–20, 379–99 | Tuple input can arrive as a list; lossless codec precedes rich input strategies. | Layer-A codec/Enum results precede all new B domains. |
 | `setup-hook-handoff.md` §§7–19, 25–59, 250–74, 636–730 | `wheel-no-deps` must be closed, paired, and context-bound. | Setup follows receipts; installed Layer A/test gates precede installed B. |
 | `intended-oracle-handoff.md` §§Decision, 485–558 | Model prose, broad tests, and head files cannot authorize intended behavior. | Unbound claims are blocked and risky. |
@@ -30,7 +54,10 @@ The product stays an independent five-stage harness: **Ingest → Characterize �
 3. Benchmark needs a deterministic scorer, but it lives outside product `aggregate()`. Qualification never adds benchmark dependencies to aggregation.
 4. Intended-change approval and benchmark truth are both external authorities, but have different exposure rules. Neither is available to model output, repository code, or target execution.
 5. The existing hero is Layer-A-detectable and public compatibility trials lack total executable witness oracles. They remain shadow evidence, not qualification cases.
-6. The corpus lifecycle and value/setup tracks are both evidence-backed after receipts, but the current corpus pre-validation pinning and mutable locator-keyed baseline are P0 integrity defects. Therefore lifecycle stabilization is the next trust-critical track; setup and value support remain separate Layer-A tracks after that gate.
+6. At this decision snapshot, corpus pre-validation pinning and the mutable locator-keyed
+   baseline were both P0 defects. `ea14e2f` later closed the ordering defect; mutable
+   locator authority, ancestry/revalidation, and atomicity remain assigned to P4. Current
+   lossy-value integrity moves to the early gate, while new values remain P7 expansion.
 
 ## Rejected sequencing
 

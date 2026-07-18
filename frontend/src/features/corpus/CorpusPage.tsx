@@ -23,8 +23,8 @@ export function CorpusPage() {
           Behavioral corpus
         </h1>
         <p className="page-copy mt-4">
-          Passing executed checks become durable regression evidence for later
-          runs on the same repository.
+          Eligible locator/symbol Layer-A fixtures are retained for later runs on
+          the same repository.
         </p>
         </div>
         <Database aria-hidden="true" className="size-12 text-primary" strokeWidth={1.25} />
@@ -59,7 +59,7 @@ export function CorpusPage() {
                     className="hidden text-right sm:table-cell"
                     scope="col"
                   >
-                    Latest growth
+                    Rows observed in latest run
                   </TableHead>
                   <TableHead
                     className="hidden md:table-cell"

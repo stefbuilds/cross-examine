@@ -1,5 +1,19 @@
 # Consolidated remediation evidence log
 
+> **Historical snapshot — superseded for current product status.** This append-only-style
+> log records branch-era work on `fix/consolidated-remediation`, including its original
+> 102/106-test counts, deployment observations, merge-readiness judgment, and the then-
+> missing structural receipt hashing. Those statements describe that snapshot only.
+> EvidenceReceipt v1 and validation-before-pin later landed in `ea14e2f`; receipt context
+> and semantic validation remain open. Use the current
+> [capability matrix](docs/capability-status.md),
+> [P0-P9 roadmap](docs/2026-07-18-ordered-implementation-roadmap.md), and
+> [mission ledger](docs/research/autonomous-mission-ledger.md) for present status. Raw
+> commands and captured outputs below are preserved as historical evidence rather than
+> rewritten to resemble a current run. This log does not prove the current deployment,
+> cross-platform matrix, paid-model evidence, benchmark qualification, or release
+> approval.
+
 Branch: `fix/consolidated-remediation`
 
 This log follows the required `SPEC → PROBE → VERDICT → FIX → VERIFY → LOG` loop. Command output is reproduced verbatim.

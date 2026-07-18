@@ -47,14 +47,15 @@ export function TrialsPage() {
     <main className="mx-auto grid w-full max-w-[88rem] gap-6 p-4 md:gap-8 md:p-8">
       <header className="grid gap-3">
         <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Product evidence
+          Historical manual trials · unblinded shadow evidence
         </p>
         <h1 className="text-3xl font-semibold tracking-tight">
           Real-world compatibility trials
         </h1>
         <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-          These are real runs against unmodified public Python repositories. The
-          record includes the result and the limit of what could be established.
+          These compatibility observations used manual characterization against
+          unmodified public Python repositories. They are not qualification evidence
+          or proof of model-authored characterization.
         </p>
       </header>
 
@@ -155,4 +156,3 @@ export function TrialsPage() {
     </main>
   );
 }
-
