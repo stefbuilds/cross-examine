@@ -228,3 +228,93 @@ or unavailable gate evidence, or to `complete` only after the gate is proven.
 7. Turn every valid P8 audit finding into a named failing invariant test before its
    fix, then run the relevant focused checks and the full backend suite in a fresh
    documented environment.
+
+## 2026-07-18 Phase 0 audit reconciliation
+
+This dated entry corrects the current-state implication of "Next experiments" item
+1 without rewriting the immutable baseline or objective register. It reconciles the
+three Phase 0 review domains, records the present audit artifacts, and is the latest
+authoritative status entry for stable objective `P0`.
+
+### Current architecture map
+
+| Stage or boundary | Current owner and flow |
+| --- | --- |
+| Ingest | `src/cross_examine/ingest/service.py` |
+| Characterize | `src/cross_examine/characterize/{models,service}.py` |
+| Cross-examine | `src/cross_examine/cross_examine/{layer_a,layer_b,probe_protocol,probe_runner,hypothesis_worker}.py` |
+| Aggregate | `src/cross_examine/schema.py::aggregate` |
+| Render | `validation.py -> codec.py -> persistence -> API -> React` |
+| Execution | `src/cross_examine/execution.py`; a bounded trusted-input host-process adapter, not a sandbox |
+| Corpus feedback | `corpus/repository.py -> Pipeline._applicable_corpus/_pin_verified` |
+
+These owners preserve the five-stage pipeline: Ingest, Characterize, Cross-examine,
+Aggregate, and Render. Corpus feedback and execution support that pipeline but do not
+gain verdict authority, and `aggregate()` remains pure.
+
+### Prioritized P0 risks
+
+These are release-blocking integrity risks, ordered by the earliest false-safety or
+authority failure they can cause. A target phase may not be marked complete until
+its acceptance scenario has deterministic evidence.
+
+| Rank | Risk ID | Risk | Concrete acceptance scenario | Target phase |
+| ---: | --- | --- | --- | --- |
+| 1 | P0-R1 | A non-critical preservation mismatch can produce `SAFE` when a model sets `preserve_critical=False` | Given an observed preservation mismatch and `preserve_critical=False`, validation and aggregation cannot return `SAFE`; the mismatch remains named and the deterministic verdict is `RISKY` | P8 |
+| 2 | P0-R2 | Touched-symbol coverage can be incomplete | Given a diff that touches symbols A and B and characterization that covers only A, the pipeline rejects the incomplete coverage or records B as unverifiable and returns `RISKY` | P8 |
+| 3 | P0-R3 | Locator-only mutable corpus authority permits stale rebinding and overwrite | Given the same locator and symbol at different Git identities or ancestry, plus a duplicate pin, replay preserves immutable distinct evidence and refuses unauthorized overwrite, promotion, or rebinding | P4 |
+| 4 | P0-R4 | Semantic report validation and validation-on-read are incomplete | Given a decodable stored report with a tampered verdict, duplicate or reserved ID, or broken claim/finding linkage, read validation rejects or quarantines it before rendering or decision use | P8 |
+| 5 | P0-R5 | Aggregation-stage validation can recurse on the same invalid decided finding | Given a decided finding that fails aggregation-stage validation, the pipeline terminates deterministically with `RISKY` evidence rather than reaggregating the same invalid finding | P8 |
+| 6 | P0-R6 | Completed-run and corpus writes are not atomic | Given an injected failure between completion persistence and corpus pinning, restart exposes either both committed effects or neither, never a completed run with a missing or partial corpus effect | P4 |
+| 7 | P0-R7 | Unauthenticated non-loopback serving can expose trusted-host execution | Given `serve` configured for a non-loopback address without authentication, startup refuses or execution endpoints remain inaccessible until an explicit authenticated trusted-host policy is present | P8 |
+| 8 | P0-R8 | No frozen benchmark harness exists | Given a fixed benchmark release run twice, immutable case and manifest identities, truth separation, witness replay, and deterministic scores agree; without hostile-target isolation the result remains `UNBLINDED_DEVELOPMENT`, not qualification | P6 |
+
+### Prioritized P1 risks
+
+| Rank | Risk ID | Risk | Required resolution | Target phase |
+| ---: | --- | --- | --- | --- |
+| 1 | P1-R1 | Receipt v1 is context-free | Bind receipts to repository identity, revision role, input, expected value, policy, runtime, and manifest, and retain receipts for attempted abstentions | P2 |
+| 2 | P1-R2 | Layer-B tuple values drift to JSON lists beyond Layer A's settled value contract | Version the probe and observation codec contracts; round-trip supported values and abstain on unsupported or ambiguous values | P7 |
+| 3 | P1-R3 | `ProbePlan` budget and minimization claims exceed implementation | Make budget enforcement and minimization deterministic, or narrow the schema and product claims to implemented behavior | P7 |
+| 4 | P1-R4 | No deterministic setup contract exists | Define versioned setup plans and persist symmetric command/output evidence for product-owned `none` and `wheel-no-deps` flows | P3 |
+| 5 | P1-R5 | API and executor timeout limits disagree | Establish one versioned timeout policy so API-accepted runs cannot be rejected by the executor solely because defaults differ | P8 |
+| 6 | P1-R6 | Run recovery and run-spec persistence are incomplete | Persist the submitted and resolved run context and deterministically recover or terminate stale queued/running records after restart | P3 |
+| 7 | P1-R7 | Corpus growth misreports duplicate replay as new rows | Count inserted immutable observations separately from touched or replayed rows, including duplicate-pin cases | P4 |
+| 8 | P1-R8 | Provenance and manifests are not rendered | Carry validated receipt and manifest references through persistence, API/CLI, and React render equality checks | P3 |
+| 9 | P1-R9 | CI, accessibility, bundle, fixture, and deployment gates are incomplete | Add benchmark and packaging/security gates, Python and sdist coverage, accessible mobile/zoom/keyboard routes, generated-bundle equality, hosted-fixture byte equality, and deployed smoke checks | P9 |
+
+### Research claim reconciliation
+
+| Prior or ambiguous claim | Current reconciled statement |
+| --- | --- |
+| Receipt v1 was absent | Receipt v1 is implemented, but it is not context-bound and attempted abstentions may lose their receipts |
+| Pinning occurred before validation | Validation now precedes pinning, but completed-run persistence and corpus writes are not atomic |
+| The real-model handoff is current | `docs/research/real-gpt56-run-handoff.md` pins the pre-receipt `f6524ea`; it must be repinned to the current implementation and freshly reviewed before any request or publication |
+| One shared schema version can cover compatibility | Separate version namespaces remain mandatory for report, receipt, execution policy/manifest, probe, observation codec, setup, intended-oracle, corpus, benchmark release, and benchmark result contracts |
+| Value persistence can land independently | Corpus v2 must precede value persistence changes so corpus and value migrations cannot conflict |
+| Setup provides sufficient isolation | Setup creates prepared environments; it is not hostile-target isolation or benchmark isolation |
+| One approval or key can stand in for all authority | Corpus lifecycle authority, intended-change approval, benchmark evaluator truth, and API-key/spend authority remain distinct external authority systems |
+| Bounded Layer-B exhaustion proves correctness | For benchmark scoring, a bounded Layer-B search with no counterexample maps to `NO_REFUTATION_FOUND`, never proof of safety |
+| Intended-change Layer B can infer its contract | Intended-change Layer B remains abstaining because no implementation contract has been approved |
+
+### P0 present-evidence inventory
+
+| Required evidence | Present artifact or evidence |
+| --- | --- |
+| Mission design | `docs/superpowers/specs/2026-07-18-autonomous-build-week-mission-design.md` |
+| Phase 0 plan | `docs/superpowers/plans/2026-07-18-autonomous-mission-phase-0.md` |
+| Three independent review domains | architecture/API/persistence; research reconciliation; quality/release |
+| Six research handoffs | `docs/research/benchmark-handoff.md`; `docs/research/corpus-lifecycle-handoff.md`; `docs/research/intended-oracle-handoff.md`; `docs/research/real-gpt56-run-handoff.md`; `docs/research/setup-hook-handoff.md`; `docs/research/value-support-handoff.md` |
+| Product audit | `artifacts/product-audit-2026-07-18/audit.md` and its seven captured product views |
+| Active branch | `codex/autonomous-build-week` |
+| Backend baseline | Exact command `UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest -q`; captured output `115 passed in 252.06s (0:04:12)` |
+
+### P0 status transition
+
+| Date | Objective | Previous state | New state | Reason | Supporting evidence |
+| --- | --- | --- | --- | --- | --- |
+| 2026-07-18 | P0 | `in_progress` | `complete` | The design, plan, three review domains, six handoffs, product audit, branch, baseline result, architecture, prioritized risks, acceptance scenarios, target phases, and stale-claim corrections are all present at the artifact level | Immutable Phase 0 baseline, verification evidence, and the present-evidence inventory above |
+
+The immutable Phase 0 audit-package commit is produced by Task 3B. P0 is complete at
+the artifact level; Task 3B's next documentation commit appends that immutable commit
+link without amending this entry.
