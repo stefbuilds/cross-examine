@@ -59,6 +59,9 @@ def test_permutation_relation_detects_a_length_three_defect_missed_by_catalog(tm
     assert [finding.outcome for finding in findings] == [Outcome.REFUTED]
     assert "permutation_invariance" in findings[0].output
     assert "plan_id=permutation_invariance-plan" in findings[0].output
+    assert findings[0].receipts
+    assert all(receipt.command in findings[0].command for receipt in findings[0].receipts)
+    assert all(receipt.output in findings[0].output for receipt in findings[0].receipts)
 
 
 def test_partition_relation_detects_a_length_three_defect_missed_by_catalog(tmp_path: Path) -> None:

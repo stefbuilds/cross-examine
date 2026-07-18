@@ -11,6 +11,13 @@ export function FindingEvidence({ finding }: { finding: Finding }) {
     <div className="grid gap-3 border-t border-border bg-[#e9e8e6]/60 p-4 md:p-5">
       <EvidenceBlock label="Exact command" value={finding.command} />
       <EvidenceBlock label="Captured output" value={finding.output} />
+      {finding.receipts?.map((receipt, index) => (
+        <EvidenceBlock
+          key={`${receipt.evidence_hash}-${index}`}
+          label={finding.receipts?.length === 1 ? "Evidence receipt hash" : `Evidence receipt hash ${index + 1}`}
+          value={receipt.evidence_hash}
+        />
+      ))}
       {finding.repro_input !== null && (
         <EvidenceBlock label="Reproducing input" value={finding.repro_input} />
       )}

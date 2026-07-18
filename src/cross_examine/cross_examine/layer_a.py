@@ -17,7 +17,15 @@ from cross_examine.cross_examine.probe_protocol import (
     parse_probe_output,
 )
 from cross_examine.execution import run_command
-from cross_examine.schema import BehaviorFixture, Claim, ClaimKind, Finding, Layer, Outcome
+from cross_examine.schema import (
+    BehaviorFixture,
+    Claim,
+    ClaimKind,
+    EvidenceReceipt,
+    Finding,
+    Layer,
+    Outcome,
+)
 from cross_examine.probe_plans import (
     ProbePlan,
     ProbePlanError,
@@ -79,6 +87,7 @@ def capture_base(
                     expected_json=canonical_envelope(result.envelope),
                     command=result.evidence.command,
                     output=result.evidence.output,
+                    receipt=result.evidence.receipt,
                 )
             )
     return fixtures
@@ -168,6 +177,7 @@ def run_layer_a(
                         output=_diagnostic_output(actual, "Head replay did not produce a result."),
                         repro_input=_display_input(args, kwargs),
                         confidence=1.0,
+                        receipts=_receipts(actual.evidence.receipt),
                     )
                 )
                 continue
@@ -188,7 +198,7 @@ def run_layer_a(
                     claim_id=claim.id,
                     layer=Layer.BEHAVIORAL_DIFF,
                     outcome=outcome,
-                    command=actual.evidence.command,
+                    command=f"{fixture.command}\n{actual.evidence.command}",
                     output=_comparison_output(fixture, actual)
                     + (
                         "\nABSTENTION\nBase/head preservation evidence cannot verify an intended change.\n"
@@ -199,6 +209,7 @@ def run_layer_a(
                     expected=display_result(expected_envelope),
                     actual=display_result(actual.envelope),
                     confidence=1.0,
+                    receipts=_receipts(fixture.receipt, actual.evidence.receipt),
                 )
             )
     return findings
@@ -272,6 +283,9 @@ def run_probe_plans(
                 actual=_canonical_json([call.envelope for call in head_calls]),
                 confidence=1.0,
                 provenance={"probe_plan": plan.__dict__, "calls": _calls_provenance(calls)},
+                receipts=_receipts(
+                    *(call.evidence.receipt for call in [*base_calls, *head_calls])
+                ),
             )
         )
     return findings
@@ -332,10 +346,21 @@ def _relation_output(plan: ProbePlan, seed: object, base_ok: bool, head_ok: bool
     return (
         f"PROBE PLAN\nplan_id={plan.id}\nrelation={plan.relation_type}\nseed={_canonical_json(seed)}\n"
         f"base_relation_holds={base_ok}\nhead_relation_holds={head_ok}\n"
-        f"BASE RESULTS\n{_canonical_json([call.envelope for call in base_calls])}\n"
-        f"HEAD RESULTS\n{_canonical_json([call.envelope for call in head_calls])}\n"
+        f"BASE RESULTS\n{_calls_output(base_calls)}\n"
+        f"HEAD RESULTS\n{_calls_output(head_calls)}\n"
         f"MINIMIZED COUNTEREXAMPLE\n{_canonical_json(seed)}\n"
     )
+
+
+def _calls_output(calls: Sequence[ProbeResult]) -> str:
+    return "\n".join(
+        f"COMMAND\n{call.evidence.command}\nOUTPUT\n{call.evidence.output}"
+        for call in calls
+    )
+
+
+def _receipts(*receipts: EvidenceReceipt | None) -> list[EvidenceReceipt]:
+    return [receipt for receipt in receipts if receipt is not None]
 
 
 def _plan_abstention(plan: ProbePlan, reason: str, result: ProbeResult | None = None) -> Finding:

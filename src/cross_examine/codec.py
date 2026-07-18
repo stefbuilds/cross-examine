@@ -10,6 +10,7 @@ from cross_examine.schema import (
     Claim,
     ClaimKind,
     CorpusDelta,
+    EvidenceReceipt,
     Finding,
     Layer,
     Outcome,
@@ -41,6 +42,14 @@ def report_from_json(raw: str) -> Report:
                 actual=item.get("actual"),
                 confidence=float(item.get("confidence", 1.0)),
                 provenance=item.get("provenance"),
+                receipts=[
+                    EvidenceReceipt(
+                        command=receipt["command"],
+                        output=receipt["output"],
+                        evidence_hash=receipt["evidence_hash"],
+                    )
+                    for receipt in item.get("receipts", [])
+                ],
             )
             for item in payload.get("findings", [])
         ]

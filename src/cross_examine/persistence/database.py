@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS corpus_checks (
   expected_json TEXT NOT NULL,
   command TEXT NOT NULL,
   output TEXT NOT NULL,
+  evidence_hash TEXT NOT NULL DEFAULT '',
   first_run_id TEXT NOT NULL,
   last_run_id TEXT NOT NULL,
   created_at TEXT NOT NULL,
@@ -47,6 +48,13 @@ class Database:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.connect() as connection:
             connection.executescript(RUNS_SCHEMA)
+            columns = {
+                row["name"] for row in connection.execute("PRAGMA table_info(corpus_checks)")
+            }
+            if "evidence_hash" not in columns:
+                connection.execute(
+                    "ALTER TABLE corpus_checks ADD COLUMN evidence_hash TEXT NOT NULL DEFAULT ''"
+                )
 
     @contextmanager
     def connect(self) -> Iterator[sqlite3.Connection]:

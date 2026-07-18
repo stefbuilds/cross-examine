@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from cross_examine.persistence.database import Database
-from cross_examine.schema import BehaviorFixture, Finding, Layer, Outcome
+from cross_examine.schema import BehaviorFixture, Finding, Layer, Outcome, evidence_hash
 
 
 @dataclass(frozen=True)
@@ -25,6 +25,7 @@ class CorpusCheck:
     last_run_id: str
     created_at: str
     updated_at: str
+    evidence_hash: str = ""
 
 
 @dataclass(frozen=True)
@@ -53,6 +54,14 @@ class CorpusRepository:
             return False
         if finding.claim_id != fixture.claim_id:
             return False
+        if fixture.receipt is None:
+            return False
+        if fixture.receipt.command != fixture.command or fixture.receipt.output != fixture.output:
+            return False
+        if fixture.receipt.evidence_hash != evidence_hash(fixture.command, fixture.output):
+            return False
+        if fixture.receipt not in finding.receipts:
+            return False
 
         input_payload = {
             "args": json.loads(fixture.args_json),
@@ -72,8 +81,9 @@ class CorpusRepository:
                 """
                 INSERT OR IGNORE INTO corpus_checks (
                   id, repo, target_symbol, input_json, expected_json, command, output,
+                  evidence_hash,
                   first_run_id, last_run_id, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     check_id,
@@ -83,6 +93,7 @@ class CorpusRepository:
                     fixture.expected_json,
                     fixture.command,
                     fixture.output,
+                    fixture.receipt.evidence_hash,
                     run_id,
                     run_id,
                     now,
@@ -94,10 +105,18 @@ class CorpusRepository:
                 connection.execute(
                     """
                     UPDATE corpus_checks
-                    SET last_run_id = ?, updated_at = ?, command = ?, output = ?
+                    SET last_run_id = ?, updated_at = ?, command = ?, output = ?,
+                        evidence_hash = ?
                     WHERE id = ?
                     """,
-                    (run_id, now, fixture.command, fixture.output, check_id),
+                    (
+                        run_id,
+                        now,
+                        fixture.command,
+                        fixture.output,
+                        fixture.receipt.evidence_hash,
+                        check_id,
+                    ),
                 )
         return inserted
 
@@ -110,7 +129,12 @@ class CorpusRepository:
         query += " ORDER BY created_at, id"
         with self.database.connect() as connection:
             rows = connection.execute(query, parameters).fetchall()
-        return [CorpusCheck(**dict(row)) for row in rows]
+        checks = [CorpusCheck(**dict(row)) for row in rows]
+        return [
+            check
+            for check in checks
+            if check.evidence_hash == evidence_hash(check.command, check.output)
+        ]
 
     def total(self, repo: str | None = None) -> int:
         with self.database.connect() as connection:

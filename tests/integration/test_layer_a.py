@@ -48,6 +48,9 @@ def test_layer_a_refutes_the_empty_input_regression(tmp_path: Path) -> None:
     assert refuted[0].actual == "null"
     assert "probe_runner call normalizer.core:normalize" in refuted[0].command
     assert '"cross_examine_probe": 1' in refuted[0].output
+    assert len(refuted[0].receipts) == 2
+    assert all(receipt.evidence_hash for receipt in refuted[0].receipts)
+    assert all(receipt.command in refuted[0].command for receipt in refuted[0].receipts)
     assert sum(finding.outcome is Outcome.VERIFIED for finding in findings) == 2
 
 

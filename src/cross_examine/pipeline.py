@@ -23,6 +23,7 @@ from cross_examine.schema import (
     ClaimKind,
     CommandEvidence,
     CorpusDelta,
+    EvidenceReceipt,
     Finding,
     Layer,
     Outcome,
@@ -169,25 +170,28 @@ class Pipeline:
         except Exception as exc:  # noqa: BLE001 - test runner failures become abstentions
             return self._failure_report(spec, "testing", exc, claims, findings, emit)
 
-        emit("aggregating", "Computing verdict and pinning verified behavior")
+        emit("aggregating", "Computing verdict and validating evidence")
         try:
             _remaining_timeout(deadline, spec.command_timeout_seconds)
             verdict = aggregate(findings, _critical_claim_ids(claims))
+            report = validate_report(
+                Report(
+                    repo=spec.repo,
+                    pr_ref=f"{ingest.base_sha}..{ingest.head_sha}",
+                    verdict=verdict,
+                    findings=findings,
+                    claims=claims,
+                    corpus=None,
+                )
+            )
             pinned = self._pin_verified(spec.repo, identifier, fixtures, findings)
-            corpus = CorpusDelta(pinned_this_run=pinned, corpus_total=self.corpus.total(spec.repo))
+            report.corpus = CorpusDelta(
+                pinned_this_run=pinned,
+                corpus_total=self.corpus.total(spec.repo),
+            )
         except Exception as exc:  # noqa: BLE001 - aggregation failures become abstentions
             return self._failure_report(spec, "aggregating", exc, claims, findings, emit)
 
-        report = validate_report(
-            Report(
-                repo=spec.repo,
-                pr_ref=f"{ingest.base_sha}..{ingest.head_sha}",
-                verdict=verdict,
-                findings=findings,
-                claims=claims,
-                corpus=corpus,
-            )
-        )
         emit("complete", "Report ready")
         return report
 
@@ -222,6 +226,11 @@ class Pipeline:
         for claim in claims:
             for check in self.corpus.applicable(repo, claim.target_symbol):
                 inputs = json.loads(check.input_json)
+                receipt = (
+                    EvidenceReceipt(check.command, check.output, check.evidence_hash)
+                    if check.evidence_hash
+                    else None
+                )
                 fixtures.append(
                     BehaviorFixture(
                         id=f"corpus-{check.id[:20]}",
@@ -242,6 +251,7 @@ class Pipeline:
                         expected_json=check.expected_json,
                         command=check.command,
                         output=check.output,
+                        receipt=receipt,
                     )
                 )
         return fixtures
@@ -420,9 +430,14 @@ def _run_discovered_tests(
                 claim_id=claim.id,
                 layer=Layer.BEHAVIORAL_DIFF,
                 outcome=outcome,
-                command=head_evidence.command,
+                command=f"{base_evidence.command}\n{head_evidence.command}",
                 output=output,
                 confidence=1.0,
+                receipts=[
+                    receipt
+                    for receipt in (base_evidence.receipt, head_evidence.receipt)
+                    if receipt is not None
+                ],
             )
         )
     return claim, findings

@@ -6,6 +6,8 @@ produce it. Verdict aggregation remains a pure function in this module.
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -30,6 +32,25 @@ class Verdict(str, Enum):
 class ClaimKind(str, Enum):
     PRESERVATION = "preservation"
     INTENDED_CHANGE = "intended_change"
+
+
+def evidence_hash(command: str, output: str) -> str:
+    """Return the stable digest binding one invocation to its captured output."""
+
+    payload = json.dumps(
+        {"command": command, "output": output},
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    return hashlib.sha256(f"cross-examine-evidence-v1\0{payload}".encode()).hexdigest()
+
+
+@dataclass(frozen=True)
+class EvidenceReceipt:
+    command: str
+    output: str
+    evidence_hash: str
 
 
 @dataclass
@@ -59,6 +80,7 @@ class Finding:
     actual: str | None = None
     confidence: float = 1.0
     provenance: dict[str, object] | None = None
+    receipts: list[EvidenceReceipt] = field(default_factory=list)
 
 
 @dataclass
@@ -101,6 +123,7 @@ class CommandEvidence:
     timed_out: bool = False
     output_truncated: bool = False
     manifest: "ExecutionManifest | None" = None
+    receipt: EvidenceReceipt | None = None
 
     @property
     def output(self) -> str:
@@ -186,6 +209,7 @@ class BehaviorFixture:
     expected_json: str
     command: str
     output: str
+    receipt: EvidenceReceipt | None = None
 
 
 @dataclass(frozen=True)

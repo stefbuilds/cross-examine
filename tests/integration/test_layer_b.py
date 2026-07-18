@@ -56,6 +56,8 @@ def test_layer_b_shrinks_list_regression_to_empty_input(tmp_path: Path) -> None:
     assert finding.actual == "null"
     assert "hypothesis_worker" in finding.command
     assert '"cross_examine_layer_b": 1' in finding.output
+    assert len(finding.receipts) == 1
+    assert finding.receipts[0].command == finding.command
 
 
 def test_pipeline_never_enters_layer_b_before_layer_a(

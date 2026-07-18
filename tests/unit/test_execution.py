@@ -19,6 +19,7 @@ from cross_examine.execution import (
     run_command,
 )
 from cross_examine.settings import MAX_OUTPUT_BYTES
+from cross_examine.schema import evidence_hash
 
 
 @pytest.mark.parametrize("executable", ["cmd.exe", "sh"])
@@ -38,6 +39,10 @@ def test_command_and_output_are_captured_exactly(tmp_path: Path) -> None:
     assert evidence.stderr == ""
     assert evidence.timed_out is False
     assert evidence.output_truncated is False
+    assert evidence.receipt is not None
+    assert evidence.receipt.command == evidence.command
+    assert evidence.receipt.output == evidence.output
+    assert evidence.receipt.evidence_hash == evidence_hash(evidence.command, evidence.output)
 
 
 def test_child_stdio_is_utf8_for_adversarial_unicode(tmp_path: Path) -> None:
