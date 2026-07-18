@@ -451,3 +451,115 @@ hostile-target isolation and truth separation, publication, and human release ga
 remain externally blocked. The closure commit uses subject
 `docs: establish autonomous mission ledger`; its immutable hash is appended by the
 next Phase 1 documentation commit rather than by amending history.
+
+## 2026-07-19 Phase 1 truthful-status start
+
+Phase 0 closure and remote delivery are pinned by commit
+`b6997eed8e53b94ea6efb25b62dc401d55fc2bee` on
+`codex/autonomous-build-week`. That immutable commit contains the closure record and
+the preserved submission checklist change; upstream equality was verified before this
+Phase 1 entry began.
+
+### P1 status transition
+
+| Date | Objective | Previous state | New state | Reason | Supporting evidence |
+| --- | --- | --- | --- | --- | --- |
+| 2026-07-19 | P1 | `pending` | `in_progress` | Independent audits found current documents mix implemented mechanisms, bounded development evidence, future design, and externally blocked authority. Work began with a test-first authoritative four-state contract. | `docs/capability-status.md`; `docs/research/phase-1-roadmap-handoff.md`; `docs/superpowers/plans/2026-07-18-autonomous-mission-phase-1.md`; `tests/unit/test_documentation.py` |
+
+### Audit and review ownership
+
+| Owner | Read-only output | Finding carried into P1 |
+| --- | --- | --- |
+| Independent documentation/capability auditor | `.superpowers/sdd/phase1-docs-audit.md` | Current executable scope, false-SAFE and coverage gaps, receipt/context limits, setup/corpus/value/benchmark state, external gates, and release-evidence boundaries |
+| Independent roadmap/documentation reviewer | `.superpowers/sdd/phase1-roadmap-review.md` | Dependency ordering, stale roadmap/public claims, UI/demo contradictions, verification requirements, and the corrected reviewed Phase 1 plan |
+
+The ignored scratch outputs remain review inputs. Their durable conclusions are recorded
+in the tracked capability matrix, Phase 1 handoff risk register, and measurable exits.
+The reviewed plan passed after the explicit repeated-run receipt correction removed the
+invalid Corpus-page no-growth proof.
+
+### Authoritative artifacts and TDD start evidence
+
+The current truth source is `docs/capability-status.md`; the evidence/decision record is
+`docs/research/phase-1-roadmap-handoff.md`; the reviewed execution contract is
+`docs/superpowers/plans/2026-07-18-autonomous-mission-phase-1.md`; and
+`tests/unit/test_documentation.py` checks real repository links, same-document GitHub-
+style heading fragments, and the exact four-state vocabulary.
+
+Before either missing authoritative document existed, the required focused command
+first encountered the known external uv-cache sandbox restriction. Rerunning the same
+command with approved cache access reached the tests and produced the expected RED:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest -q tests/unit/test_documentation.py
+FF                                                                       [100%]
+AssertionError: Missing authoritative documentation surfaces: docs/capability-status.md, docs/research/phase-1-roadmap-handoff.md
+FAILED tests/unit/test_documentation.py::test_authoritative_documentation_surfaces_have_resolving_local_links
+FAILED tests/unit/test_documentation.py::test_capability_matrix_uses_only_authoritative_current_states
+2 failed in 1.26s
+```
+
+This is a Task 1 start record, not a completion transition. Passing focused/full
+verification and the immutable Task 1 commit are appended only after they exist.
+
+### Current limitations and Task 2 gate
+
+The matrix does not close runtime risks. `SAFE` remains bounded to characterized,
+represented, supported findings. Preservation criticality, omitted candidate coverage,
+semantic report validation/read validation, aggregation-failure recursion, and current
+lossy value paths require the early P2 integrity gate. The supported service posture is
+loopback even though the CLI does not enforce it; the executor retains trusted-host
+authority and best-effort cleanup. Completed reports persist, but queue/SSE history is
+in memory and stale jobs are not recovered. Evidence remains limited to tested Python
+3.12, wheel smoke, configured rather than cited-green CI, semantic rather than byte-equal
+fixture checks, and focused Chromium/axe coverage. Paid model/spend, lifecycle signing,
+intended approval, hostile-target isolation/evaluator truth, public publication, and
+human release approval remain separate external gates.
+
+Task 2 may start only after an independent reviewer approves the exact Task 1 five-file
+commit with no Critical or Important finding. Task 2 then reconciles architecture,
+execution policy, ProbePlan, provenance, and the six preserved research handoffs; it
+must add superseding notes rather than rewriting immutable Phase 0 source evidence.
+
+### Task 1 implementation checkpoint
+
+After the authoritative matrix, handoff, and transition existed, the focused GREEN
+command exited 0:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest -q tests/unit/test_documentation.py
+..                                                                       [100%]
+2 passed in 4.63s
+```
+
+The first repository-wide checks also exited 0:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run ruff check .
+All checks passed!
+
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest -q
+........................................................................ [ 61%]
+.............................................                            [100%]
+117 passed in 25.73s
+```
+
+This checkpoint remains `in_progress`. The final non-quiet suite, exact index review,
+commit, and independent Task 1 review remain required before Task 2 starts.
+
+### Task 1 final local-suite correction
+
+This later append supersedes only the preceding checkpoint's statement that the
+non-quiet suite remained pending. After the evidence files were updated, the focused
+documentation test and Ruff rerun exited 0 with `2 passed in 2.16s` and
+`All checks passed!`. The required non-quiet full command then exited 0:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest
+======================= 117 passed in 103.51s (0:01:43) ========================
+```
+
+Collection advanced continuously to all 117 items before execution completed. The
+longer duration is preserved as observed evidence rather than treated as a hang or
+silently replaced by the earlier quiet run. Exact index review, commit, and independent
+review remain pending, so Task 1 and P1 both remain `in_progress`.
