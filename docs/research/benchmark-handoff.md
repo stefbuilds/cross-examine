@@ -1,5 +1,22 @@
 # Frozen benchmark and scoring harness handoff
 
+## Superseding status — 2026-07-19
+
+- **Historical source:** the original Phase 0 research is preserved verbatim at commit
+  `5bea8baf5f031d9bfdff592b3e85e001842c651b`.
+- **Applies-to snapshot:** this handoff describes the 2026-07-18 Phase 0 working-tree
+  design/audit snapshot and declares no product implementation pin. It is distinct from
+  current product commit `c3daef6d428aa775fae29b5f327c12dc6c2f3c4b`.
+- **Current state:** the frozen benchmark harness is `future`; scored benchmark
+  qualification is separately `blocked external`.
+- **Dependency and authority gate:** local P6 development depends on reproducible P3
+  setup and P5 intended-change cases where applicable. Qualification additionally
+  requires G4's independently demonstrated hostile-target isolation, evaluator-only
+  truth, and total witness coverage; this design supplies none of that authority.
+- **Current truth:** see the authoritative [capability status](../capability-status.md).
+  The original prose below remains historical design evidence, not an implemented
+  harness, qualification result, or release gate.
+
 Status: **implementation-ready design; scored execution BLOCKED on truth isolation and witness-level oracle coverage**  
 Research date: 2026-07-18  
 Scope: Python repositories, Layer A first, incremental Layer B second  

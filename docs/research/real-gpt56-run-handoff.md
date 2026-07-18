@@ -1,5 +1,22 @@
 # Real-repository GPT-5.6 Sol trial handoff
 
+## Superseding status — 2026-07-19
+
+- **Historical source:** the original Phase 0 research is preserved verbatim at commit
+  `5bea8baf5f031d9bfdff592b3e85e001842c651b`.
+- **Applies-to pin:** this procedure targets Cross-Examine commit
+  `f6524eac4270cf566d3acbf1f3a77ebb24ed904f`; it does not apply to current product
+  commit `c3daef6d428aa775fae29b5f327c12dc6c2f3c4b` without a fresh repin and review.
+- **Current state:** current paid GPT evidence is `blocked external`; the underlying
+  structured GPT adapter is separately `development-only`.
+- **Dependency and authority gate:** P2 must first land current-pin trial tooling, strict
+  artifacts, deterministic replay, provenance/render checks, and redaction checks. A
+  human must then clear G1 model access, dedicated-key/spend, and explicit one-request
+  authority; this document grants none of them.
+- **Current truth:** see the authoritative [capability status](../capability-status.md).
+  The original prose below remains historical command/design evidence, not current
+  implementation, authorization, or proof that a paid run occurred.
+
 ## Chosen trial
 
 Run Cross-Examine at immutable commit `f6524eac4270cf566d3acbf1f3a77ebb24ed904f`

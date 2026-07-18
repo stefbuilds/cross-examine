@@ -1,5 +1,23 @@
 # Deterministic Python setup contract: implementation handoff
 
+## Superseding status — 2026-07-19
+
+- **Historical source:** the original Phase 0 research is preserved verbatim at commit
+  `5bea8baf5f031d9bfdff592b3e85e001842c651b`.
+- **Applies-to snapshot:** this handoff describes the 2026-07-18 Phase 0 working-tree
+  design/audit snapshot and declares no product implementation pin. It is distinct from
+  current product commit `c3daef6d428aa775fae29b5f327c12dc6c2f3c4b`.
+- **Current state:** the deterministic setup contract is `future`; no SetupPlan,
+  prepared revision environments, installed Layer A, installed repository tests, or
+  setup persistence is implemented.
+- **Dependency gate:** P2 current-integrity work must fail closed first; P3 then owns
+  the versioned `none` and `wheel-no-deps` contract, with installed Layer A working end
+  to end before any matching Layer B extension. This design grants no setup or
+  isolation authority.
+- **Current truth:** see the authoritative [capability status](../capability-status.md).
+  The original prose below remains historical design evidence, not current
+  implementation.
+
 **Status:** Recommended; not blocked. The contract below preserves the existing
 trusted-input host-process boundary. It does not make target repositories safe,
 hermetic, offline, or sandboxed.

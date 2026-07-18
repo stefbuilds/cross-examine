@@ -37,7 +37,31 @@ The redesign used the authenticated 21st MCP marketplace for search and code ret
 
 ## Interface verification
 
-The shared tokens cover light and dark color modes even though the Build Week shell intentionally launches in the system/default mode. Responsive behavior uses native horizontal table overflow, hides secondary columns at narrow widths, and preserves the sidebar collapse control. Frontend contract tests exercise submission, live no-verdict progress, report evidence expansion, and receipt fields; production compilation and browser verification cover the integrated route shell.
+The shared tokens cover light and dark color modes even though the Build Week shell
+intentionally launches in the system/default mode. Responsive behavior uses native
+horizontal table overflow, hides secondary columns at narrow widths, and preserves the
+sidebar collapse control.
+
+Current verification is narrower than accessibility compliance or broad browser proof:
+
+- focused Vitest component/route tests exercise submission, live no-verdict progress,
+  report evidence expansion, receipt fields, and selected navigation/theme behavior;
+- one integrated axe smoke runs with color-contrast checks disabled;
+- two Playwright flows run in Chromium;
+- the frontend production build checks compilation and the repository's POSIX verifier
+  checks checked-in static-bundle equality.
+
+Keyboard journeys, screen readers, color contrast, zoom, resize, reduced motion, touch,
+cross-browser behavior, and the deployed URL are not established by that evidence.
+
+## Evidence-contract boundary
+
+The interface renders stored verdict/finding and command/output/receipt fields. Python
+`Finding.provenance`, including structured ProbePlan data, and execution manifests are
+not fields of the current React report model. Receipt v1 verifies command/output hashes
+and substring association only; it does not provide semantic linkage, execution-context
+binding, authentication, or attestation. UI source attribution on this page must not be
+read as provenance for a repository verdict.
 
 ## License and attribution boundary
 

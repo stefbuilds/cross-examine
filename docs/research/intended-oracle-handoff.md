@@ -1,5 +1,22 @@
 # Intended-change executable oracle handoff
 
+## Superseding status — 2026-07-19
+
+- **Historical source:** the original Phase 0 research is preserved verbatim at commit
+  `5bea8baf5f031d9bfdff592b3e85e001842c651b`.
+- **Applies-to snapshot:** this handoff describes the 2026-07-18 Phase 0 working-tree
+  design/audit snapshot and declares no product implementation pin. It is distinct from
+  current product commit `c3daef6d428aa775fae29b5f327c12dc6c2f3c4b`.
+- **Current state:** the intended-change oracle adapter is `future`; intended-change
+  approval authority is separately `blocked external`.
+- **Dependency and authority gate:** P5 follows the P3 setup and P4 corpus contracts.
+  Any deciding oracle also requires G2's authenticated, complete binding over the exact
+  repository/head/claim/oracle/setup/expiry context; repository code, a model, and this
+  design cannot grant that authority.
+- **Current truth:** see the authoritative [capability status](../capability-status.md).
+  The original prose below remains historical design evidence, not current
+  implementation or authenticated approval.
+
 Status: **recommended, fail closed; not blocked under an explicit operator trust root**.
 
 This design can independently establish claim-to-oracle binding only when an authenticated operator (or an equivalent pre-existing trusted requirement authority) approves the exact claim and the complete executable oracle set. If a run has only model output, head-repository files, unscoped tests, or unkeyed hashes, that run is **BLOCKED from intended-change verification** and the claim remains critical `UNVERIFIABLE`, producing at least `RISKY`.

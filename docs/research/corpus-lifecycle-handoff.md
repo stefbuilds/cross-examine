@@ -1,5 +1,22 @@
 # Corpus lifecycle v2: identity, ancestry, invalidation, and promotion
 
+## Superseding status — 2026-07-19
+
+- **Historical source:** the original Phase 0 research is preserved verbatim at commit
+  `5bea8baf5f031d9bfdff592b3e85e001842c651b`.
+- **Applies-to snapshot:** this handoff describes the 2026-07-18 Phase 0 working-tree
+  design/audit snapshot and declares no product implementation pin. It is distinct from
+  current product commit `c3daef6d428aa775fae29b5f327c12dc6c2f3c4b`.
+- **Current state:** corpus lifecycle v2 is `future`; lifecycle mutation authority is
+  separately `blocked external`.
+- **Dependency and authority gate:** P4 follows the P3 setup/persistence conventions.
+  Conservative local migration, inspection, and replay may be implemented without a
+  signer, but G3 requires an external scope- and identity-bound authority receipt before
+  promotion, rebinding, retirement, conflict resolution, or family mutation.
+- **Current truth:** see the authoritative [capability status](../capability-status.md).
+  The original prose below remains historical design evidence, not a production v2
+  schema, migration, or authority grant.
+
 **Status:** implementation handoff; no production code is changed by this document
 
 **Scope:** the smallest safe v2 for Python repositories

@@ -214,3 +214,150 @@ Task 1 remains `in_progress` through implementation and independent review. P1 r
 `in_progress` through Tasks 2-4. The next Task 2 gate is a clean review of this exact
 five-file commit; only then may architecture, execution policy, ProbePlan, provenance,
 and the six preserved handoffs receive their scoped trust-boundary reconciliation.
+
+## Task 2A engineering trust-boundary reconciliation
+
+Task 2A status: `in_progress`; uncommitted pending independent review. This subsection
+appends the engineering-document rationale and does not alter the Task 1 evidence above.
+The six immutable Phase 0 source handoffs remain unchanged for the separate Task 2B
+superseding-status slice.
+
+### Changed-claim rationale
+
+| Surface | Prior implication | Reconciled current boundary |
+| --- | --- | --- |
+| `docs/architecture.md` | Target execution was deterministic; all findings had exact evidence; codec and React mirrored a lossless contract; a frozen oracle existed; every failure became risk evidence | Execution is model-free and bounded but target code retains nondeterminism and host authority; receipts are required only for decided findings; codec/React are current-field subsets; the benchmark is future; known failure/coverage gaps are explicit |
+| `docs/execution-policy.md` | Every command produced a persisted audit manifest and the policy boundary described all relevant launches | Only successfully launched children return manifests to the immediate runner; Reports do not persist/render them; the allowlist governs top-level harness launches only |
+| `docs/probe-plans.md` | List and tuple relations, budgeted breadth, bounded cost, minimization, and rendered structured provenance were implemented | The reliable path is list-only, executes one first seed, uses budget for proposal shape/order, runs no minimizer, and does not expose structured provenance in React |
+| `docs/provenance.md` | Compilation and browser verification broadly covered the integrated shell | Evidence is focused Vitest coverage, one axe smoke with contrast disabled, two Chromium flows, production compilation, and POSIX bundle equality; untested accessibility/browser/deployment dimensions are named |
+
+### Engineering decisions
+
+1. Preserve the five stages and pure `aggregate()` while narrowing the inputs and
+   evidence guarantees around them.
+2. Call execution model-free and bounded, never deterministic target execution: target
+   code can use time, randomness, filesystem, network, and child processes.
+3. Describe EvidenceReceipt v1 as context-free command/output hash plus substring
+   association. It does not bind repository/revision/role/input/policy/runtime/manifest,
+   authenticate execution, recompute verdict, or validate IDs and claim/finding linkage.
+4. Keep the executor's supported service posture at `127.0.0.1` while recording that the
+   CLI does not enforce it and non-loopback unauthenticated serving is unsafe.
+5. Record the effective 120-second executor ceiling, best-effort cleanup, top-level-only
+   executable allowlist, and unpersisted/unrendered manifests rather than widening claims
+   to the API's accepted values or target descendants.
+6. Keep ProbePlan v1 development-only until typed tuple reconstruction, executed breadth,
+   and an actual minimizer exist. Do not conflate its original seed with Hypothesis
+   shrinking in Layer B.
+7. Preserve source-component attribution while separating it from verdict provenance and
+   accessibility/browser qualification.
+
+Rejected alternatives were leaving current prose as aspirational architecture, calling
+context-free receipt hashes attestation, treating a returned runner manifest as durable
+Report evidence, or implying a planned benchmark/minimizer exists. Each would contradict
+the authoritative capability matrix and executable tests.
+
+### Evidence anchors and remaining limitations
+
+The reconciliation is grounded in `schema.py:37-53,223-241`,
+`validation.py:10-27`, `codec.py:22-87`, `execution.py:79-198,297-387`,
+`characterize/service.py:54-100`, `probe_plans.py:31-110`,
+`cross_examine/layer_a.py:185-195,218-352`,
+`persistence/runs.py:29-125`, `api/app.py:49-85,177-294`, and the current
+frontend report model/tests. The authoritative row-level status and exits remain in
+`docs/capability-status.md`.
+
+This documentation does not close the false-`SAFE`, omitted-candidate, semantic report
+validation/read-validation, aggregation-recursion, non-loopback enforcement, timeout,
+restart recovery, manifest rendering, typed-value, benchmark, browser, accessibility,
+or external-authority gaps. Those remain assigned to their measured P2-P9 gates.
+
+### Task 2A verification register
+
+The post-edit gate uses exact claim, status, stale-pin, safety-boundary, local-link, and
+whitespace/scope commands. Results are recorded only after the commands execute; Task 2A
+and P1 remain `in_progress` regardless of a local passing scan until independent review
+and integration are complete.
+
+The initial post-edit commands were:
+
+```text
+rg -n "deterministic, no mode[l]|lossless persistence boundar[y]|mirrors, but does not reinterpre[t]|detects accidental provenance loss and report tamperin[g]|frozen oracl[e]:|Every stage exceptio[n]|no missing critical execution can produce SAF[E]|Every command return[s]|list or tuple paramete[r]|bounded cos[t]|the minimized deterministic counterexampl[e]|production compilation and browser verification cove[r]" docs/architecture.md docs/execution-policy.md docs/probe-plans.md docs/provenance.md docs/research/phase-1-roadmap-handoff.md
+rg -n "^(Status:|Task 2A status:)|implemented|development-only|blocked external|future" docs/architecture.md docs/execution-policy.md docs/probe-plans.md docs/provenance.md docs/research/phase-1-roadmap-handoff.md
+rg -n "f6524e[a]|ea14e2[f]|current working tre[e]|next slic[e]|Exact next implementation promp[t]" docs/architecture.md docs/execution-policy.md docs/probe-plans.md docs/provenance.md docs/research/phase-1-roadmap-handoff.md
+rg -n "sandbox|trusted-input|network|filesystem|loopback|0\\.0\\.0\\.0|authentication|SAFE|UNVERIFIABLE|receipt|manifest|provenance" docs/architecture.md docs/execution-policy.md docs/probe-plans.md docs/provenance.md docs/research/phase-1-roadmap-handoff.md
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest -q tests/unit/test_documentation.py
+git diff --check -- docs/architecture.md docs/execution-policy.md docs/probe-plans.md docs/provenance.md docs/research/phase-1-roadmap-handoff.md
+git diff --name-only -- docs/architecture.md docs/execution-policy.md docs/probe-plans.md docs/provenance.md docs/research/phase-1-roadmap-handoff.md
+```
+
+The overclaim scan returned one explicitly historical hit: the Task 2A rationale table's
+“Prior implication” cell for ProbePlan. The same row immediately supplies the corrected
+current boundary; no current engineering surface retained the scanned overclaim. The
+status scan returned only the four authoritative labels, scoped future/development
+statements, and the explicit `in_progress` Task 2A line. The stale-pin scan returned no
+output and exit 1, meaning no pattern matched. The safety scan returned the expected
+explicit boundaries and limitations rather than an unqualified sandbox, authentication,
+receipt, manifest, provenance, or `SAFE` claim.
+
+The focused documentation contract exited 0 with `2 passed in 2.65s`.
+`git diff --check` exited 0 with no output. The exact scoped name check returned:
+
+```text
+docs/architecture.md
+docs/execution-policy.md
+docs/probe-plans.md
+docs/provenance.md
+docs/research/phase-1-roadmap-handoff.md
+```
+
+These are local implementation results only. Task 2A remains uncommitted and
+`in_progress` pending independent review; P1 is not complete.
+
+## Task 2B preserved research status and combined gate
+
+Task 2B added one dated, superseding status block near the top of each Phase 0
+research handoff:
+
+- `real-gpt56-run-handoff.md` records its obsolete `f6524eac...` execution pin,
+  the missing current-pin tooling/review, and the separately blocked G1 authority;
+- `setup-hook-handoff.md` records the setup contract as future and dependent on
+  the P2 integrity gate;
+- `corpus-lifecycle-handoff.md` separates future conservative v2 work from the
+  externally blocked G3 lifecycle mutation authority;
+- `intended-oracle-handoff.md` separates the future adapter from the externally
+  blocked G2 approval authority;
+- `benchmark-handoff.md` separates a future development harness from externally
+  blocked G4 qualification; and
+- `value-support-handoff.md` separates current lossy-value integrity from later
+  P7 value-family expansion.
+
+Each block names immutable Phase 0 source commit
+`5bea8baf5f031d9bfdff592b3e85e001842c651b`, distinguishes its historical
+snapshot or applies-to pin from current documentation commit
+`c3daef6d428aa775fae29b5f327c12dc6c2f3c4b`, links the authoritative
+capability matrix, and says the preserved prose is design/history rather than
+current implementation or authority. No original research line was deleted or
+rewritten.
+
+Task 2B verification established that the six pre-edit files matched their
+immutable Phase 0 versions, each diff contained exactly one near-top block,
+`git diff --numstat` showed 17-18 additions and zero deletions per file, all six
+blocks contained both commit identities and the capability link, the only stale
+product pin was the deliberately disclosed `f6524eac...` trial pin, and the
+exact six-file `git diff --check` passed.
+
+The combined Task 2 candidate therefore changes exactly the four engineering
+documents, this append-only Phase 1 handoff, and six preserved source handoffs.
+An independent reviewer found no Critical or Important issue. Its one Minor
+observation was that the ProbePlan page originally said the validator rejected
+all variadic signatures, while the implementation rejects an input domain only
+when that domain targets a variadic parameter. The wording was narrowed to the
+implemented boundary before commit.
+
+The reviewer also confirmed the exact eleven-file scope, additions-only source
+handoff blocks, resolving links, exact matrix states and G1-G4/dependency gates,
+receipt substring limits, manifest loss, the 120/600-second mismatch, unenforced
+loopback posture, top-level-only allowlist, one-seed/non-minimizing ProbePlan,
+and narrow browser/axe evidence. The focused documentation contract passed with
+`2 passed`; exact-path whitespace and scope checks were clean. Task 2 is ready
+for its exact-path commit but P1 remains `in_progress` through Tasks 3-4.

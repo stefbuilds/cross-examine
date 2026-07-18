@@ -1,16 +1,20 @@
 # Architecture and trust boundaries
 
-Cross-Examine is contract-first. The renderer consumes `Report`; every upstream stage exists only to produce that structure. The model proposes claims, execution produces findings, and deterministic code decides the verdict.
+Cross-Examine is contract-first. The renderer consumes `Report`; every upstream stage
+exists only to produce that structure. The model proposes schema-constrained Claims and
+optional ProbePlans, model-free bounded execution produces findings, and deterministic
+code decides the verdict. The authoritative implementation status and measurable exits
+are in [the capability matrix](capability-status.md).
 
 ```mermaid
 flowchart TB
   PR["Python base..head diff"] --> I
 
   subgraph U["Untrusted proposal"]
-    I["Ingest\nGit worktrees + AST diff"] --> C["Characterize\nGPT-5.6 Sol → Claim[]"]
+    I["Ingest\nGit worktrees + changed-file AST candidates"] --> C["Characterize\nGPT-5.6 Sol → Claims + optional ProbePlans"]
   end
 
-  subgraph EX["Grounded execution — deterministic, no model"]
+  subgraph EX["Grounded execution — model-free bounded"]
     direction TB
     LA["Layer A\nbase capture → head replay"] --> LB["Layer B\nbounded Hypothesis + shrink"]
     LB --> RT["Repository tests\ndiscovered command → finding"]
@@ -26,13 +30,13 @@ flowchart TB
 
   AG -->|preserve-critical refutation| BROKEN[["BROKEN"]]
   AG -->|other refutation / critical abstain| RISKY[["RISKY"]]
-  AG -->|grounded pass| SAFE[["SAFE"]]
+  AG -->|no represented critical refutation or abstain| SAFE[["SAFE (bounded)"]]
 
-  BROKEN --> R["Report\nSQLite + grounded UI\nexact command + output per finding"]
+  BROKEN --> R["Report\nSQLite + grounded UI\nexact command + output for decided findings"]
   RISKY --> R
   SAFE --> R
 
-  LA -.->|pins verified behavior| P[("Verified corpus")]
+  LA -.->|pins eligible verified Layer-A fixtures| P[("Development corpus v1")]
   P -.->|replays next run| LA
 
   classDef untrusted fill:#fff3cd,stroke:#b8860b,color:#3d2b00
@@ -53,26 +57,63 @@ flowchart TB
 ## Contract ownership
 
 - `schema.py` owns `Claim`, `Finding`, `Report`, the enums, and pure `aggregate()`.
-- `validation.py` prevents a verified/refuted finding without command and output from reaching Render.
-- `codec.py` is the lossless persistence boundary.
+- `validation.py` prevents a `VERIFIED` or `REFUTED` finding without command, output,
+  and a structurally valid command/output receipt from reaching Render.
+- `codec.py` serializes the current JSON-shaped report fields; it is not a versioned,
+  lossless semantic codec.
 - `persistence/` owns SQLite records; it does not decide outcomes.
-- The React application mirrors, but does not reinterpret, the Python report contract.
+- The React application renders the current verdict, finding, command/output, and
+  receipt subset. It does not expose generic `Finding.provenance` or execution manifests.
 
 Adversarial verification of model output has largely converged on debate, prover-verifier, and LLM-as-judge. All three terminate in a model deciding who won. Cross-Examine substitutes execution for the judge: the model proposes schema-constrained claims, subprocesses produce the evidence, and a pure function decides. The adversary cannot be argued with.
 
-Each decided finding now carries one or more `EvidenceReceipt` values. The execution boundary hashes the canonical invocation and captured output; `validate_report()` recomputes every hash and requires each receipt to be represented in the rendered command and output before a `VERIFIED` or `REFUTED` finding can reach Render. This detects accidental provenance loss and report tampering inside the contract. It is not remote attestation: the executor remains a trusted host-process adapter, so malicious target code or a compromised host is still outside this Build Week threat model.
+Each decided finding carries one or more `EvidenceReceipt` values. The execution boundary
+hashes the canonical invocation and captured output; `validate_report()` recomputes the
+hash and uses substring inclusion to require the receipt command and output in the
+finding's rendered evidence. Receipt v1 can detect command/output hash corruption or
+missing displayed substrings. It does not bind repository identity, revision role,
+input, expected value, execution policy, runtime, manifest, claim/finding linkage, IDs,
+or verdict; it is context-free, unauthenticated metadata rather than semantic validation
+or attestation. The executor remains a trusted host-process adapter, so malicious target
+code or a compromised host is outside this Build Week threat model.
 
-Layer B's search mechanics — Hypothesis strategies, input domains, budget allocation, shrinking approach — are tunable against a frozen oracle: a corpus of known-safe and known-regression PRs, scored by regressions discovered per unit time with zero false refutations. Because the verdict function is pure and the evidence is executed, the optimization loop cannot corrupt what it optimizes toward. Verdict semantics, evidence validation, and execution policy stay outside the loop permanently.
+Layer B is a development-only bounded differential search over supported
+preserve-critical claims without ProbePlans. Its 60 deterministic Hypothesis examples
+and shrinking can find counterexamples; exhaustion is not proof of compatibility or
+safety, and current tuple transport is lossy. No frozen benchmark exists. The planned
+P6 benchmark will keep admission, witness replay, and scoring outside `aggregate()`;
+verdict semantics, evidence validation, and execution policy remain outside that future
+optimization loop.
 
 ## Execution boundary
 
-Git and Python commands are passed as argument arrays with `shell=False`. The trusted-input boundary allows only Git, Python, and the active interpreter. Child processes inherit only required OS/runtime variables; secret-shaped names, API keys, credential helpers, and SSH-agent configuration are absent even when ambient in the operator session. Receipts still redact known secret values defensively. Output is capped at 2 MB, every command is bounded by both its own timeout and the run's monotonic deadline, and timeout triggers best-effort process-tree cleanup. Base and head execute from detached worktrees.
+Git and Python commands are passed as argument arrays with `shell=False`. The
+trusted-input boundary allowlists the top-level executable basename used by the harness;
+it does not constrain commands spawned by target Python. Child processes inherit only
+required OS/runtime variables; secret-shaped names, API keys, credential helpers, and
+SSH-agent configuration are absent even when ambient in the operator session. Receipts
+still redact known secret values defensively. Output is capped at 2 MB, and each command
+is bounded by its own timeout and the run's monotonic deadline. The effective supported
+command timeout is 120 seconds even though the API currently accepts larger values.
+Timeout handling attempts best-effort process-tree cleanup. Base and head execute from
+detached worktrees.
+
+An `ExecutionManifest` is returned to the immediate caller for a successfully launched
+child, but v1 does not persist or render it in `Report`, SQLite export, CLI output, or
+React. The only supported service posture is `127.0.0.1`; the CLI does not enforce that
+posture. Binding to a non-loopback address exposes unauthenticated trusted-host execution
+endpoints and is unsupported and unsafe.
 
 This is deliberate hackathon scope. It reduces accidental damage and command injection; it does not isolate malicious target code. A production service must run targets inside disposable, network-restricted VMs or containers with resource quotas.
 
 ## Characterization boundary
 
-GPT-5.6 Sol receives bounded diff and source context and must parse into strict Pydantic models with extra fields forbidden. Claims must target discovered symbols and pass duplicate/flood/injection checks. The model cannot emit `Finding`, `Outcome`, or `Verdict` values.
+GPT-5.6 Sol receives bounded diff and source context and must parse into strict Pydantic
+models with extra fields forbidden. Claims must target catalogued candidate definitions;
+duplicate IDs, flood limits, invalid references, and forbidden structured fields such as
+verdicts are rejected. Claim text remains untrusted display data. The model cannot emit
+`Finding`, `Outcome`, or `Verdict` values, but the adapter does not currently require one
+claim for every discovered candidate.
 
 The CLI hero demo uses `HeroCharacterizer` when `OPENAI_API_KEY` is absent. The browser's explicit `POST /api/hero-runs` path always uses that checked-in characterizer and labels its `proposed_check` as `deterministic hero fixture`; arbitrary repository submissions never receive a silent model substitute. All hero findings still come from real base/head execution.
 
@@ -80,12 +121,37 @@ Claims declare whether they describe preservation or an intended change. Base/he
 
 ## Failure semantics
 
-Every stage exception becomes a synthetic preserve-critical `UNVERIFIABLE` finding with a grounded diagnostic. Each discovered pytest command runs identically on base and head using the product interpreter. After the base passes, a passing head is `VERIFIED`; a head failure is `REFUTED` only when the head diagnostic is not a concrete dependency/setup failure. Pre-existing failures, missing modules, absent extras, timeouts, and truncation are `UNVERIFIABLE`. Aggregation resolves toward risk. No stage failure is hidden and no missing critical execution can produce `SAFE`.
+Most stage exceptions become synthetic preserve-critical `UNVERIFIABLE` findings with a
+deterministic diagnostic. A known aggregation-validation recursion path is not yet
+universally converted. Each discovered pytest command runs with the product interpreter
+and source-tree path injection. After the base passes, a passing head is `VERIFIED`; a
+head failure is `REFUTED` only when the heuristic diagnostic is not recognized as a
+dependency/setup failure. Pre-existing failures, missing modules, absent extras,
+timeouts, and truncation are `UNVERIFIABLE`.
+
+Aggregation itself resolves represented critical abstentions toward risk, but current
+coverage and classification gaps prevent a universal guarantee: characterization can
+omit a discovered candidate entirely, and a model-controlled non-critical preservation
+mismatch can become `UNVERIFIABLE` without preventing `SAFE`. Current `SAFE` therefore
+means only that no critical refutation or critical abstention was present among the
+characterized, represented, supported findings supplied to pure `aggregate()`.
 
 ## Concurrency and persistence
 
-The local API runs one background verification worker so concurrent submissions queue instead of competing for local CPU and worktrees. Progress is persisted before publication. SSE streams in-memory history for live clients; a reconnect falls back to the persisted run record. `GET /api/runs` exposes a bounded newest-first history, and completed reports survive process restarts.
+The local API runs one background verification worker so concurrent submissions queue
+instead of competing for local CPU and worktrees. Progress snapshots and completed
+reports are persisted. SSE event history, the worker queue, and active tasks are
+process-local; a reconnect can fall back to the latest persisted run record, but stale
+queued or running jobs are not deterministically recovered after restart.
+`GET /api/runs` exposes a bounded newest-first history, and completed reports survive
+process restarts.
 
 ## Corpus identity
 
-A pinned check is keyed by the repository, target symbol, canonical input, and expected base result. Only verified Layer-A checks pin. Later runs replay applicable checks, and identical behavior updates its last-seen run without inflating the corpus total.
+Corpus v1 keys an eligible verified Layer-A check by the supplied repository locator,
+target symbol, canonical input, and expected base result. Later runs select by literal
+locator and symbol, without Git identity, ancestry, or inherited-base revalidation.
+Duplicate pins update mutable evidence in place; the total row count remains stable, but
+the current latest-growth query can count touched duplicate rows as growth. Corpus v2
+owns immutable observations, conservative migration, Git authority, and atomic
+run/corpus completion.
