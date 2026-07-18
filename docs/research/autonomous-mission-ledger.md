@@ -318,3 +318,136 @@ its acceptance scenario has deterministic evidence.
 The immutable Phase 0 audit-package commit is produced by Task 3B. P0 is complete at
 the artifact level; Task 3B's next documentation commit appends that immutable commit
 link without amending this entry.
+
+## 2026-07-19 Phase 0 immutable closure
+
+This append-only closure links the reviewed Phase 0 evidence package to commit
+`5bea8baf5f031d9bfdff592b3e85e001842c651b` (`docs: record autonomous mission
+audit`) on branch `codex/autonomous-build-week`. The package review was approved
+without findings. Its scope was exactly these 16 files:
+
+```text
+artifacts/product-audit-2026-07-18/01-welcome.png
+artifacts/product-audit-2026-07-18/02-run-locally.png
+artifacts/product-audit-2026-07-18/03-verification-form.png
+artifacts/product-audit-2026-07-18/04-hero-result.png
+artifacts/product-audit-2026-07-18/05-expanded-evidence.png
+artifacts/product-audit-2026-07-18/06-sidebar-expanded.png
+artifacts/product-audit-2026-07-18/07-mobile-verification-form.png
+artifacts/product-audit-2026-07-18/audit.md
+docs/research/benchmark-handoff.md
+docs/research/corpus-lifecycle-handoff.md
+docs/research/intended-oracle-handoff.md
+docs/research/real-gpt56-run-handoff.md
+docs/research/setup-hook-handoff.md
+docs/research/value-support-handoff.md
+docs/superpowers/plans/2026-07-18-autonomous-mission-phase-0.md
+docs/superpowers/specs/2026-07-18-autonomous-build-week-mission-design.md
+```
+
+The source-preservation review checked the six research handoffs, product-audit
+report, and seven screenshots against all 14 supplied SHA-256 records. Every record
+returned `OK`; the plan and approved design completed the exact 16-file scope:
+
+```text
+c94f32a621faee070173a52f3228a087172579b1b13c2f3592fedfd3044ee824  docs/research/real-gpt56-run-handoff.md
+1b015c7ac8731425bd731ac7431aada90b0e3bdbd16ccc38d11b3d9ea116f18b  docs/research/setup-hook-handoff.md
+02e27e5220a68a207f944175356df03a10c6ec886c415b567f86befe312a7722  docs/research/benchmark-handoff.md
+6cd22809f2d1b89a7c4fc65ea21c6fff0663e78ef216251f4f8c36586f74d51b  docs/research/intended-oracle-handoff.md
+c7a457f664fa7a56a630a2e5e7aecc857b7391159f68f00238bc2278973fd97a  docs/research/corpus-lifecycle-handoff.md
+47eefa7924c567f26f918db34295a95f343a0941b058f9900a8d161cea2f23bc  docs/research/value-support-handoff.md
+fc19990bba1f8553d2f5842e47aac7dc48c724be1cc6c7c7e8f09942d6e3acc6  artifacts/product-audit-2026-07-18/audit.md
+5de70704e0511c1287e7e3364c27daba2bdf52c872c50e9df7d6947b56f626db  artifacts/product-audit-2026-07-18/01-welcome.png
+3a9d1ee925e0c34fc1ae371ededbd052fecc6035d119c2ed6f15f6998c4d4904  artifacts/product-audit-2026-07-18/02-run-locally.png
+71c0a3d921ad736fc26d36c1c4f33c99e9df0b6d412aaff6793376bfe3a5231e  artifacts/product-audit-2026-07-18/03-verification-form.png
+d83bd7ddac26d9898453f9d79c849d04e033bb0b2ba2e345b8bba1993026e16f  artifacts/product-audit-2026-07-18/04-hero-result.png
+75fc40c8dce7cc5cff0df51798623e2f9d3b52cb3978b56dacb5b408168c7ce9  artifacts/product-audit-2026-07-18/05-expanded-evidence.png
+4f644a2c49260361ca877ebc6c91ad4cc47643dacb0c68692e7848b80503e59f  artifacts/product-audit-2026-07-18/06-sidebar-expanded.png
+f5061c2f4b1671a160462feac1e0c9a883a57e54a00d0fa07bdedf782589fc03  artifacts/product-audit-2026-07-18/07-mobile-verification-form.png
+```
+
+The same review found six inherited Markdown hard-break lines with trailing spaces:
+three in `docs/research/benchmark-handoff.md`, one in
+`docs/research/value-support-handoff.md`, and two in the approved design. Normalizing
+them would have changed preserved source bytes (including supplied handoff hashes), so
+source preservation won. The limitation is confined to the already immutable audit
+package; this closure and the preserved submission checklist edit are whitespace
+clean.
+
+### Final verification evidence
+
+The marker-safe placeholder scan produced no output and exited 1, which means no
+marker matched:
+
+```text
+rg -n 'T[B]D|T[O]DO|PLACEHOLD[E]R|fill [i]n' docs/research/autonomous-mission-ledger.md docs/superpowers/specs/2026-07-18-autonomous-build-week-mission-design.md docs/superpowers/plans/2026-07-18-autonomous-mission-phase-0.md
+```
+
+The required Ruff command first encountered the local workspace sandbox's denial of
+the external uv cache, with this exact output:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run ruff check .
+error: Failed to initialize cache at `/Users/stefanospalivos/.cache/uv`
+  Caused by: failed to open file `/Users/stefanospalivos/.cache/uv/sdists-v9/.git`: Operation not permitted (os error 1)
+```
+
+The exact command was rerun with authorized access to that existing cache and exited
+0 with this captured output:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run ruff check .
+   Building cross-examine @ file:///Users/stefanospalivos/Documents/cross%20examine
+      Built cross-examine @ file:///Users/stefanospalivos/Documents/cross%20examine
+Uninstalled 1 package in 2ms
+Installed 1 package in 1ms
+All checks passed!
+```
+
+The full required test command exited 0 with this captured output:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest
+============================= test session starts ==============================
+platform darwin -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/stefanospalivos/Documents/cross examine
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-7.1.0, asyncio-1.4.0, anyio-4.14.2, hypothesis-6.156.6
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 115 items
+
+tests/e2e/test_cli_demo.py ....                                          [  3%]
+tests/e2e/test_layer_a_pipeline.py ........                              [ 10%]
+tests/integration/test_api_fixture.py .........                          [ 18%]
+tests/integration/test_api_jobs.py ...                                   [ 20%]
+tests/integration/test_corpus.py .....                                   [ 25%]
+tests/integration/test_hosted_fixture_capture.py .                       [ 26%]
+tests/integration/test_ingest.py .                                       [ 26%]
+tests/integration/test_layer_a.py .....                                  [ 31%]
+tests/integration/test_layer_b.py ..                                     [ 33%]
+tests/integration/test_probe_plan_relations.py ....                      [ 36%]
+tests/integration/test_run_repository.py ..                              [ 38%]
+tests/release/test_local_product_run.py .                                [ 39%]
+tests/release/test_wheel_install.py .                                    [ 40%]
+tests/unit/test_characterize.py ...........                              [ 49%]
+tests/unit/test_codec.py ....                                            [ 53%]
+tests/unit/test_edge_catalog.py ....                                     [ 56%]
+tests/unit/test_execution.py ....................                        [ 73%]
+tests/unit/test_ingest_symbols.py .                                      [ 74%]
+tests/unit/test_probe_plans.py .........                                 [ 82%]
+tests/unit/test_probe_runner.py .                                        [ 83%]
+tests/unit/test_schema.py ..........                                     [ 92%]
+tests/unit/test_validation.py .........                                  [100%]
+
+============================= 115 passed in 25.72s ==============================
+```
+
+Phase 0 closes with these remaining limitations: verification still depends on the
+ephemeral `/private/tmp/cross-examine-mission.Y52f1Y/venv` because the checkout
+`.venv` contains macOS dataless placeholders; six malformed duplicate Git refs remain
+untouched; and paid-model/spend, intended-change approval, lifecycle signing,
+hostile-target isolation and truth separation, publication, and human release gates
+remain externally blocked. The closure commit uses subject
+`docs: establish autonomous mission ledger`; its immutable hash is appended by the
+next Phase 1 documentation commit rather than by amending history.

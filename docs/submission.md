@@ -78,7 +78,7 @@ The public deployment intentionally serves a visibly labeled checked-in evidence
 - [ ] Upload the final 2:45-or-shorter video publicly to YouTube and add its URL.
 - [ ] Run `/feedback` in the Codex task containing the majority of the core implementation and add that session ID.
 - [ ] Confirm the video audio explicitly explains both Codex collaboration and GPT-5.6 runtime use.
-- [ ] Confirm the repository contains the MIT license, quickstart, sample hero data, platform support, and testing instructions.
+- [x] Confirm the repository contains the MIT license, quickstart, sample hero data, platform support, and testing instructions.
 - [ ] Rehearse a real GPT-5.6 run on the chosen unfamiliar Python change before recording.
 - [ ] Submit before July 21, 2026 at 5:00 PM Pacific Time.
 - [ ] Keep the demo and repository available without charge through the end of judging on August 7, 2026.
