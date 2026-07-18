@@ -21,8 +21,11 @@ The only objective status values are `pending`, `in_progress`, `complete`, and
 - `blocked`: a named external authority, capability, or prerequisite prevents the
   remaining work; the blocker and safe fallback are recorded explicitly.
 
-A verified or refuted finding must retain the exact command and captured output.
-Summaries may aid navigation but never replace raw evidence. Models may propose only
+Every `VERIFIED` or `REFUTED` finding must retain its exact command, captured output,
+and a validated provenance reference. Deterministic validation must prove that the
+provenance reference links the finding to its repository identity and revision,
+execution context and receipt, and rendered evidence. Summaries may aid navigation
+but never replace raw evidence or validated provenance. Models may propose only
 schema-constrained claims and plans. Deterministic code owns repository identity,
 execution, evidence validation, outcome classification, benchmark scoring, and
 verdicts. Unverifiable preserve-critical behavior resolves toward risk, never safety.
@@ -75,7 +78,7 @@ into this ledger's documentation-only commit.
 | --- | --- | --- | --- | --- | --- | --- |
 | P0 | Audit and mission design | Autonomous mission owner; independent review domains: architecture/API/persistence, research reconciliation, and quality/release | Baseline Git snapshot, three Phase 0 audits, six research handoffs, product audit, baseline test result | `in_progress` | Design, handoffs, audit artifacts, and this append-only ledger are preserved; risks, dependencies, owners, exact verification commands, and review disagreements are reconciled | Immutable baseline and verification entries in this ledger; mission design and Phase 0 inputs |
 | P1 | Executable roadmap and truthful docs | Documentation/release owner; quality/release reviewer | P0 | `pending` | Roadmap, architecture, execution policy, README, submission, demo, and research status agree; every capability is labeled implemented, development-only, blocked, or future | To be appended under P1 with documentation checks |
-| P2 | Real-model trial and deterministic replay | Trial implementation owner; human paid-run operator; research reconciliation and quality/release reviewers | P0 and P1; live attempt additionally requires the current implementation pin and external spend/model authority | `pending` | Current-pin tooling, strict artifact schema, deterministic replay, malformed-claim tests, provenance checks, render equality, and redaction checks pass; at most one paid request occurs only after every external gate passes, otherwise the live lane records `blocked` | To be appended under P2; the paid lane is independent of P3-P8 |
+| P2 | Real-model trial and deterministic replay | Trial implementation owner; human paid-run operator; research reconciliation and quality/release reviewers | Preflight/tooling design may proceed from P0 in parallel; execution or publication requires P1 truthful docs, then the current implementation pin, fresh review, and external spend/model authority | `pending` | Current-pin tooling, strict artifact schema, deterministic replay, malformed-claim tests, provenance checks, render equality, and redaction checks pass; after P1, at most one paid request occurs only after every external gate passes, otherwise the live lane records `blocked` | To be appended under P2; preflight/tooling is parallel, but execution/publication is logically gated by P1 and remains independent of P3-P8 |
 | P3 | Deterministic Python setup contract | Setup/runtime owner; architecture/API/persistence reviewer | P0 and P1; P2 is not a prerequisite | `pending` | Versioned schema and lossless persistence land first; product-owned `none` and `wheel-no-deps` plans produce symmetric evidence; installed Layer A and repository tests work end to end; API/CLI/UI expose provenance; Layer B waits for all Layer-A gates | To be appended under P3 with focused and full-suite evidence |
 | P4 | Corpus lifecycle v2 | Corpus/persistence owner; architecture/API/persistence and research reconciliation reviewers | P3 contract and persistence conventions | `pending` | Git identity and ancestry, deterministic migration/quarantine, immutable contracts and versions, append-only observations, atomic report completion, retention, and inspection work; unavailable lifecycle signing blocks promotion/rebinding but not conservative replay | To be appended under P4 with migration and adversarial evidence |
 | P5 | Intended-change executable oracles | Oracle owner; independent authenticated approver; architecture/API/persistence reviewer | P3 and P4 | `pending` | Strict identities and bindings, approval verification, one hermetic exact-pytest-leaf adapter, pure outcome classification, persistence, rendering, and adversarial tests work; absent authenticated approval yields `BLOCKED-INTENDED-AUTHORITY` and `RISKY` | To be appended under P5; external approval is a separate gate |
@@ -83,13 +86,14 @@ into this ledger's documentation-only commit.
 | P7 | Values, exceptions, types, signatures, and serialization | Probe/codec owner; architecture/API/persistence and research reconciliation reviewers | P3, P4, and P6; corpus v2 precedes value persistence | `pending` | Separate probe and observation-codec versions preserve supported values losslessly; unsupported or ambiguous values abstain; each Layer-A increment works end to end before matching Layer-B support is added | To be appended under P7 with compatibility and round-trip evidence |
 | P8 | Adversarial product hardening | Security/quality owner; all three Phase 0 review domains | Local evidence from P2-P7; an externally blocked live P2 attempt does not stop local hardening | `pending` | False-safety, coverage, validation, receipt, executor, migration, atomicity, corruption, redaction, malformed-input, timeout, accessibility, and cross-platform risks have named invariants and deterministic tests; `aggregate()` remains pure | To be appended under P8 with red-green-refactor evidence |
 | P9 | Demo, developer experience, and release | Product/release owner; human release reviewer; quality/release reviewer | P1 and P8; P2 and P6 must be complete or truthfully represented by explicit blocked evidence | `pending` | Hosted mode leads with the working offline path; evidence and corpus affordances are accessible; static assets, packaging, CI, install, demo, and release narrative are synchronized; unavailable public publishing fields remain blocked | To be appended under P9 with build, browser, packaging, and demo evidence |
-| FINAL | Truthful autonomous mission release | Mission owner; human release approver; all three Phase 0 review domains | P0-P9 and every release-critical external gate | `pending` | All local acceptance criteria pass; every verified/refuted finding retains exact command/output evidence; external claims are either supported by their required authority or excluded as explicitly blocked; final PR, demo guidance, risks, and limitations are reviewable | To be appended under FINAL with final full-suite, artifact, and approval evidence |
+| FINAL | Truthful autonomous mission release | Mission owner; human release approver; all three Phase 0 review domains | P0-P9 and every release-critical external gate | `pending` | All local acceptance criteria pass; every `VERIFIED` or `REFUTED` finding retains its exact command, captured output, and validated provenance reference whose linkage to the finding, execution context, receipt, and rendered evidence is deterministically validated; external claims are either supported by their required authority or excluded as explicitly blocked; final PR, demo guidance, risks, and limitations are reviewable | To be appended under FINAL with final full-suite, artifact, provenance-linkage, and approval evidence |
 
 ## Dependency graph
 
 ```text
 P0 -> P1
-P0 -> P2  (parallel operational evidence lane; external gate applies only to paid run)
+P0 -> P2 preflight/tooling design  (may proceed in parallel)
+P1 -> P2 execution/publication    (required logical gate before repin/review/run)
 P1 -> P3 -> P4 -> P5
 P3 ----------------> P6
 P5 -- intended cases -> P6
@@ -99,12 +103,16 @@ P1 + P8 + truthful P2/P6 state -> P9
 P0 + P1 + P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9 -> FINAL
 ```
 
-P2 never authorizes deterministic verdicts and does not block the P3-P8 local
-vertical slices. P4 must precede value persistence changes in P7 so corpus and value
-migrations cannot conflict. P6 scoring is an evaluator concern outside product
-aggregation. External signing, approval, isolation, spending, and publication gates
-attach only to the authority-requiring operation; their absence must not fabricate
-success or prevent unrelated conservative local work.
+P2 preflight and tooling design may proceed from P0 as a parallel operational lane,
+but P2 execution or publication is logically dependent on the completed P1 truthful
+roadmap/docs reconciliation. Only after P1 may the trial be repinned to the current
+implementation, freshly reviewed, and considered for execution. P2 never authorizes
+deterministic verdicts and does not block the P3-P8 local vertical slices. P4 must
+precede value persistence changes in P7 so corpus and value migrations cannot
+conflict. P6 scoring is an evaluator concern outside product aggregation. External
+signing, approval, isolation, spending, and publication gates attach only to the
+authority-requiring operation; their absence must not fabricate success or prevent
+unrelated conservative local work.
 
 ## Architecture decisions
 
@@ -112,7 +120,7 @@ success or prevent unrelated conservative local work.
 | --- | --- | --- |
 | D1 | Use evidence-gated vertical slices, completing Layer A before the matching Layer B extension | Each schema or migration lands only with deterministic recovery, compatibility, provenance, and failure-path tests |
 | D2 | Maintain separate contract-version namespaces for report, receipt, execution policy/manifest, probe, observation codec, setup, intended-oracle, corpus, benchmark release, and benchmark result contracts | Compatibility is decided in the relevant namespace; unknown or incompatible versions abstain or refuse writes |
-| D3 | Run the real-model trial as a parallel operational lane | A paid result may add Characterize evidence but never changes deterministic authority or blocks local contract work; the trial must be repinned and reviewed before any request |
+| D3 | Run real-model preflight/tooling design as a parallel operational lane, while gating execution and publication on P1 | A paid result may add Characterize evidence but never changes deterministic authority or blocks local contract work; after P1 truthful docs, the trial must be repinned to the current implementation and freshly reviewed before any request or publication |
 | D4 | Keep benchmark admission, witness replay, and scoring outside `aggregate()` | The benchmark may evaluate product evidence but cannot change findings or verdict semantics; `NO_REFUTATION_FOUND` is not proof of safety |
 | D5 | Represent unavailable signing, intended-change approval, hostile-target isolation/truth, spend, and release authority as explicit blocked states | Work fails toward risk and remains inspectable; no model or local implementation invents external authority |
 | D6 | Preserve the executor as a bounded trusted-host adapter and state that setup is not a sandbox | Hostile-target qualification requires a distinct disposable, network-denied boundary rather than stronger setup copy |
@@ -156,9 +164,14 @@ environment and not a repository artifact. It was used to avoid relying on or mu
 the checkout's dataless `.venv`; it does not change repository behavior and is not
 evidence of sandbox isolation.
 
-Future evidence entries must append the objective ID, timestamp, exact command,
-captured output or immutable artifact reference, decision, and any remaining
-limitation. A completed objective without such an entry is invalid.
+Future evidence entries must append the objective ID, timestamp, finding ID and
+outcome when applicable, exact command, captured output, provenance reference,
+provenance-linkage validation result, decision, and any remaining limitation. For
+every `VERIFIED` or `REFUTED` finding, exact command and captured output are mandatory
+and cannot be replaced by an artifact summary; the provenance reference must be
+validated as linked to that finding, its repository revision, execution context and
+receipt, and rendered evidence. A completed objective without such an entry is
+invalid.
 
 ## Risks and limitations
 
@@ -199,9 +212,10 @@ or unavailable gate evidence, or to `complete` only after the gate is proven.
 2. For P1, mechanically compare roadmap, architecture, README, submission, demo, and
    research claims; append a truthful capability-status matrix and documentation check
    output.
-3. In the parallel P2 lane, repin the trial to the implementation commit, build the
-   offline artifact/replay contract, and stop before any paid request unless G1 is
-   independently cleared.
+3. In the parallel P2 lane, design preflight/tooling and build the offline
+   artifact/replay contract from P0; only after P1 truthful docs may the trial be
+   repinned to the current implementation and freshly reviewed, and it must stop
+   before any paid request unless G1 is independently cleared.
 4. Begin P3 with failing contract and lossless-persistence tests for `none` and
    `wheel-no-deps`; do not add installed Layer B until installed Layer A passes end to
    end.
