@@ -14,9 +14,12 @@
 
 Cross-Examine is an independent verification harness for Codex-authored Python changes.
 It captures the base revision's behavior, executes the head revision against the same
-inputs, hunts adversarial boundaries, and shows the exact command and captured output for
-every `VERIFIED` or `REFUTED` finding. Abstentions show attempted evidence or a
-deterministic diagnostic instead of fabricating a receipt.
+inputs, and hunts adversarial boundaries. Newly executed reports that pass pipeline
+validation show the exact command and captured output for every `VERIFIED` or `REFUTED`
+finding. Abstentions show attempted evidence or a deterministic diagnostic instead of
+fabricating a receipt. Legacy or otherwise unvalidated stored reports are not revalidated
+on read and may reach the DB/API/React path without those guarantees until the P2
+integrity gate lands.
 
 Agent-authored code passes the tests that exist. Nothing checked whether the behavior it replaced still holds — so the model fixes one bug, introduces another, and the suite stays green throughout.
 
@@ -35,13 +38,13 @@ Also in this repo: [requirements](#requirements) · [directory map](#directory-m
 
 ## Judge quickstart: see the catch in 60 seconds
 
-On macOS or Linux, allocate a fresh workspace, clear any ambient model credential, and
-force the checked-in characterization fixture. The findings still come from the real
-local pipeline:
+On macOS or Linux, allocate a fresh workspace, clear ambient model and run-storage
+variables, and force the checked-in characterization fixture. The findings still come
+from the real local pipeline:
 
 ```bash
 hero_workspace=$(mktemp -d)
-env -u OPENAI_API_KEY CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture \
+env -u OPENAI_API_KEY -u CROSS_EXAMINE_DB -u CROSS_EXAMINE_RUNS CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture \
   uv run --isolated --no-editable cross-examine demo --no-open \
   --workspace "$hero_workspace"
 ```
@@ -63,10 +66,16 @@ is what makes the advertised first-run `+2` exact.
 To inspect the same evidence in the product UI:
 
 ```bash
-uv run cross-examine serve
+env -u OPENAI_API_KEY \
+  CROSS_EXAMINE_DB="$hero_workspace/cross-examine.db" \
+  CROSS_EXAMINE_RUNS="$hero_workspace/runs" \
+  uv run cross-examine serve
 ```
 
-Open `http://127.0.0.1:8765`, click **Run offline hero demo**, then expand the refuted finding. The exact command, base output, head output, expected value, actual value, and reproducing input are all rendered from the persisted report.
+Open the run URL printed by the terminal command, then expand the refuted finding. This
+server reads the same workspace-local database and run root, so the exact command, base
+output, head output, expected value, actual value, and reproducing input come from that
+pipeline-validated persisted report.
 
 **Zero-install option:** the [live evidence explorer](https://cross-examine-six.vercel.app) serves an explicitly labeled, checked-in evidence fixture. Vercel Functions do not provide the Git and local-runtime capabilities required to execute repositories, so arbitrary repository analysis is intentionally local-only — the quickstart above runs the real five-stage pipeline.
 
@@ -124,7 +133,7 @@ flowchart TB
 
   P[("<b>Development corpus v1</b>")]:::corpus
   AG{{"<b>aggregate()</b><br/>pure · no IO · no model"}}:::pure
-  R["<b>Report</b><br/>SQLite + grounded UI<br/>exact receipt for decided findings"]:::report
+  R["<b>Report</b><br/>SQLite + grounded UI<br/>validated writes carry decided receipts"]:::report
 
   PR --> I
   C -- "claims, unproven" --> LA
@@ -134,8 +143,8 @@ flowchart TB
   P -. "replays" .-> LA
 
   AG -- "preserve-critical refutation" --> BROKEN(["<b>BROKEN</b>"]):::broken
-  AG -- "critical abstain" --> RISKY(["<b>RISKY</b>"]):::risky
-  AG -- "no represented critical refutation/abstain" --> SAFE(["<b>SAFE · bounded</b>"]):::safe
+  AG -- "other represented refutation / critical abstain / missing critical" --> RISKY(["<b>RISKY</b>"]):::risky
+  AG -- "no represented refutation / critical abstain / missing critical" --> SAFE(["<b>SAFE · bounded</b>"]):::safe
 
   BROKEN --> R
   RISKY --> R
@@ -165,9 +174,12 @@ flowchart TB
    classes, async functions, generators, unsupported signatures, and unsupported or
    ambiguous values. Layer B is a bounded search, not exhaustive proof.
 4. **Aggregate** is a pure function. A represented preserve-critical refutation is
-   `BROKEN`; other represented refutations or critical abstentions are `RISKY`.
-5. **Render** reads the persisted `Report`. `VERIFIED` and `REFUTED` findings reveal an
-   exact command/output receipt; abstentions may instead show a deterministic diagnostic.
+   `BROKEN`; other represented refutations, critical abstentions, or missing critical
+   claims are `RISKY`.
+5. **Render** reads the persisted `Report`. Newly pipeline-validated `VERIFIED` and
+   `REFUTED` findings reveal an exact command/output receipt; abstentions may instead
+   show a deterministic diagnostic. Legacy or otherwise unvalidated stored reports are
+   not revalidated on read before the current DB/API/React path.
 
 See [docs/architecture.md](docs/architecture.md) for boundaries and failure behavior.
 
@@ -178,8 +190,8 @@ intended-change claim without one keeps the report at least `RISKY`.
 ## Safety limitation
 
 > **`SAFE` is bounded, not proof that a PR is correct.** It means pure aggregation found
-> no critical refutation or critical abstention among the characterized, represented,
-> supported findings it received.
+> no represented refutation, no critical abstention, and no missing critical claim among
+> the characterized, represented, supported checks it received.
 
 Current release blockers are visible rather than converted into confidence:
 
@@ -267,8 +279,12 @@ npm run build
 Pop-Location
 $env:CROSS_EXAMINE_DEMO_CHARACTERIZER = "fixture"
 Remove-Item Env:OPENAI_API_KEY -ErrorAction SilentlyContinue
+Remove-Item Env:CROSS_EXAMINE_DB -ErrorAction SilentlyContinue
+Remove-Item Env:CROSS_EXAMINE_RUNS -ErrorAction SilentlyContinue
 $heroWorkspace = Join-Path ([System.IO.Path]::GetTempPath()) ("cross-examine-hero-" + [Guid]::NewGuid())
 uv run --isolated --no-editable cross-examine demo --no-open --workspace $heroWorkspace
+$env:CROSS_EXAMINE_DB = Join-Path $heroWorkspace "cross-examine.db"
+$env:CROSS_EXAMINE_RUNS = Join-Path $heroWorkspace "runs"
 uv run cross-examine serve
 ```
 
@@ -310,10 +326,12 @@ On Windows:
 powershell -ExecutionPolicy Bypass -File scripts/verify.ps1
 ```
 
-Both entry points remove `OPENAI_API_KEY` from child processes, force the fixture, sync
-locked dependencies, and run the current backend/frontend/build/demo checks. The POSIX
-script also asserts checked-in static-bundle equality; the PowerShell script builds and
-tests the bundle but does not perform the same byte-drift assertion.
+Both entry points remove `OPENAI_API_KEY`, `CROSS_EXAMINE_DB`, and
+`CROSS_EXAMINE_RUNS` from child processes, force the fixture, sync locked dependencies,
+and run the current backend/frontend/build checks. Each owns a temporary demo workspace
+and asserts a fresh `BROKEN/+2/2` run followed by `BROKEN/+0/2`. The POSIX script also
+asserts checked-in static-bundle equality; the PowerShell script builds and tests the
+bundle but does not perform the same byte-drift assertion.
 
 Current evidence is narrower than a complete release claim: Python 3.12 is tested;
 release smoke installs a wheel but not an sdist; the hosted-fixture test checks semantic

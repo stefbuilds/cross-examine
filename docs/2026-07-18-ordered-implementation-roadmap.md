@@ -12,8 +12,9 @@
 - Preserve Ingest → Characterize → Cross-examine → Aggregate → Render.
 - Models propose schema-constrained Claims and optional ProbePlans only. Deterministic
   code owns outcomes, benchmark scoring, and verdicts.
-- Every `VERIFIED` or `REFUTED` finding keeps exact command/output and a valid receipt;
-  abstentions may carry attempted evidence or a deterministic diagnostic.
+- Every newly pipeline-validated `VERIFIED` or `REFUTED` finding keeps exact
+  command/output and a valid receipt; abstentions may carry attempted evidence or a
+  deterministic diagnostic. Legacy/unvalidated read validation remains a P2 gate.
 - Keep `aggregate()` pure: no IO, model, network, subprocess, database, benchmark, or
   framework imports.
 - Work Layer A end to end before its corresponding Layer B extension. Build Week target
@@ -25,7 +26,7 @@
 ```text
 P0 audit/design -------------------------- complete
  |
- +--> P1 truthful docs ------------------- in_progress
+ +--> P1 truthful docs ------------------- complete
  |      |
  |      +--> P2 paid execution/publication gate
  |
@@ -58,7 +59,7 @@ adversarial sweep; it does not postpone known false-safety defects from the earl
 
 ### P1 — truthful documentation and status
 
-**State:** `in_progress`.
+**State:** `complete` as recorded by the Phase 1 handoff and mission-ledger transition.
 
 **Work:** Reconcile the capability matrix, README, architecture, execution policy,
 submission, demo, trials, provenance, dated decisions, and research status. Label
@@ -73,7 +74,8 @@ independent reviewer reports no Critical or Important contradiction.
 ### P2 — local integrity gate and offline real-model tooling
 
 **State:** local work is pending/integrity-critical; paid evidence is `blocked external`
-until G1 and the P1/current-pin review gate clear.
+until G1 and the current-pin review gate clear. P1's truthful-status prerequisite is
+complete.
 
 **Local integrity work that must precede P3-P7 expansion:**
 

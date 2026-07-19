@@ -301,10 +301,12 @@ and a pushed remote branch.
 
   ```bash
   phase1_demo_workspace=$(mktemp -d)
-  env -u OPENAI_API_KEY CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture \
+  env -u OPENAI_API_KEY -u CROSS_EXAMINE_DB -u CROSS_EXAMINE_RUNS \
+    CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture \
     uv run --isolated --no-editable cross-examine demo --no-open \
     --workspace "$phase1_demo_workspace"
-  env -u OPENAI_API_KEY CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture \
+  env -u OPENAI_API_KEY -u CROSS_EXAMINE_DB -u CROSS_EXAMINE_RUNS \
+    CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture \
     uv run --isolated --no-editable cross-examine demo --no-open \
     --workspace "$phase1_demo_workspace"
   ```
@@ -337,7 +339,8 @@ and a pushed remote branch.
 1. One tracked authoritative matrix uses exactly the four current-state labels.
 2. README, architecture, execution policy, roadmap/ADR, submission, demo, trials,
    provenance, ProbePlan docs, and six handoffs agree with it.
-3. Exact receipts are promised only for decided findings; receipt v1 limits are clear.
+3. Exact receipts are promised only for newly pipeline-validated decided findings;
+   receipt v1 limits and the current validation-on-read gap are clear.
 4. Bounded SAFE, incomplete coverage, false-safety, semantic-validation, and corpus-v1
    risks are visible rather than buried.
 5. Executor, supported-loopback posture versus missing enforcement,

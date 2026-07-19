@@ -11,18 +11,18 @@ Before recording on macOS/Linux, prove the hero twice in one newly allocated wor
 
 ```bash
 demo_workspace=$(mktemp -d)
-env -u OPENAI_API_KEY CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture \
+env -u OPENAI_API_KEY -u CROSS_EXAMINE_DB -u CROSS_EXAMINE_RUNS CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture \
   uv run --isolated --no-editable cross-examine demo --no-open \
   --workspace "$demo_workspace"
-env -u OPENAI_API_KEY CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture \
+env -u OPENAI_API_KEY -u CROSS_EXAMINE_DB -u CROSS_EXAMINE_RUNS CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture \
   uv run --isolated --no-editable cross-examine demo --no-open \
   --workspace "$demo_workspace"
 ```
 
 The first command must report `BROKEN`, `+2 this run`, total `2`; the repeat must report
 `BROKEN`, `+0 this run`, total `2`. Never reuse an existing path merely to force the
-first-run output, and never let an ambient credential turn this offline scene into a
-model request.
+first-run output. Never let ambient credentials or database/run-root variables turn
+this offline scene into a model request or redirect its supposedly fresh state.
 
 ## 0:00–0:35 — the catch
 
@@ -51,9 +51,14 @@ uses bounded Hypothesis generation on eligible claims.”
 
 **0:52–1:08** — Point to the exact command, captured output, expected value, actual value, and reproducing input.
 
-Voiceover: “Only executed evidence can be verified or refuted. Each decided finding has
-an exact command and captured output; an abstention may show a deterministic diagnostic.
-A pure function aggregates the represented findings into SAFE, RISKY, or BROKEN.”
+Voiceover: “Only executed evidence can be verified or refuted. Each newly
+pipeline-validated decided finding has an exact command and captured output; an
+abstention may show a deterministic diagnostic. A pure function aggregates the
+represented findings into SAFE, RISKY, or BROKEN.”
+
+On screen, disclose that legacy or otherwise unvalidated stored reports are not
+revalidated on read before the current DB/API/React path; validation-on-read is a P2
+integrity gate.
 
 On screen, keep this limitation visible: “SAFE is bounded to characterized, represented,
 supported checks—not proof of PR correctness.” Do not say all critical behavior is

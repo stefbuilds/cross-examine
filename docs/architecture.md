@@ -29,10 +29,10 @@ flowchart TB
   RT --> AG
 
   AG -->|preserve-critical refutation| BROKEN[["BROKEN"]]
-  AG -->|other refutation / critical abstain| RISKY[["RISKY"]]
-  AG -->|no represented critical refutation or abstain| SAFE[["SAFE (bounded)"]]
+  AG -->|other refutation / critical abstain / missing critical| RISKY[["RISKY"]]
+  AG -->|no represented refutation / critical abstain / missing critical| SAFE[["SAFE (bounded)"]]
 
-  BROKEN --> R["Report\nSQLite + grounded UI\nexact command + output for decided findings"]
+  BROKEN --> R["Report\nSQLite + grounded UI\nvalidated writes carry decided evidence"]
   RISKY --> R
   SAFE --> R
 
@@ -57,8 +57,10 @@ flowchart TB
 ## Contract ownership
 
 - `schema.py` owns `Claim`, `Finding`, `Report`, the enums, and pure `aggregate()`.
-- `validation.py` prevents a `VERIFIED` or `REFUTED` finding without command, output,
-  and a structurally valid command/output receipt from reaching Render.
+- `validation.py` rejects a newly pipeline-validated `VERIFIED` or `REFUTED` finding
+  without command, output, and a structurally valid command/output receipt before the
+  completed report is written. Legacy or otherwise unvalidated stored reports are not
+  revalidated on read by the current persistence/API path and can still reach Render.
 - `codec.py` serializes the current JSON-shaped report fields; it is not a versioned,
   lossless semantic codec.
 - `persistence/` owns SQLite records; it does not decide outcomes.
@@ -67,11 +69,15 @@ flowchart TB
 
 Adversarial verification of model output has largely converged on debate, prover-verifier, and LLM-as-judge. All three terminate in a model deciding who won. Cross-Examine substitutes execution for the judge: the model proposes schema-constrained claims, subprocesses produce the evidence, and a pure function decides. The adversary cannot be argued with.
 
-Each decided finding carries one or more `EvidenceReceipt` values. The execution boundary
-hashes the canonical invocation and captured output; `validate_report()` recomputes the
-hash and uses substring inclusion to require the receipt command and output in the
-finding's rendered evidence. Receipt v1 can detect command/output hash corruption or
-missing displayed substrings. It does not bind repository identity, revision role,
+Each newly pipeline-validated decided finding carries one or more `EvidenceReceipt`
+values. The execution boundary hashes the canonical invocation and captured output;
+`validate_report()` recomputes the hash and uses substring inclusion to require the
+receipt command and output in the finding's rendered evidence before a new completed
+report is persisted. Legacy or otherwise unvalidated stored reports are not revalidated
+on read, so existing or injected DB/API records may still render receiptless or
+semantically unvalidated decided findings until P2. Receipt v1 can detect command/output
+hash corruption or missing displayed substrings on the validated write path. It does not
+bind repository identity, revision role,
 input, expected value, execution policy, runtime, manifest, claim/finding linkage, IDs,
 or verdict; it is context-free, unauthenticated metadata rather than semantic validation
 or attestation. The executor remains a trusted host-process adapter, so malicious target
@@ -133,8 +139,9 @@ Aggregation itself resolves represented critical abstentions toward risk, but cu
 coverage and classification gaps prevent a universal guarantee: characterization can
 omit a discovered candidate entirely, and a model-controlled non-critical preservation
 mismatch can become `UNVERIFIABLE` without preventing `SAFE`. Current `SAFE` therefore
-means only that no critical refutation or critical abstention was present among the
-characterized, represented, supported findings supplied to pure `aggregate()`.
+means only that pure `aggregate()` received no represented refutation, no critical
+abstention, and no missing critical claim among the characterized, represented,
+supported checks supplied to it.
 
 ## Concurrency and persistence
 

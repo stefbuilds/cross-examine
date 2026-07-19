@@ -18,9 +18,11 @@ Cross-Examine is an independent, execution-grounded verification harness for
 Codex-authored Python changes. GPT-5.6 proposes schema-constrained Claims and optional
 ProbePlans from bounded diff/source context; model-free bounded execution captures the
 base revision and replays supported checks against the candidate. Deterministic code
-assigns outcomes and the product verdict. Every `VERIFIED` or `REFUTED` finding retains
-its exact command and captured output; abstentions show attempted evidence or a
-deterministic diagnostic.
+assigns outcomes and the product verdict. Every newly pipeline-validated `VERIFIED` or
+`REFUTED` finding retains its exact command and captured output; abstentions show
+attempted evidence or a deterministic diagnostic. Legacy or otherwise unvalidated
+stored reports are not revalidated on read and may reach the current DB/API/React path
+without those guarantees until P2.
 
 ## Inspiration
 
@@ -39,14 +41,15 @@ search and shrinking for supported preserve-critical claims without plans; exhau
 not proof. Existing repository tests run against both revisions so recognized pre-existing
 setup failures are not misreported as regressions.
 
-Every decided finding includes an exact command and captured output. A pure deterministic
-function aggregates the represented findings into `SAFE`, `RISKY`, or `BROKEN`. Corpus v1
+Every newly pipeline-validated decided finding includes an exact command and captured
+output. Legacy or otherwise unvalidated stored reports are not revalidated on read before
+the current API/Render path. A pure deterministic function aggregates newly produced
+represented findings into `SAFE`, `RISKY`, or `BROKEN`. Corpus v1
 persists eligible verified Layer-A fixtures for literal repository-locator and symbol
 replay; it has no Git-identity/ancestry authority or inherited-base revalidation.
 Represented critical abstentions resolve toward risk rather than safety.
 
-> **Bounded-`SAFE` warning:** `SAFE` means no critical refutation or critical abstention
-> among characterized, represented, supported findings. It is not proof of PR correctness.
+> **Bounded-`SAFE` warning:** `SAFE` means no represented refutation, no critical abstention, and no missing critical claim among characterized, represented, supported checks. It is not proof of PR correctness.
 > Current blockers include a model-controlled non-critical preservation mismatch, omitted
 > candidate coverage, incomplete semantic report/read validation, mutable locator-only
 > corpus authority and non-atomic completion, plus an unenforced loopback-only posture
@@ -84,7 +87,8 @@ execution environments.
 
 - A working five-stage development pipeline: Ingest, Characterize, Cross-examine,
   Aggregate, and Render.
-- Command/output receipts for every `VERIFIED` or `REFUTED` finding.
+- Command/output receipts on newly pipeline-validated `VERIFIED` and `REFUTED` findings;
+  validation-on-read for legacy/stored reports remains a P2 integrity gate.
 - Bounded Hypothesis search and shrinking for supported preserve-critical claims.
 - A pure, model-free verdict function with conservative abstention semantics.
 - A locator/symbol-scoped development corpus for eligible Layer-A fixtures.

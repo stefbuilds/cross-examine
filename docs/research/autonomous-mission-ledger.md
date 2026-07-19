@@ -563,3 +563,200 @@ Collection advanced continuously to all 117 items before execution completed. Th
 longer duration is preserved as observed evidence rather than treated as a hang or
 silently replaced by the earlier quiet run. Exact index review, commit, and independent
 review remain pending, so Task 1 and P1 both remain `in_progress`.
+
+## 2026-07-19 Phase 1 truthful-status closure
+
+This append supersedes the Phase 1 start/checkpoint status without rewriting the
+objective register or earlier evidence. The authoritative current-state matrix,
+engineering trust boundaries, preserved research status blocks, public narrative,
+executable P0-P9/G1-G5 roadmap, frontend copy, generated bundle, and local release
+verification now agree with repository behavior and available authority.
+
+### P1 immutable implementation evidence
+
+| Phase 1 slice | Commit | Independent review |
+| --- | --- | --- |
+| Task 1 status matrix, handoff, ledger start, and documentation contract | `c3daef6d428aa775fae29b5f327c12dc6c2f3c4b` | No Critical or Important findings |
+| Task 2 architecture, policy, ProbePlan, provenance, and six superseding research-status blocks | `64e3fbe7bf1dd43c10ee66a7dd1a84e91c0bd198` | No Critical or Important findings; the sole wording Minor was fixed before commit |
+| Task 3 public copy, roadmap/decision record, frontend copy contracts, and canonical bundle | `78b5dfdfacda569400c108603027c4746269e363` | Initial task review found no findings; closure review later found and fixed two Minors in ambient-state instructions and the aggregate diagram |
+| Task 4 credential-cleared temporary browser state and cold-start readiness contracts | `0a118979df1e9533365341bdc5ab9623cb8841c5` | Ready; no Critical or Important findings, one optional non-blocking inherited-symlink hardening Minor |
+| Task 4 verifier isolation and bounded cold-start contract | `662aaa51f540d0171b18b6c38e276dd4465c0ddb` | Ready; no blocking findings after focused review and a complete canonical verifier |
+
+Every task preserved the five stages and deterministic verdict boundary. No task added
+model, network, IO, subprocess, database, benchmark, or framework imports to
+`aggregate()`.
+
+### P1 pre-correction deterministic verification (superseded)
+
+The evidence in this subsection established the runtime/frontend baseline before final
+closure review. Its 117-test count and one-run demo are superseded by the post-review
+correction register later in this append.
+
+The credential-cleared first and repeat hero invocations used the same newly allocated
+workspace and produced the required corpus receipts:
+
+```text
+env -u OPENAI_API_KEY CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run --isolated --no-editable cross-examine demo --no-open --workspace /private/tmp/cross-examine-phase1-hero.wQQktp
+
+First run:
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +2 this run · 2 total
+Refuted claim: preserve-empty
+Reproducing input: []
+
+Identical repeat:
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +0 this run · 2 total
+Refuted claim: preserve-empty
+Reproducing input: []
+```
+
+The combined package/CLI/hosted-fixture group exited 0:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest -q tests/release tests/e2e/test_cli_demo.py tests/integration/test_hosted_fixture_capture.py
+7 passed in 11.29s
+```
+
+The final uninterrupted canonical verifier explicitly selected the supported bundled
+Node `v24.14.0` runtime because the shell default Node 18 cannot run the locked Vite 8
+toolchain:
+
+```text
+PATH=/Users/stefanospalivos/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/Users/stefanospalivos/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/stefanospalivos/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:$PATH UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv bash scripts/verify.sh
+All checks passed!
+117 passed in 506.36s (0:08:26)
+Test Files  10 passed (10)
+Tests       29 passed (29)
+found 0 vulnerabilities
+✓ 2460 modules transformed.
+2 passed (1.7m)
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +0 this run · 2 total
+Refuted claim: preserve-empty
+Reproducing input: []
+```
+
+The command also passed Oxlint, TypeScript/Vite production compilation, generated-
+static equality, Chromium E2E, installed-package execution, and the final offline demo.
+It exited 0. A diagnostic narrative and captured excerpts for the reliability RED states
+and focused GREEN checks are retained in the
+[Phase 1 handoff](phase-1-roadmap-handoff.md#task-4-integration-reliability-correction-and-phase-1-closure);
+they are not a complete shell transcript of every intermediate reproduction.
+
+### P1 post-review correction and verification register
+
+This register supersedes the 117-test/one-demo closure evidence above. Closure audits
+found and corrected bounded-`SAFE` wording, missing-critical/status chronology,
+validation-on-read disclosure, P2/P3 dependency ownership, stale research pins and
+anchors, terminal/UI workspace continuity, and canonical/release environment isolation.
+The two late Task 3 Minors—ambient storage clearing and the aggregate diagram branch—are
+fixed and guarded. Historical checkpoint text earlier in the handoff and ledger remains
+unchanged; this dated append owns the superseding interpretation.
+
+The original Task 4 plan named only the two closure records. Producing safe closure
+evidence required a reviewed reliability variance: `0a118979df1e9533365341bdc5ab9623cb8841c5`
+fixed cloud-backed Playwright/readiness behavior, and a final isolated-verifier slice
+changed canonical scripts plus CLI/wheel/outside-checkout test subprocesses. Neither
+slice changes the product pipeline, schema, outcome policy, or pure `aggregate()`.
+
+Test-first evidence is detailed in the
+[handoff correction register](phase-1-roadmap-handoff.md#post-review-correction-and-scope-variance-register).
+The key RED/GREEN transitions were: documentation `4 failed, 4 passed` to the combined
+`9 passed`; poisoned verifier/package state `4 failed` to `4 passed`; inherited internal
+Playwright workspace `1 failed` to `2 passed`; and the 60-second cold CLI bound
+`1 failed, 124 passed` to focused `2 passed` with one shared bounded 120-second contract.
+The final combined documentation/status/link and verifier-entrypoint contract passed
+`10 passed in 17.29s`. The exact API-inclusive planned backend gate then passed
+`70 passed in 159.77s`.
+
+The final uninterrupted POSIX verifier used explicit bundled Node 24 and the ephemeral
+uv environment, cleared model/storage/internal-browser overrides, owned temporary state,
+asserted both hero receipts, and exited 0. The Documents checkout contained dataless
+macOS File Provider entries, so the command ran from an APFS-cloned `/private/tmp`
+snapshot after all 211 indexed paths passed byte-for-byte comparison with the working
+tree:
+
+```text
+cwd=/private/tmp/cross-examine-exact-snapshot.DW4WEv PATH=/Users/stefanospalivos/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/Users/stefanospalivos/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/stefanospalivos/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:$PATH UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv bash scripts/verify.sh
+All checks passed!
+127 passed in 25.64s
+Test Files  10 passed (10)
+Tests       29 passed (29)
+found 0 vulnerabilities
+✓ 2460 modules transformed.
+2 passed (4.8s)
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +2 this run · 2 total
+Refuted claim: preserve-empty
+Reproducing input: []
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +0 this run · 2 total
+Refuted claim: preserve-empty
+Reproducing input: []
+```
+
+The decided hero output included the exact base/head probe-runner commands. No live model
+call ran, no secret value was inspected, and operator DB/run paths were not created.
+PowerShell has the same statically guarded clearing/temp/fresh/repeat contract but was not
+executed on this macOS host; no immutable Windows green run is claimed.
+
+### Superseding current dependency graph
+
+The ledger's opening decided-evidence doctrine is a mission acceptance rule, not a claim
+that current reads meet it. The present pipeline enforces command/output receipts on
+newly validated writes, while legacy or otherwise unvalidated stored reports are not
+revalidated on read before the DB/API/Render path. P2 owns that integrity gap.
+
+The earlier objective register and dependency graph are historical Phase 0 planning
+records. This append supersedes their statement that P2 local integrity was not a P3
+prerequisite. The paid G1 lane remains independently blocked and is not a prerequisite
+for conservative local work; the P2 local integrity gate is mandatory:
+
+```text
+P0 + P1 complete
+P1 -> P2 local integrity -> P3 -> P4
+P3 + P4 -> P5
+P3 + P5 intended cases -> P6
+P3 + P4 + P6 -> P7
+P2 local integrity + P3 + P4 + P5 + P6 + P7 -> P8
+P1 + P8 + truthful blocked-or-complete P2/P6 state -> P9
+P0 + P1 + P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9 -> FINAL
+```
+
+P2 owns the early false-`SAFE`, omitted-candidate, semantic/read-validation,
+aggregation-recursion, and current-value integrity gates; P8 repeats their broader
+adversarial sweep. P3 first owns non-loopback/timeout policy and then setup, run-spec,
+manifest, and recovery conventions. P4-P8 remain governed by the graph above; none may
+start before its named prerequisites.
+
+### P1 status transition
+
+| Date | Objective | Previous state | New state | Reason | Supporting evidence |
+| --- | --- | --- | --- | --- | --- |
+| 2026-07-19 | P1 | `in_progress` | `complete` | All four Phase 1 slices are committed and independently reviewed; truthful capability/public/research status is reconciled; fresh/repeat offline hero, backend, frontend, package, bundle, and Chromium gates pass in one canonical verifier | Commits above; `docs/capability-status.md`; Phase 1 handoff; final verifier output above |
+
+### Remaining limitations and next gate
+
+Phase 1 completion is local deterministic evidence, not external authority. The
+checkout requires the ephemeral `/private/tmp/cross-examine-mission.Y52f1Y/venv`,
+explicit bundled Node 24, and non-destructive APFS-cloned tracked-file hydration because
+macOS repeatedly evicts cloud-backed files. The 211-path snapshot comparison preserves
+the verifier's scope without claiming the host File Provider is a product feature. Six
+malformed duplicate Git refs remain untouched. The canonical build retains its non-fatal
+large-bundle warning. These limitations do not change the verified local outcomes.
+
+No live GPT-5.6 Sol request occurred, no secret value was inspected, and no paid result
+is claimed. P2 may now begin its current-pin local integrity, one-attempt artifact,
+deterministic replay, redaction, provenance, and render-binding implementation. G1
+continues to block the paid request until dedicated spend/key/model authority exists;
+G2-G5 remain independently blocked. P3-P8 local work remains governed by the dependency
+graph; none may start before its prerequisites. The verifier-isolation closure is
+immutable as `662aaa51f540d0171b18b6c38e276dd4465c0ddb`; this research record is its
+documented evidence companion. Remote delivery is recorded separately only after the
+documentation closure commit exists.

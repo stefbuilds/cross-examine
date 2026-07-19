@@ -5,8 +5,10 @@
 - **Historical source:** the original Phase 0 research is preserved verbatim at commit
   `5bea8baf5f031d9bfdff592b3e85e001842c651b`.
 - **Applies-to pin:** this procedure targets Cross-Examine commit
-  `f6524eac4270cf566d3acbf1f3a77ebb24ed904f`; it does not apply to current product
-  commit `c3daef6d428aa775fae29b5f327c12dc6c2f3c4b` without a fresh repin and review.
+  `f6524eac4270cf566d3acbf1f3a77ebb24ed904f`; it does not apply to the then-current
+  Task 1 documentation baseline `c3daef6d428aa775fae29b5f327c12dc6c2f3c4b` or
+  any later product commit. P2 must repin it to the immutable post-closure product head
+  selected at trial time and obtain a fresh review before any request.
 - **Current state:** current paid GPT evidence is `blocked external`; the underlying
   structured GPT adapter is separately `development-only`.
 - **Dependency and authority gate:** P2 must first land current-pin trial tooling, strict

@@ -2,15 +2,16 @@
 
 Date: 2026-07-19
 Product baseline: `b6997eed8e53b94ea6efb25b62dc401d55fc2bee`
-Objective state: `P1 in_progress`
-Task 1 state: `in_progress`
+Objective state: `P1 complete`
+Task states: `Task 1 complete`; `Task 2 complete`; `Task 3 complete`; `Task 4 complete`
 
 This handoff records the evidence and decisions for the documentation reconciliation
 defined by the [reviewed Phase 1 plan](../superpowers/plans/2026-07-18-autonomous-mission-phase-1.md).
 Current product truth lives in the [capability-status matrix](../capability-status.md),
 while objective transitions remain append-only in the
-[autonomous mission ledger](autonomous-mission-ledger.md). Neither Task 1 nor P1 is
-claimed complete in this entry.
+[autonomous mission ledger](autonomous-mission-ledger.md). The chronological task
+records below preserve their checkpoint wording; the final Task 4 section is the
+authoritative Phase 1 closure state.
 
 ## Hypothesis
 
@@ -542,3 +543,303 @@ feature or unrelated edit.
 Task 3 is ready for its exact-path commit. P1 remains `in_progress`: Task 4 still owns
 the fresh/repeat executable hero proof, complete backend/frontend/package/Playwright
 verification, final Phase 1 ledger transition, closure review, and remote delivery.
+
+## Task 4 integration, reliability correction, and Phase 1 closure
+
+Task 4 status: `complete`. Objective P1 transitions from `in_progress` to `complete`
+in the mission ledger. The transition closes truthful-status reconciliation and local
+release verification only; it does not claim any paid-model, intended-authority,
+benchmark-qualification, deployed-production, publication, or human release gate.
+
+### Immutable Phase 1 implementation commits
+
+| Slice | Commit | Reviewed result |
+| --- | --- | --- |
+| Task 1 authoritative status baseline | `c3daef6d428aa775fae29b5f327c12dc6c2f3c4b` | No Critical or Important findings |
+| Task 2 engineering/research trust boundaries | `64e3fbe7bf1dd43c10ee66a7dd1a84e91c0bd198` | No Critical or Important findings; one wording Minor fixed before commit |
+| Task 3 public narrative, roadmap, UI copy, and bundle | `78b5dfdfacda569400c108603027c4746269e363` | Initial task review found no findings; closure review later found and fixed two Minors in ambient-state instructions and the aggregate diagram |
+| Task 4 verifier reliability | `0a118979df1e9533365341bdc5ab9623cb8841c5` | No Critical or Important findings; one optional inherited-symlink hardening Minor remains non-blocking |
+| Task 4 verifier isolation and cold-start bound | `662aaa51f540d0171b18b6c38e276dd4465c0ddb` | Ready after focused review; owned fresh/repeat demo state, poisoned-environment release checks, bounded cold Playwright start, and canonical verifier all pass |
+
+Task 4 did not weaken product assertions or introduce retries. Playwright still runs
+two real Chromium flows with `retries: 0`; its web server receives an empty
+`OPENAI_API_KEY`, stores its database/runs in one unique OS-temporary workspace, and
+cleans the owned workspace on normal Node process exit. A crash or `SIGKILL` can leave
+the OS-temporary directory for later cleanup. The backend readiness test still
+requires the real health response and an early process exit still fails immediately.
+Its fixed approximately five-second poll loop was replaced by a monotonic 60-second
+cold-start deadline. The Playwright server allowance is 300 seconds and expectations
+remain bounded at 30 seconds.
+
+### TDD and diagnostic evidence for Task 4
+
+The first canonical verifier reached a real Playwright RED state:
+
+```text
+Error: Timed out waiting 30000ms from config.webServer.
+```
+
+After the server became healthy, the isolated E2E rerun exposed two real pending-flow
+failures rather than selector errors:
+
+```text
+2 failed
+e2e/broken-verdict.spec.ts:3:1 › opens every grounded receipt from a packaged direct route
+e2e/broken-verdict.spec.ts:26:1 › runs the offline hero from the browser without model credentials
+```
+
+Trace evidence showed the fixture and hero requests still pending when the default
+five-second expectations ended. A later canonical run reached the deterministic hero
+pipeline but exhausted the 30-second total test budget at Layer B. Moving the E2E
+database and run roots out of the cloud-backed checkout produced the focused GREEN:
+
+```text
+Running 2 tests using 1 worker
+2 passed (13.7s)
+```
+
+An independent review found that a direct Playwright invocation could still inherit an
+operator credential even though `scripts/verify.sh` unsets it. `OPENAI_API_KEY: ""`
+now wins over Playwright's inherited environment. A direct run with a harmless parent
+sentinel key passed both flows, and a post-run OS-temp scan showed that the revised
+single-owner cleanup left no new Playwright workspace.
+
+The backend readiness test then produced its own cold-start RED at the interim
+30-second deadline:
+
+```text
+FAILED tests/e2e/test_cli_demo.py::test_serve_starts_health_endpoint_on_requested_port
+AssertionError: serve did not become healthy within 30 seconds
+1 failed in 34.48s
+```
+
+The subprocess form was reproduced independently and became healthy; the same
+unchanged test then passed in `2.87s`, establishing cold source-import latency rather
+than a serve defect. The final 60-second monotonic contract passed focused verification:
+
+```text
+1 passed in 1.05s
+```
+
+One verification-only symlink named `frontend/node_modules 2`, left by the earlier
+temporary dependency hydration workaround, caused Vitest to collect 179 dependency
+self-test files. Exact inspection proved it was an untracked symlink to
+`/private/tmp/cross-examine-node.20yseW/node_modules`; only the symlink was removed and
+its temporary target was preserved. The shell default Node 18 was also below the Vite 8
+toolchain requirement. All final frontend and canonical commands therefore explicitly
+put the bundled Node `v24.14.0` runtime first in `PATH`.
+
+### Focused, package, and hero evidence
+
+The focused backend integration contract passed:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest -q tests/unit/test_ingest_symbols.py tests/unit/test_characterize.py tests/unit/test_probe_plans.py tests/unit/test_execution.py tests/unit/test_validation.py tests/unit/test_schema.py tests/integration/test_ingest.py tests/integration/test_layer_a.py tests/integration/test_layer_b.py tests/integration/test_probe_plan_relations.py tests/integration/test_corpus.py tests/integration/test_run_repository.py
+70 passed in 112.56s
+```
+
+The release, installed-package, CLI, and hosted-fixture group passed as one exact run:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest -q tests/release tests/e2e/test_cli_demo.py tests/integration/test_hosted_fixture_capture.py
+7 passed in 11.29s
+```
+
+The first credential-cleared hero run used a newly allocated workspace:
+
+```text
+env -u OPENAI_API_KEY CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run --isolated --no-editable cross-examine demo --no-open --workspace /private/tmp/cross-examine-phase1-hero.wQQktp
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +2 this run · 2 total
+Refuted claim: preserve-empty
+Reproducing input: []
+```
+
+The identical command and workspace then produced the required repeat receipt:
+
+```text
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +0 this run · 2 total
+Refuted claim: preserve-empty
+Reproducing input: []
+```
+
+No live API request ran, no secret value was inspected, and no paid-model evidence is
+claimed.
+
+### Pre-correction canonical verifier (superseded)
+
+This uninterrupted verifier established the runtime/frontend baseline before the final
+closure-review corrections. Its 117-test count and one-run demo are superseded by the
+post-review register below. It used the supported bundled Node runtime:
+
+```text
+PATH=/Users/stefanospalivos/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/Users/stefanospalivos/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/stefanospalivos/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:$PATH UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv bash scripts/verify.sh
+All checks passed!
+117 passed in 506.36s (0:08:26)
+Test Files  10 passed (10)
+Tests       29 passed (29)
+found 0 vulnerabilities
+✓ 2460 modules transformed.
+2 passed (1.7m)
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +0 this run · 2 total
+Refuted claim: preserve-empty
+Reproducing input: []
+```
+
+The same script also ran Oxlint, TypeScript/Vite production build, generated-static
+equality, Chromium installation/check, and the isolated credential-cleared final demo;
+it exited 0. Vite emitted its existing non-fatal large-chunk warning, and Node emitted a
+cosmetic `NO_COLOR`/`FORCE_COLOR` warning during Playwright. Neither altered the result.
+
+The paragraphs above are a diagnostic narrative with captured failure/summary excerpts,
+not a complete shell transcript. The closure does not claim that every intermediate
+Playwright rerun, sentinel-key scan, or readiness reproduction command was retained.
+
+### Post-review correction and scope-variance register
+
+Closure audits found that the earlier candidate still overclaimed `SAFE` semantics and
+receipt/read validation, mixed current and historical phase/pin status, left the public
+terminal/UI state disconnected, and allowed canonical/release subprocesses to inherit
+operator model or storage state. The stale 117-test/one-demo closure evidence was itself
+a blocking evidence defect. Two Task 3 Minors—ambient demo-state clearing and an
+incomplete aggregate-diagram branch—were also fixed before closure.
+
+The public contract was expanded test-first. Its consolidated RED state was:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest -q tests/unit/test_documentation.py
+....FFFF                                                                 [100%]
+FAILED tests/unit/test_documentation.py::test_public_receipt_claims_disclose_the_unvalidated_read_path
+FAILED tests/unit/test_documentation.py::test_quickstart_serves_the_terminal_hero_workspace
+FAILED tests/unit/test_documentation.py::test_current_status_surfaces_use_superseding_dependencies_and_stable_evidence
+FAILED tests/unit/test_documentation.py::test_research_status_blocks_do_not_call_task1_the_current_product
+4 failed, 4 passed in 16.34s
+```
+
+After correcting README, architecture, capability/status ownership, submission/demo,
+provenance, the P0-P9 graph, six superseding research blocks, and stable evidence links,
+the combined documentation and verifier-entrypoint contracts passed:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest -q tests/unit/test_documentation.py tests/unit/test_verification_entrypoints.py
+.........                                                                [100%]
+9 passed in 22.50s
+```
+
+Verifier isolation used poisoned temporary operator paths and a sentinel key. Before the
+fix, all four tests failed because canonical scripts, CLI E2E, wheel smoke, and the
+outside-checkout package run inherited operator state:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest -q tests/unit/test_verification_entrypoints.py tests/e2e/test_cli_demo.py::test_demo_exits_zero_and_prints_the_grounded_catch tests/release/test_wheel_install.py tests/release/test_local_product_run.py
+FAILED tests/unit/test_verification_entrypoints.py::test_canonical_verifiers_clear_operator_state_and_isolate_the_demo
+FAILED tests/e2e/test_cli_demo.py::test_demo_exits_zero_and_prints_the_grounded_catch
+FAILED tests/release/test_wheel_install.py::test_wheel_installs_and_runs_the_offline_hero
+FAILED tests/release/test_local_product_run.py::test_packaged_hero_runs_from_outside_space_bearing_checkout
+4 failed in 166.40s (0:02:46)
+```
+
+The same exact group then proved that the requested workspace owns its DB/run paths and
+the poisoned operator paths remain absent:
+
+```text
+....                                                                     [100%]
+4 passed in 158.67s (0:02:38)
+```
+
+A later contract caught the inherited internal Playwright workspace override before the
+final run (`1 failed in 0.11s`); clearing it in both canonical scripts produced
+`2 passed in 0.09s`. The first corrected full verifier then exposed a genuine cold-start
+RED at the CLI test's 60-second outer bound:
+
+```text
+FAILED tests/e2e/test_cli_demo.py::test_demo_exits_zero_and_prints_the_grounded_catch
+subprocess.TimeoutExpired: Command [...] timed out after 60 seconds
+1 failed, 124 passed in 379.97s (0:06:19)
+```
+
+Both fresh and repeat subprocesses now share a bounded 120-second allowance; the failed
+contract and its guard passed together with `2 passed in 9.25s`. No retry was added and
+runtime verdict semantics did not change. After the evidence append, the final combined
+documentation/link/status and verifier-entrypoint rerun passed:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest -q tests/unit/test_documentation.py tests/unit/test_verification_entrypoints.py
+..........                                                               [100%]
+10 passed in 17.29s
+```
+
+This is a reviewed variance from the original Task 4 two-record scope. Commit
+`0a118979df1e9533365341bdc5ab9623cb8841c5` first changed Playwright/readiness test
+infrastructure because the planned verifier reached real cold-start failures. The final
+isolation slice changes only canonical scripts and test subprocesses/contracts; it does
+not change the five-stage pipeline, finding classification, receipt schema, or pure
+`aggregate()`. Its immutable commit is recorded after the focused pre-commit review.
+
+The exact API-inclusive focused gate from the reviewed plan, rather than the earlier
+substitute group, passed:
+
+```text
+UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv uv run pytest -q tests/unit/test_schema.py tests/unit/test_validation.py tests/unit/test_characterize.py tests/unit/test_probe_plans.py tests/integration/test_ingest.py tests/integration/test_layer_a.py tests/integration/test_layer_b.py tests/integration/test_probe_plan_relations.py tests/integration/test_corpus.py tests/integration/test_run_repository.py tests/integration/test_api_fixture.py tests/integration/test_api_jobs.py
+70 passed in 159.77s (0:02:39)
+```
+
+The final canonical verifier cleared model, DB, run-root, and internal Playwright
+workspace overrides; allocated owned OS-temporary browser/demo state; asserted fresh and
+repeat corpus truth; and exited 0. The Documents checkout had dataless macOS File
+Provider entries, so the command ran from an APFS-cloned `/private/tmp` snapshot after
+all 211 indexed paths had passed byte-for-byte comparison with the working tree:
+
+```text
+cwd=/private/tmp/cross-examine-exact-snapshot.DW4WEv PATH=/Users/stefanospalivos/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/Users/stefanospalivos/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/Users/stefanospalivos/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:$PATH UV_PROJECT_ENVIRONMENT=/private/tmp/cross-examine-mission.Y52f1Y/venv bash scripts/verify.sh
+All checks passed!
+127 passed in 25.64s
+Test Files  10 passed (10)
+Tests       29 passed (29)
+found 0 vulnerabilities
+✓ 2460 modules transformed.
+2 passed (4.8s)
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +2 this run · 2 total
+Refuted claim: preserve-empty
+Reproducing input: []
+Characterization: deterministic hero fixture
+Verdict: BROKEN
+Corpus: +0 this run · 2 total
+Refuted claim: preserve-empty
+Reproducing input: []
+```
+
+The output for each decided hero finding also printed its exact base/head probe-runner
+commands and request paths. The verifier-owned temporary workspace was removed by normal
+cleanup. No live model call ran, no key value was inspected, and neither poisoned
+operator storage path was created.
+
+### Closure review and limitations
+
+Task reviews and the Task 4 reliability re-review contain no unresolved Critical or
+Important finding. The one optional Task 4 Minor notes that a maliciously pre-seeded
+internal temp-path variable could name a matching direct-child symlink or stale
+directory. Only a process that calls `mkdtempSync()` owns recursive cleanup, so the
+condition cannot redirect deletion; it is deferred hardening rather than a release
+blocker.
+
+Local verification required the ephemeral
+`/private/tmp/cross-examine-mission.Y52f1Y/venv`, explicit bundled Node 24, and
+non-destructive tracked-file reads because this macOS cloud-backed checkout repeatedly
+evicted source and dependency content. These are environment constraints, not product
+qualification claims. The paid GPT-5.6 Sol request remains separately blocked by G1
+and the Phase 2 current-pin/integrity/artifact/replay gates. G2-G5 remain externally
+blocked exactly as recorded in the roadmap and mission ledger.
+
+The verifier-isolation closure is immutable as
+`662aaa51f540d0171b18b6c38e276dd4465c0ddb`; this research record is its documented
+evidence companion. Remote delivery is attempted only after the documentation closure
+commit exists; push success or failure is delivery evidence and cannot change the
+deterministic local verification result.

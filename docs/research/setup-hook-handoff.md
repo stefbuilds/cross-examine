@@ -6,7 +6,8 @@
   `5bea8baf5f031d9bfdff592b3e85e001842c651b`.
 - **Applies-to snapshot:** this handoff describes the 2026-07-18 Phase 0 working-tree
   design/audit snapshot and declares no product implementation pin. It is distinct from
-  current product commit `c3daef6d428aa775fae29b5f327c12dc6c2f3c4b`.
+  the then-current Task 1 documentation baseline
+  `c3daef6d428aa775fae29b5f327c12dc6c2f3c4b` and all later product commits.
 - **Current state:** the deterministic setup contract is `future`; no SetupPlan,
   prepared revision environments, installed Layer A, installed repository tests, or
   setup persistence is implemented.

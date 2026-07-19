@@ -60,8 +60,10 @@ The interface renders stored verdict/finding and command/output/receipt fields. 
 `Finding.provenance`, including structured ProbePlan data, and execution manifests are
 not fields of the current React report model. Receipt v1 verifies command/output hashes
 and substring association only; it does not provide semantic linkage, execution-context
-binding, authentication, or attestation. UI source attribution on this page must not be
-read as provenance for a repository verdict.
+binding, authentication, or attestation. Newly pipeline-validated writes require
+decided receipts, but legacy or otherwise unvalidated stored reports are not revalidated
+on read before the current DB/API/React path. UI source attribution on this page must
+not be read as provenance for a repository verdict.
 
 ## License and attribution boundary
 
