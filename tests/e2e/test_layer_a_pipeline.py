@@ -293,6 +293,41 @@ def test_pipeline_validates_report_before_pinning_corpus(
     assert events.index("validate") < events.index("pin")
 
 
+def test_aggregation_failure_discards_invalid_partial_evidence_and_abstains(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import cross_examine.pipeline as pipeline_module
+
+    corpus = CorpusRepository(Database(tmp_path / "app.db"))
+    invalid_finding = Finding(
+        claim_id="preserve-empty",
+        layer=Layer.BEHAVIORAL_DIFF,
+        outcome=Outcome.REFUTED,
+        command="python probe.py",
+        output="regression",
+    )
+    monkeypatch.setattr(pipeline_module, "capture_base", lambda *args, **kwargs: [])
+    monkeypatch.setattr(pipeline_module, "run_layer_a", lambda *args, **kwargs: [invalid_finding])
+    pipeline = Pipeline(
+        characterizer=FakeCharacterizer(),
+        corpus=corpus,
+        runs_root=tmp_path / "runs",
+        ingest=ImmediateIngest(tmp_path / "materialized"),  # type: ignore[arg-type]
+    )
+
+    report = pipeline.run(
+        RunSpec(repo="sample", base_ref="base", head_ref="head", layer_b=False),
+        run_id="aggregation-failure",
+    )
+
+    assert report.verdict is Verdict.RISKY
+    assert [claim.id for claim in report.claims] == ["system:aggregating"]
+    assert [finding.claim_id for finding in report.findings] == ["system:aggregating"]
+    assert report.findings[0].outcome is Outcome.UNVERIFIABLE
+    assert corpus.total("sample") == 0
+
+
 def test_omitted_touched_symbol_becomes_a_critical_risky_coverage_finding(
     tmp_path: Path,
 ) -> None:

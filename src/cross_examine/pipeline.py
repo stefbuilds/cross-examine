@@ -33,6 +33,7 @@ from cross_examine.schema import (
     RunProgress,
     RunSpec,
     TouchedSymbol,
+    Verdict,
     aggregate,
 )
 from cross_examine.probe_plans import ProbePlan
@@ -206,7 +207,7 @@ class Pipeline:
                 corpus_total=self.corpus.total(spec.repo),
             )
         except Exception as exc:  # noqa: BLE001 - aggregation failures become abstentions
-            return self._failure_report(spec, "aggregating", exc, claims, findings, emit)
+            return self._aggregation_failure_report(spec, exc, emit)
 
         emit("complete", "Report ready")
         return report
@@ -317,6 +318,44 @@ class Pipeline:
             )
         )
         emit("complete", "Risky report ready with an unverifiable stage")
+        return report
+
+    def _aggregation_failure_report(
+        self,
+        spec: RunSpec,
+        error: Exception,
+        emit: Callable[[str, str], None],
+    ) -> Report:
+        """Discard untrusted partial evidence when the semantic gate itself fails."""
+
+        claim_id = "system:aggregating"
+        claim = Claim(
+            id=claim_id,
+            text="aggregation must complete for the verdict to be trusted",
+            target_symbol=claim_id,
+            risk="high",
+            proposed_check="repair the aggregation integrity failure",
+            preserve_critical=True,
+            origin=ClaimOrigin.SYSTEM,
+        )
+        finding = Finding(
+            claim_id=claim_id,
+            layer=Layer.BEHAVIORAL_DIFF,
+            outcome=Outcome.UNVERIFIABLE,
+            command=claim_id,
+            output=f"{type(error).__name__}: {error}",
+        )
+        report = validate_report(
+            Report(
+                repo=spec.repo,
+                pr_ref=f"{spec.base_ref}..{spec.head_ref}",
+                verdict=Verdict.RISKY,
+                findings=[finding],
+                claims=[claim],
+                corpus=None,
+            )
+        )
+        emit("complete", "Risky report ready after aggregation integrity failure")
         return report
 
 
