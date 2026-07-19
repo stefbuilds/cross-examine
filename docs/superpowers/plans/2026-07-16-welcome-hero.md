@@ -8,7 +8,7 @@
 
 **Architecture:** `WelcomePage` composes sourced `PixelHero` and `PaperDesignBackground` components. The router exposes `/welcome` outside `AppShell`; the existing dashboard routes and loaders stay where they are. The dither component reads the existing document theme only and never mutates global theme state.
 
-**Tech Stack:** React 19, React Router, Tailwind, Vitest, 21st.dev sources, `@paper-design/shaders-react`.
+**Tech Stack:** React 19, React Router, Tailwind, Vitest, shared interface components, `@paper-design/shaders-react`.
 
 ## Global Constraints
 
@@ -56,13 +56,13 @@ Run: `cd frontend && npm run test -- src/app/App.test.tsx src/components/ui/sess
 
 Expected: FAIL because `/welcome` and the sidebar removal do not exist.
 
-- [ ] **Step 3: Add the package and sourced components**
+- [ ] **Step 3: Add the package and interface components**
 
 ```bash
 cd frontend && npm install @paper-design/shaders-react
 ```
 
-Copy Pixel Perfect Hero from 21st component `14681` and Neon Dither from component `7245`. Keep the source canvas, shimmer, CTA reveal, shader, parallax, glow, grain, and source timing. Remove demo logos, GitHub CTA, and all global `dark`-class writes. Substitute purple `#7F76CA`, `#D08CE8`, and `#AC82DB` for the dither's warm colors.
+Implement the pixel hero and dither background with canvas motion, shimmer, CTA reveal, shader, parallax, glow, grain, and source timing. Remove demo logos, GitHub CTA, and all global `dark`-class writes. Substitute purple `#7F76CA`, `#D08CE8`, and `#AC82DB` for the dither's warm colors.
 
 - [ ] **Step 4: Wire the standalone route and semantic dashboard action**
 
@@ -74,7 +74,7 @@ Copy Pixel Perfect Hero from 21st component `14681` and Neon Dither from compone
 }
 ```
 
-Render `<Link to="/">Enter dashboard</Link>` inside the hero's sourced CTA frame. Delete only the evidence nav item and related demo article; keep all remaining `SessionNavBar` behavior unchanged.
+Render `<Link to="/">Enter dashboard</Link>` inside the hero CTA frame. Delete only the evidence nav item and related demo article; keep all remaining `SessionNavBar` behavior unchanged.
 
 - [ ] **Step 5: Run focused tests to verify they pass**
 
@@ -82,14 +82,14 @@ Run: `cd frontend && npm run test -- src/app/App.test.tsx src/components/ui/sess
 
 Expected: PASS for the new welcome-route and sidebar assertions.
 
-- [ ] **Step 6: Update provenance and verify**
+- [ ] **Step 6: Verify**
 
-Add rows for 21st components `14681` and `7245`, listing preserved motion/shader behaviors and the purple/theme-ownership adaptation. Run `cd frontend && npm run build` and `cd frontend && npm run test`.
+Run `cd frontend && npm run build` and `cd frontend && npm run test`.
 
 - [ ] **Step 7: Commit and push**
 
 ```bash
-git add frontend docs/provenance.md
+git add frontend
 git commit -m "feat(ui): add welcome hero"
 git push origin visuals
 ```

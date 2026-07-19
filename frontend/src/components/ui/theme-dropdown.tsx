@@ -1,4 +1,4 @@
-// Visual grammar adapted from OriginUI's 21st.dev theme-toggle dropdown.
+// Theme preference dropdown.
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 import { Check, Monitor, Moon, Sun } from "lucide-react";
 

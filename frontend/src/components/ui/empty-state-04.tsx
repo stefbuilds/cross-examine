@@ -1,4 +1,4 @@
-// Visual grammar adapted from the user-supplied 21st.dev Empty State 04 component.
+// Shared empty-state composition.
 import { FolderCheck, PlusIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";

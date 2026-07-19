@@ -8,7 +8,7 @@
 
 **Architecture:** A feature-local JSON fixture is imported by a data module and rendered by `TrialsPage`. Application wiring only adds a route and navigation item; the feature owns the content.
 
-**Tech Stack:** React 19, TypeScript, React Router, Tailwind CSS, Vitest, Testing Library, 21st.dev table composition.
+**Tech Stack:** React 19, TypeScript, React Router, Tailwind CSS, Vitest, Testing Library, shared table composition.
 
 ## Global Constraints
 
@@ -114,7 +114,7 @@ export function TrialsPage() {
 }
 ```
 
-Use the selected 21st.dev table structure adapted only to existing tokens. Render all fixture fields, verdict badges, links, and limitations. Keep the table horizontally scrollable on narrow viewports.
+Use the selected table structure adapted only to existing tokens. Render all fixture fields, verdict badges, links, and limitations. Keep the table horizontally scrollable on narrow viewports.
 
 - [ ] **Step 4: Run test to verify it passes**
 

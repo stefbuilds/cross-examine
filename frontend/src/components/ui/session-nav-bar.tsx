@@ -1,4 +1,4 @@
-// Visual grammar imported from andrewlu0/sidebar on 21st.dev.
+// Primary workspace navigation.
 // Cross-Examine keeps the hover-expansion motion while replacing demo content
 // with product routes, React Router navigation, and accessible link semantics.
 import type React from "react";

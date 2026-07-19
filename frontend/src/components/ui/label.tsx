@@ -1,4 +1,4 @@
-// Imported from originui/label on 21st.dev.
+// Shared form-label primitive.
 import * as React from "react";
 
 import { cn } from "@/lib/utils";

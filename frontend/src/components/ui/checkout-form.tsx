@@ -1,4 +1,4 @@
-// Visual grammar adapted from the user-supplied 21st.dev checkout form.
+// Repository verification form.
 // Cross-Examine keeps the summary-card structure while wiring real run inputs.
 import { ClipboardPaste, MapPin, Play, ScanSearch, Tag } from "lucide-react";
 import type { FormEvent } from "react";

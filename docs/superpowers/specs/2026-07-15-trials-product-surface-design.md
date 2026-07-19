@@ -31,7 +31,7 @@ A “What the trials taught us” section follows the table with the three docum
 2. Missing optional dependencies could be mistaken for a failing PR.
 3. Pytest cache writes could hit a Windows rename denial in detached worktrees.
 
-The page uses a 21st.dev data-table composition adapted to the existing shadcn/Tailwind dashboard tokens and the existing sourced sidebar pattern.
+The page uses a data-table composition adapted to the existing shadcn/Tailwind dashboard tokens and the existing sidebar pattern.
 
 ## Tests and verification
 

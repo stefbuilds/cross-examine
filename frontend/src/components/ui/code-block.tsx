@@ -1,4 +1,4 @@
-// Imported from ibelick/code-block on 21st.dev; copy action follows its header demo.
+// Code and command output presentation.
 import { Check, Copy } from "lucide-react";
 import { useState, type HTMLProps, type ReactNode } from "react";
 

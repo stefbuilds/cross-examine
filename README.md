@@ -237,11 +237,11 @@ The human retained product authority; Codex accelerated implementation.
 | Abstain-toward-risk policy | Edge catalog and Hypothesis bounds |
 | Layer-A-before-Layer-B sequencing | Persistence and SSE protocol |
 | Trusted-input execution boundary | CLI surface and deterministic hero construction |
-| Build Week deadline | 21st.dev component selection and adaptation |
-| Requirement to use 21st.dev at design time | Responsive behavior, tests, packaging |
+| Build Week deadline | Component selection and adaptation |
+| Interface design requirement | Responsive behavior, tests, packaging |
 | Evidence doctrine and final submission story | Cross-platform diagnosis, release verification |
 
-The exact UI-source provenance is recorded in [docs/provenance.md](docs/provenance.md). The Build Week work is visible in the dated Git history and the primary Codex task supplied with the Devpost submission. GPT-5.6 is a deliberately constrained runtime component rather than the judge: it proposes behavioral claims, while execution and a pure deterministic function decide the outcome.
+The Build Week work is visible in the dated Git history and the primary Codex task supplied with the Devpost submission. GPT-5.6 is a deliberately constrained runtime component rather than the judge: it proposes behavioral claims, while execution and a pure deterministic function decide the outcome.
 
 ## Requirements
 

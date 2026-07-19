@@ -8,7 +8,7 @@
 
 **Architecture:** A Python package owns the five-stage verification pipeline, FastAPI serves persisted reports and progress events, and a React/Vite application renders runs from the shared `Report` contract. GPT-5.6 Sol may emit validated claims only; deterministic execution captures base behavior, replays it against head, and supplies all outcomes to the pure aggregate function.
 
-**Tech Stack:** Python 3.12, uv, FastAPI, OpenAI Responses API, Pydantic, pytest, Hypothesis, SQLite, React 19, TypeScript, Vite, Tailwind CSS, 21st.dev components, Vitest, Testing Library, axe, Playwright.
+**Tech Stack:** Python 3.12, uv, FastAPI, OpenAI Responses API, Pydantic, pytest, Hypothesis, SQLite, React 19, TypeScript, Vite, Tailwind CSS, shared interface components, Vitest, Testing Library, axe, Playwright.
 
 ## Global Constraints
 
@@ -20,7 +20,7 @@
 - Model output is limited to schema-constrained `Claim` objects; model prose is never an execution oracle.
 - Unverifiable preserve-critical behavior produces `RISKY`, never `SAFE`.
 - Use `# hackathon: trusted-input sandbox; prod needs real isolation` at the execution boundary.
-- Use the approved 21st.dev sources as-is and record provenance for every visible component.
+- Use approved reusable interface primitives and preserve their accessibility behavior.
 - Keep every commit runnable; fake data must be visibly labeled and replaced stage by stage.
 
 ---
@@ -46,9 +46,8 @@
 | `src/cross_examine/pipeline.py` | Stage orchestration and progress publication |
 | `src/cross_examine/api/app.py` | FastAPI routes, SSE, and static UI serving |
 | `src/cross_examine/cli.py` | `serve`, `run`, and `demo` commands |
-| `frontend/src/` | Approved 21st.dev shell, run flow, report, corpus, and tests |
+| `frontend/src/` | Application shell, run flow, report, corpus, and tests |
 | `tests/fixtures/hero_repo/` | Deterministic base/head regression repository |
-| `docs/provenance.md` | 21st.dev source and adaptation record |
 
 ---
 
@@ -302,7 +301,7 @@ git add src/cross_examine/codec.py src/cross_examine/persistence tests
 git commit -m "feat: persist report contracts"
 ```
 
-### Task 3: Fake-report API and approved 21st.dev render skeleton
+### Task 3: Fake-report API and render skeleton
 
 **Files:**
 - Create: `src/cross_examine/api/app.py`
@@ -315,7 +314,6 @@ git commit -m "feat: persist report contracts"
 - Create: `frontend/src/features/runs/RunPage.tsx`
 - Create: `frontend/src/features/report/ReportPage.tsx`
 - Create: `frontend/src/features/corpus/CorpusPage.tsx`
-- Create: `docs/provenance.md`
 - Test: `tests/integration/test_api_fixture.py`
 - Test: `frontend/src/features/report/ReportPage.test.tsx`
 
@@ -340,7 +338,7 @@ def test_fixture_report_is_renderable(tmp_path):
 
 The fixture uses claim `preserve-empty`, command `python -m pytest -q tests/test_normalize.py -k empty`, output containing a failing assertion, `repro_input="[]"`, `expected="[]"`, and `actual="None"`. Pass it through `validate_report()` before returning it.
 
-- [ ] **Step 3: Scaffold the frontend and install exact 21st sources**
+- [ ] **Step 3: Scaffold the frontend and install dependencies**
 
 Run from the repository root:
 
@@ -349,21 +347,14 @@ npm create vite@latest frontend -- --template react-ts
 cd frontend
 npm install
 npx shadcn@latest init
-npx @21st-dev/cli add arunjdass/dashboard-sidebar
-npx @21st-dev/cli add nyxbui/timeline
-npx shadcn@latest add https://21st.dev/r/uniquesonu/status-badge-beautiful-accessible-status-indicators
-npx shadcn@latest add https://21st.dev/r/ravikatiyar162/project-data-table
-npx shadcn@latest add https://21st.dev/r/vercel/code-block
 npm install react-router-dom
 npm install -D @testing-library/jest-dom @testing-library/react @testing-library/user-event @playwright/test vitest jsdom axe-core
 npx playwright install chromium
 ```
 
-If a registry slug has changed, use the linked 21st source page to obtain its current install command, record the exact replacement in `docs/provenance.md`, and do not substitute a custom component.
+- [ ] **Step 4: Wire the application shell without redesigning it**
 
-- [ ] **Step 4: Wire the sourced shell without redesigning it**
-
-`App.tsx` uses the imported dashboard sidebar and preserves its collapse, workspace frame, light/dark palettes, keyboard behavior, and responsive states. Replace navigation content only with Runs, Corpus, and About. Routes are `/`, `/runs/:runId`, `/fixtures/broken`, and `/corpus`.
+`App.tsx` uses the dashboard sidebar and preserves its collapse, workspace frame, light/dark palettes, keyboard behavior, and responsive states. Replace navigation content only with Runs, Corpus, and About. Routes are `/`, `/runs/:runId`, `/fixtures/broken`, and `/corpus`.
 
 - [ ] **Step 5: Write the report interaction test**
 

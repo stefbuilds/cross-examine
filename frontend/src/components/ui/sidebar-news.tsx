@@ -1,4 +1,4 @@
-// Visual grammar adapted from the user-supplied 21st.dev sidebar News stack.
+// Sidebar product-use stack.
 // Cross-Examine keeps the stacked dismissible cards while using internal
 // React Router links and product-use guidance.
 import * as React from "react";

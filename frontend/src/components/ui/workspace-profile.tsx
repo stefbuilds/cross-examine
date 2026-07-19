@@ -1,4 +1,4 @@
-// Visual grammar adapted from the user-supplied 21st.dev WithAvatar component.
+// Workspace profile menu.
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Theme } from "@/components/ui/theme-dropdown";
 import {

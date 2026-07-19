@@ -1,4 +1,4 @@
-// Imported from coss.com/coss-button on 21st.dev; adapted to project tokens.
+// Shared button primitive using project tokens.
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "radix-ui";

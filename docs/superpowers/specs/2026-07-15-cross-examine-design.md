@@ -47,7 +47,7 @@ This approach was selected over an all-Python rendered interface because the jud
 - Git CLI for clone, checkout, diff, and worktree operations
 - Pytest and Hypothesis for repository checks and Cross-Examine's own tests
 - SQLite through the Python standard library for runs and corpus persistence
-- React 19, TypeScript, Vite, Tailwind CSS, and sourced 21st.dev components
+- React 19, TypeScript, Vite, Tailwind CSS, and reusable interface components
 - Vitest, React Testing Library, axe, and Playwright for frontend verification
 
 ## Repository structure
@@ -212,17 +212,9 @@ The active run shows the five-stage timeline, elapsed time, current command, and
 
 The report displays a dominant `SAFE`, `RISKY`, or `BROKEN` status followed by verified, refuted, and unverifiable counts; corpus growth; and the findings table. Evidence opens within the report rather than navigating away, keeping the verdict and receipt visible together.
 
-### Sourced 21st.dev composition
+### Interface composition
 
-All visible product assets are sourced from 21st.dev and installed with their required dependencies and behavior:
-
-- `arunjdass/dashboard-sidebar`: responsive shell, navigation, workspace frames, Charcoal Ink dark palette, and Alabaster light palette.
-- `nyxbui/timeline`: pipeline-stage status and progression.
-- `uniquesonu/status-badge-beautiful-accessible-status-indicators`: accessible outcome and run-state badges.
-- `ravikatiyar/project-data-table`: findings and run-history tables.
-- `vercel/code-block`: exact commands, outputs, and reproducing inputs.
-
-Adaptations are limited to application content, routes, data wiring, import paths, and semantic color tokens. The sourced layout, hierarchy, interactions, responsive behavior, motion, and accessibility states are retained. `docs/provenance.md` records source identifiers, install commands, dependencies, transferred behavior, token changes, and verification evidence.
+The product uses reusable interface primitives for its responsive shell, pipeline timeline, outcome badges, findings tables, and evidence blocks. Product implementation adapts those primitives for application content, routes, data wiring, semantic color tokens, motion, and accessibility states.
 
 ## Error handling
 

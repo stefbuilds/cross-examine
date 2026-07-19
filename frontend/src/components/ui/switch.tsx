@@ -1,4 +1,4 @@
-// Imported from jshguo/interfaces-switch on 21st.dev; adapted to radix-ui.
+// Shared Radix switch primitive.
 import * as React from "react";
 import { Switch as SwitchPrimitive } from "radix-ui";
 

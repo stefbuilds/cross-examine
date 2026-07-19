@@ -745,7 +745,6 @@ The typo-looking names were not dead. Exact references returned:
 
 ```text
 frontend/src/components/ui/session-nav-bar.tsx:12:import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "@/components/ui/coss-accordion";
-docs/provenance.md:10:| Runs sidebar accordion | [Accordion by coss.com](https://21st.dev/@coss.com/components/coss-accordion) |
 frontend/src/features/corpus/CorpusPage.tsx:11:} from "@/components/ui/cnippet-empty";
 docs/provenance.md:25:| Empty corpus | Empty by cnippet.dev (user-supplied source) |
 ```

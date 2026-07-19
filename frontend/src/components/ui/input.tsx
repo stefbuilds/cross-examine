@@ -1,4 +1,4 @@
-// Imported from originui/input on 21st.dev; adapted to project tokens.
+// Shared input primitive using project tokens.
 import * as React from "react";
 
 import { cn } from "@/lib/utils";

@@ -1,4 +1,4 @@
-// Imported from cnippet.dev/cnippet-table on 21st.dev; adapted to project tokens.
+// Shared semantic table primitive.
 import type * as React from "react";
 
 import { cn } from "@/lib/utils";

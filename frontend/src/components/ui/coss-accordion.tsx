@@ -1,4 +1,4 @@
-// Visual grammar imported from coss.com's Accordion on 21st.dev.
+// Shared navigation accordion primitive.
 import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
 import { ChevronDownIcon } from "lucide-react";
 import type React from "react";
