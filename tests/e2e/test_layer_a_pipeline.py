@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import subprocess
 import time
 from pathlib import Path
@@ -94,6 +95,29 @@ class ImmediateIngest:
             ],
             test_commands=[],
             evidence=[],
+        )
+
+
+class OmittedCoverageIngest(ImmediateIngest):
+    def ingest(
+        self,
+        spec: RunSpec,
+        run_dir: Path,
+        *,
+        deadline: float | None = None,
+    ) -> IngestResult:
+        result = super().ingest(spec, run_dir, deadline=deadline)
+        return replace(
+            result,
+            touched_symbols=[
+                *result.touched_symbols,
+                TouchedSymbol(
+                    module="normalizer.extra",
+                    qualname="untested",
+                    target_symbol="normalizer.extra:untested",
+                    file_path="src/normalizer/extra.py",
+                ),
+            ],
         )
 
 
@@ -267,6 +291,30 @@ def test_pipeline_validates_report_before_pinning_corpus(
 
     assert "pin" in events
     assert events.index("validate") < events.index("pin")
+
+
+def test_omitted_touched_symbol_becomes_a_critical_risky_coverage_finding(
+    tmp_path: Path,
+) -> None:
+    pipeline = Pipeline(
+        characterizer=FakeCharacterizer(),
+        corpus=CorpusRepository(Database(tmp_path / "app.db")),
+        runs_root=tmp_path / "runs",
+        ingest=OmittedCoverageIngest(tmp_path / "materialized"),  # type: ignore[arg-type]
+    )
+
+    report = pipeline.run(
+        RunSpec(repo="coverage", base_ref="base", head_ref="head", layer_b=False),
+        run_id="coverage-run",
+    )
+
+    coverage = next(
+        finding
+        for finding in report.findings
+        if finding.claim_id.startswith("system:coverage:")
+    )
+    assert coverage.outcome is Outcome.UNVERIFIABLE
+    assert report.verdict is Verdict.RISKY
 
 
 def test_stage_failure_becomes_a_risky_unverifiable_report(tmp_path: Path) -> None:

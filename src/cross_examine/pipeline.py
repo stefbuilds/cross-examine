@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -30,6 +31,7 @@ from cross_examine.schema import (
     Report,
     RunProgress,
     RunSpec,
+    TouchedSymbol,
     aggregate,
 )
 from cross_examine.probe_plans import ProbePlan
@@ -91,34 +93,45 @@ class Pipeline:
         except Exception as exc:  # noqa: BLE001 - stage failures become abstentions
             return self._failure_report(spec, "characterizing", exc, claims, findings, emit)
 
+        executable_claims = list(claims)
+        coverage_claims, coverage_findings = _coverage_abstentions(
+            ingest.touched_symbols,
+            executable_claims,
+        )
+        claims.extend(coverage_claims)
+        findings.extend(coverage_findings)
+
         try:
             emit("capturing", "Executing deterministic probes against base")
             fixtures = capture_base(
-                claims,
+                executable_claims,
                 ingest.base_path,
                 self.runs_root / identifier / "probe-state",
                 timeout=spec.command_timeout_seconds,
                 deadline=deadline,
             )
-            fixtures = _dedupe_fixtures([*self._applicable_corpus(spec.repo, claims), *fixtures])
+            fixtures = _dedupe_fixtures(
+                [*self._applicable_corpus(spec.repo, executable_claims), *fixtures]
+            )
         except Exception as exc:  # noqa: BLE001 - stage failures become abstentions
             return self._failure_report(spec, "capturing", exc, claims, findings, emit)
 
         try:
             emit("layer_a", "Replaying captured base behavior against head")
             findings = run_layer_a(
-                claims,
+                executable_claims,
                 fixtures,
                 ingest.head_path,
                 self.runs_root / identifier / "probe-state",
                 timeout=spec.command_timeout_seconds,
                 deadline=deadline,
             )
-            plans = _probe_plans(claims)
+            findings = [*coverage_findings, *findings]
+            plans = _probe_plans(executable_claims)
             if plans:
                 findings.extend(
                     run_probe_plans(
-                        claims,
+                        executable_claims,
                         plans,
                         ingest.base_path,
                         ingest.head_path,
@@ -129,7 +142,7 @@ class Pipeline:
                             claim.target_symbol: len(
                                 self.corpus.applicable(spec.repo, claim.target_symbol)
                             )
-                            for claim in claims
+                            for claim in executable_claims
                         },
                     )
                 )
@@ -141,7 +154,7 @@ class Pipeline:
                 emit("layer_b", "Hunting and shrinking adversarial differential inputs")
                 findings.extend(
                     run_layer_b(
-                        claims,
+                        executable_claims,
                         ingest.base_path,
                         ingest.head_path,
                         self.runs_root / identifier / "layer-b-state",
@@ -346,6 +359,45 @@ def _critical_claim_ids(claims: Sequence[Claim]) -> set[str]:
         for claim in claims
         if claim.preserve_critical or claim.kind is ClaimKind.INTENDED_CHANGE
     }
+
+
+def _coverage_abstentions(
+    touched_symbols: Sequence[TouchedSymbol],
+    claims: Sequence[Claim],
+) -> tuple[list[Claim], list[Finding]]:
+    covered_targets = {claim.target_symbol for claim in claims}
+    missing_targets = sorted(
+        {
+            symbol.target_symbol
+            for symbol in touched_symbols
+            if symbol.target_symbol not in covered_targets
+        }
+    )
+    coverage_claims: list[Claim] = []
+    coverage_findings: list[Finding] = []
+    for target_symbol in missing_targets:
+        identifier = hashlib.sha256(target_symbol.encode()).hexdigest()[:16]
+        claim_id = f"system:coverage:{identifier}"
+        coverage_claims.append(
+            Claim(
+                id=claim_id,
+                text=f"characterization covers touched symbol {target_symbol}",
+                target_symbol=target_symbol,
+                risk="high",
+                proposed_check="supply a claim for every touched symbol",
+                preserve_critical=True,
+            )
+        )
+        coverage_findings.append(
+            Finding(
+                claim_id=claim_id,
+                layer=Layer.BEHAVIORAL_DIFF,
+                outcome=Outcome.UNVERIFIABLE,
+                command=f"coverage:{target_symbol}",
+                output=f"Characterization omitted touched symbol {target_symbol}.",
+            )
+        )
+    return coverage_claims, coverage_findings
 
 
 def _probe_plans(claims: Sequence[Claim]) -> list[ProbePlan]:
