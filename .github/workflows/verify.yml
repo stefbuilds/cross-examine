@@ -12,6 +12,7 @@ jobs:
   verify:
     name: Python 3.12 / Node 20 / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:

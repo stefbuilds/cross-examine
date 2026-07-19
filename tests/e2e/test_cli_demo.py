@@ -9,7 +9,10 @@ import time
 from pathlib import Path
 from urllib.request import urlopen
 
+import pytest
+
 ROOT = Path(__file__).parents[2]
+DEMO_TIMEOUT_SECONDS = 120
 
 
 def command(*arguments: str) -> list[str]:
@@ -49,15 +52,25 @@ def test_hero_builder_produces_stable_base_and_head_refs(tmp_path: Path) -> None
     assert tagged_base == outputs[0]["base"]
 
 
-def test_demo_exits_zero_and_prints_the_grounded_catch(tmp_path: Path) -> None:
-    environment = {key: value for key, value in os.environ.items() if key != "OPENAI_API_KEY"}
+def test_demo_exits_zero_and_prints_the_grounded_catch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    operator_database = tmp_path / "operator-state" / "cross-examine.db"
+    operator_runs = tmp_path / "operator-state" / "runs"
+    workspace = tmp_path / "demo-workspace"
+    monkeypatch.setenv("OPENAI_API_KEY", "must-not-be-used")
+    monkeypatch.setenv("CROSS_EXAMINE_DB", str(operator_database))
+    monkeypatch.setenv("CROSS_EXAMINE_RUNS", str(operator_runs))
+    environment = os.environ.copy()
+    for variable in ("OPENAI_API_KEY", "CROSS_EXAMINE_DB", "CROSS_EXAMINE_RUNS"):
+        environment.pop(variable, None)
     environment["CROSS_EXAMINE_DEMO_CHARACTERIZER"] = "fixture"
     result = subprocess.run(
-        command("demo", "--no-open", "--workspace", str(tmp_path)),
+        command("demo", "--no-open", "--workspace", str(workspace)),
         cwd=ROOT,
         capture_output=True,
         text=True,
-        timeout=60,
+        timeout=DEMO_TIMEOUT_SECONDS,
         env=environment,
     )
 
@@ -69,15 +82,19 @@ def test_demo_exits_zero_and_prints_the_grounded_catch(tmp_path: Path) -> None:
     assert "Corpus: +2 this run · 2 total" in result.stdout
 
     rerun = subprocess.run(
-        command("demo", "--no-open", "--workspace", str(tmp_path)),
+        command("demo", "--no-open", "--workspace", str(workspace)),
         cwd=ROOT,
         capture_output=True,
         text=True,
-        timeout=60,
+        timeout=DEMO_TIMEOUT_SECONDS,
         env=environment,
     )
     assert rerun.returncode == 0, rerun.stderr
     assert "Corpus: +0 this run · 2 total" in rerun.stdout
+    assert (workspace / "cross-examine.db").is_file()
+    assert (workspace / "runs").is_dir()
+    assert not operator_database.exists()
+    assert not operator_runs.exists()
 
 
 def test_serve_starts_health_endpoint_on_requested_port(tmp_path: Path) -> None:
