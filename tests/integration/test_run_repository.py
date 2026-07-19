@@ -1,8 +1,11 @@
 from pathlib import Path
 
+import pytest
+
 from cross_examine.persistence.database import Database
 from cross_examine.persistence.runs import RunRepository
 from cross_examine.schema import Report, RunSpec, Verdict
+from cross_examine.validation import GroundingError
 
 
 def open_repository(path: Path) -> RunRepository:
@@ -35,3 +38,15 @@ def test_missing_run_returns_none(tmp_path: Path) -> None:
     repository = open_repository(tmp_path / "cross-examine.db")
 
     assert repository.get("missing") is None
+
+
+def test_complete_rejects_a_report_with_a_tampered_verdict(
+    tmp_path: Path,
+    sample_report: Report,
+) -> None:
+    repository = open_repository(tmp_path / "cross-examine.db")
+    repository.create(RunSpec(repo="owner/repo", base_ref="abc", head_ref="def"), run_id="run-1")
+    sample_report.verdict = Verdict.SAFE
+
+    with pytest.raises(GroundingError, match="verdict disagrees"):
+        repository.complete("run-1", sample_report)

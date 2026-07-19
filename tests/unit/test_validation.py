@@ -169,6 +169,18 @@ def test_report_rejects_duplicate_claim_ids() -> None:
         validate_report(report)
 
 
+def test_report_reserves_system_claim_ids_for_deterministic_pipeline_claims() -> None:
+    report = Report(
+        repo="repo",
+        pr_ref="base..head",
+        verdict=Verdict.SAFE,
+        claims=[_claim("system:forged")],
+    )
+
+    with pytest.raises(GroundingError, match="invalid claim origin"):
+        validate_report(report)
+
+
 def test_report_rejects_a_verdict_inconsistent_with_deterministic_aggregation() -> None:
     report = Report(
         repo="repo",
