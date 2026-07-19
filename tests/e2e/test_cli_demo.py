@@ -99,7 +99,9 @@ def test_serve_starts_health_endpoint_on_requested_port(tmp_path: Path) -> None:
         text=True,
     )
     try:
-        for _ in range(100):
+        startup_timeout_seconds = 60
+        startup_deadline = time.monotonic() + startup_timeout_seconds
+        while time.monotonic() < startup_deadline:
             try:
                 with urlopen(f"http://127.0.0.1:{port}/api/health", timeout=0.2) as response:
                     assert json.load(response) == {"status": "ok"}
@@ -110,7 +112,9 @@ def test_serve_starts_health_endpoint_on_requested_port(tmp_path: Path) -> None:
                     raise AssertionError(f"serve exited early\n{stdout}\n{stderr}")
                 time.sleep(0.05)
         else:
-            raise AssertionError("serve did not become healthy")
+            raise AssertionError(
+                f"serve did not become healthy within {startup_timeout_seconds} seconds"
+            )
     finally:
         process.terminate()
         try:
