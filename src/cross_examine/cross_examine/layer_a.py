@@ -189,10 +189,8 @@ def run_layer_a(
                 outcome = Outcome.UNVERIFIABLE
             elif equal:
                 outcome = Outcome.VERIFIED
-            elif claim.preserve_critical:
-                outcome = Outcome.REFUTED
             else:
-                outcome = Outcome.UNVERIFIABLE
+                outcome = Outcome.REFUTED
             findings.append(
                 Finding(
                     claim_id=claim.id,
@@ -264,10 +262,8 @@ def run_probe_plans(
             continue
         if not base_ok or head_ok:
             outcome = Outcome.UNVERIFIABLE if not base_ok else Outcome.VERIFIED
-        elif claim.preserve_critical:
-            outcome = Outcome.REFUTED
         else:
-            outcome = Outcome.UNVERIFIABLE
+            outcome = Outcome.REFUTED
         calls = {"base": base_calls, "head": head_calls}
         command = "\n".join(call.evidence.command for call in [*base_calls, *head_calls])
         output = _relation_output(plan, seed, base_ok, head_ok, base_calls, head_calls)

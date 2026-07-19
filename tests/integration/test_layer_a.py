@@ -54,6 +54,36 @@ def test_layer_a_refutes_the_empty_input_regression(tmp_path: Path) -> None:
     assert sum(finding.outcome is Outcome.VERIFIED for finding in findings) == 2
 
 
+def test_noncritical_observed_mismatch_is_refuted_and_risky(tmp_path: Path) -> None:
+    base = tmp_path / "base"
+    head = tmp_path / "head"
+    write_normalizer(
+        base,
+        "def normalize(items: list[int]) -> list[int]:\n    return sorted(items)\n",
+    )
+    write_normalizer(
+        head,
+        "def normalize(items: list[int]) -> list[int] | None:\n"
+        "    if not items:\n"
+        "        return None\n"
+        "    return sorted(items)\n",
+    )
+    claim = Claim(
+        id="preserve-empty-noncritical",
+        text="preserves empty-list normalization",
+        target_symbol="normalizer.core:normalize",
+        risk="medium",
+        proposed_check="exercise empty and non-empty integer lists",
+        preserve_critical=False,
+    )
+
+    fixtures = capture_base([claim], base, tmp_path / "probe-state")
+    findings = run_layer_a([claim], fixtures, head, tmp_path / "probe-state")
+
+    assert any(finding.outcome is Outcome.REFUTED for finding in findings)
+    assert aggregate(findings, set()) is Verdict.RISKY
+
+
 def test_non_json_behavior_abstains_instead_of_verifying(tmp_path: Path) -> None:
     base = tmp_path / "base"
     head = tmp_path / "head"
