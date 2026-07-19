@@ -7,7 +7,6 @@ import inspect
 import json
 import os
 import sys
-import types
 import typing
 from pathlib import Path
 from typing import Any
@@ -25,7 +24,10 @@ def main(argv: list[str] | None = None) -> int:
         target = _resolve_target(target_name)
         _validate_callable(target)
         if mode == "describe":
-            _emit(ok=True, value=_describe(target), exception=None, probe_error=False)
+            description = _describe(target)
+            if not _description_is_exact_json(description):
+                raise TypeError("callable has unsupported parameter annotations")
+            _emit(ok=True, value=description, exception=None, probe_error=False)
             return 0
         if len(arguments) != 3:
             raise ValueError("call mode requires request.json")
@@ -53,6 +55,8 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 0
         try:
+            if not _is_exact_json_value(value):
+                raise TypeError("result is not an exact JSON value")
             json.dumps(value, ensure_ascii=False, allow_nan=False)
         except (TypeError, ValueError) as exc:
             _emit(
@@ -138,19 +142,43 @@ def _describe_annotation(annotation: Any) -> dict[str, Any]:
     arguments = typing.get_args(annotation)
     if origin is list and len(arguments) == 1:
         return {"kind": "list", "items": _describe_annotation(arguments[0])}
-    if origin is tuple and len(arguments) == 2 and arguments[1] is Ellipsis:
-        return {"kind": "tuple", "items": _describe_annotation(arguments[0])}
     if origin is dict and len(arguments) == 2 and arguments[0] is str:
         return {
             "kind": "dict",
             "keys": {"kind": "str"},
             "values": _describe_annotation(arguments[1]),
         }
-    if origin in {typing.Union, types.UnionType} and type(None) in arguments:
-        remaining = [item for item in arguments if item is not type(None)]
-        if len(remaining) == 1:
-            return {"kind": "optional", "item": _describe_annotation(remaining[0])}
     return {"kind": "unsupported", "display": str(annotation)}
+
+
+def _description_is_exact_json(description: dict[str, Any]) -> bool:
+    """Accept only parameter descriptions the deterministic input catalog can replay."""
+
+    def supported(annotation: dict[str, Any]) -> bool:
+        kind = annotation.get("kind")
+        if kind in {"none", "int", "float", "bool", "str"}:
+            return True
+        if kind == "list":
+            items = annotation.get("items")
+            return isinstance(items, dict) and supported(items)
+        if kind == "dict":
+            values = annotation.get("values")
+            return isinstance(values, dict) and supported(values)
+        return False
+
+    return all(supported(parameter["annotation"]) for parameter in description["parameters"])
+
+
+def _is_exact_json_value(value: Any) -> bool:
+    """Reject values whose JSON encoding would erase their runtime representation."""
+
+    if value is None or type(value) in {bool, int, float, str}:
+        return True
+    if type(value) is list:
+        return all(_is_exact_json_value(item) for item in value)
+    if type(value) is dict:
+        return all(type(key) is str and _is_exact_json_value(item) for key, item in value.items())
+    return False
 
 
 def _emit(

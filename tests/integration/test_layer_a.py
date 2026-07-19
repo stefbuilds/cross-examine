@@ -105,7 +105,29 @@ def test_non_json_behavior_abstains_instead_of_verifying(tmp_path: Path) -> None
     assert fixtures == []
     assert len(findings) == 1
     assert findings[0].outcome is Outcome.UNVERIFIABLE
-    assert "not JSON serializable" in findings[0].output
+    assert "not an exact JSON value" in findings[0].output
+
+
+def test_tuple_behavior_abstains_instead_of_erasing_the_type_distinction(tmp_path: Path) -> None:
+    base = tmp_path / "base"
+    head = tmp_path / "head"
+    implementation = "def unsupported(values: tuple[int, ...]) -> tuple[int, ...]:\n    return values\n"
+    write_normalizer(base, implementation)
+    write_normalizer(head, implementation)
+    claim = Claim(
+        id="preserve-tuple",
+        text="preserves tuple behavior",
+        target_symbol="normalizer.core:unsupported",
+        risk="high",
+        proposed_check="call unsupported",
+        preserve_critical=True,
+    )
+
+    fixtures = capture_base([claim], base, tmp_path / "probe-state")
+    findings = run_layer_a([claim], fixtures, head, tmp_path / "probe-state")
+
+    assert fixtures == []
+    assert [finding.outcome for finding in findings] == [Outcome.UNVERIFIABLE]
 
 
 def test_matching_target_exceptions_are_verified_behavior(tmp_path: Path) -> None:
