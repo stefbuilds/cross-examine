@@ -21,7 +21,7 @@ export function RunHistoryPage() {
           </p>
         </div>
         <Button asChild>
-          <Link to="/">
+          <Link to="/run">
             <Plus aria-hidden="true" />
             New verification
           </Link>

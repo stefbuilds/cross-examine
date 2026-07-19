@@ -1,11 +1,9 @@
 // Visual grammar adapted from OriginUI's 21st.dev theme-toggle dropdown.
-import * as React from "react";
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 import { Check, Monitor, Moon, Sun } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-
-type ThemeName = "light" | "dark" | "system";
+import { useThemePreference, type ThemeName } from "@/lib/theme-preference";
 
 const options = {
   light: { label: "Light", icon: Sun },
@@ -24,22 +22,8 @@ export function Theme({
   themes?: ThemeName[];
   showLabel?: boolean;
 }) {
-  const [theme, setTheme] = React.useState<ThemeName>("light");
-  const [systemTheme, setSystemTheme] = React.useState<"light" | "dark">("light");
-  const displayedTheme = theme === "system" ? systemTheme : theme;
+  const { resolved: displayedTheme, setTheme, theme } = useThemePreference();
   const ActiveIcon = options[displayedTheme].icon;
-
-  React.useEffect(() => {
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const updateSystemTheme = () => setSystemTheme(media.matches ? "dark" : "light");
-    updateSystemTheme();
-    media.addEventListener("change", updateSystemTheme);
-    return () => media.removeEventListener("change", updateSystemTheme);
-  }, []);
-
-  React.useEffect(() => {
-    document.documentElement.classList.toggle("dark", displayedTheme === "dark");
-  }, [displayedTheme]);
 
   return (
     <DropdownMenuPrimitive.Root>

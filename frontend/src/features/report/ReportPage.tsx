@@ -1,4 +1,5 @@
 import { Fragment, useMemo, useState } from "react";
+import { Skeleton as BoneyardSkeleton } from "boneyard-js/react";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FindingEvidence } from "./FindingEvidence";
@@ -27,6 +28,14 @@ export function ReportPage({
   );
 
   return (
+    <BoneyardSkeleton
+      animate="shimmer"
+      className="w-full"
+      loading={false}
+      name="verification-report"
+      select="viewport"
+      transition
+    >
     <main className="page-shell">
       <header className="page-header">
         <div className="grid gap-2">
@@ -144,5 +153,6 @@ export function ReportPage({
           </Table>
       </section>
     </main>
+    </BoneyardSkeleton>
   );
 }

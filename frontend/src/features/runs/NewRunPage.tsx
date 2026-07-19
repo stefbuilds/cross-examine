@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { createHeroRun, createRun } from "@/app/api";
 import CheckoutForm from "@/components/ui/checkout-form";
+import { GradientShimmer } from "@/components/ui/gradient-shimmer";
 
 export function NewRunPage() {
   const navigate = useNavigate();
@@ -60,12 +61,14 @@ export function NewRunPage() {
 
   return (
     <main className="page-shell">
-      <header className="page-header">
-        <div className="grid gap-4">
+      <header className="grid gap-5 border-b pb-7 text-center">
+        <div className="mx-auto grid max-w-4xl gap-4">
           <p className="eyebrow">Contract-first / Python</p>
-          <h1 className="page-title">Trust the evidence. Not the patch.</h1>
+          <h1 className="text-4xl font-bold tracking-[-0.045em] md:text-6xl">
+            <GradientShimmer>Trust the evidence. Not the patch.</GradientShimmer>
+          </h1>
         </div>
-        <p className="page-copy md:max-w-sm">
+        <p className="page-copy mx-auto">
           Compare captured base behavior with the head revision, then hunt
           adversarial boundaries. Every conclusion opens to its receipt.
         </p>

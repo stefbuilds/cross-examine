@@ -6,12 +6,14 @@ import { Theme } from "./theme-dropdown";
 
 afterEach(() => {
   document.documentElement.classList.remove("dark");
+  window.localStorage.clear();
 });
 
 describe("Theme", () => {
   it("starts light and applies the selected theme", async () => {
     const user = userEvent.setup();
     document.documentElement.classList.add("dark");
+    window.localStorage.setItem("cross-examine-theme", "light");
 
     render(<Theme showLabel themes={["light", "dark", "system"]} />);
 

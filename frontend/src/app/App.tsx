@@ -1,14 +1,17 @@
 import { useState } from "react";
+import { Skeleton as BoneyardSkeleton } from "boneyard-js/react";
 import {
   createBrowserRouter,
   Outlet,
   RouterProvider,
   type RouteObject,
   useLocation,
+  useNavigation,
 } from "react-router-dom";
 
 import { loadBrokenFixture, loadCorpus, loadRun, loadRuns } from "@/app/api";
 import { SessionNavBar } from "@/components/ui/session-nav-bar";
+import { WorkspaceToolbar } from "@/components/ui/workspace-toolbar";
 import { CorpusPage } from "@/features/corpus/CorpusPage";
 import { EvidenceLandingPage } from "@/features/evidence/EvidenceLandingPage";
 import { WelcomePage } from "@/features/welcome/WelcomePage";
@@ -16,13 +19,27 @@ import { RunHistoryPage } from "@/features/runs/RunHistoryPage";
 import { RunLocallyPage } from "@/features/runs/RunLocallyPage";
 import { FixtureRunPage, RunPage } from "@/features/runs/RunPage";
 import { TrialsPage } from "@/features/trials/TrialsPage";
+import { SettingsPage } from "@/features/settings/SettingsPage";
+import { LoaderDotMatrix } from "@/components/ui/loader-dot-matrix";
+import { ReportLoadingSkeleton } from "@/components/ui/report-loading-skeleton";
 
 function activeNavigation(pathname: string): string {
   if (pathname.startsWith("/corpus")) return "corpus";
   if (pathname.startsWith("/run")) return "runs";
   if (pathname.startsWith("/trials")) return "trials";
+  if (pathname.startsWith("/settings")) return "settings";
   if (pathname.startsWith("/runs") || pathname.startsWith("/fixtures")) return "runs";
   return "evidence";
+}
+
+function pageSkeletonName(pathname: string): string {
+  if (pathname.startsWith("/fixtures") || /^\/runs\/[^/]+/.test(pathname)) return "verification-report";
+  if (pathname.startsWith("/runs")) return "run-history-page";
+  if (pathname.startsWith("/run")) return "run-entry-page";
+  if (pathname.startsWith("/corpus")) return "corpus-page";
+  if (pathname.startsWith("/trials")) return "trials-page";
+  if (pathname.startsWith("/settings")) return "settings-page";
+  return "evidence-page";
 }
 
 function AppShell() {
@@ -31,6 +48,8 @@ function AppShell() {
   );
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const location = useLocation();
+  const navigation = useNavigation();
+  const destinationPath = navigation.location?.pathname ?? location.pathname;
 
   return (
     <div className="flex min-h-screen bg-background/80">
@@ -67,7 +86,18 @@ function AppShell() {
       )}
 
       <div className="min-w-0 flex-1">
-        <Outlet />
+        <WorkspaceToolbar />
+        <BoneyardSkeleton
+          animate="shimmer"
+          className="w-full"
+          fallback={<LoadingShell />}
+          loading={navigation.state === "loading"}
+          name={pageSkeletonName(destinationPath)}
+          select="viewport"
+          transition
+        >
+          <Outlet />
+        </BoneyardSkeleton>
       </div>
     </div>
   );
@@ -75,8 +105,12 @@ function AppShell() {
 
 function LoadingShell() {
   return (
-    <main className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">
-      Loading verification evidence…
+    <main className="mx-auto grid min-h-screen w-full max-w-6xl content-center gap-6 bg-background px-5 py-12 md:px-10">
+      <div className="flex items-center gap-3 text-sm font-medium text-muted-foreground">
+        <LoaderDotMatrix cols={5} dotSize={2.5} pattern="wave" />
+        Loading verification evidence…
+      </div>
+      <ReportLoadingSkeleton />
     </main>
   );
 }
@@ -89,7 +123,7 @@ export const appRoutes: RouteObject[] = [
     hydrateFallbackElement: <LoadingShell />,
     children: [
       { index: true, loader: loadBrokenFixture, element: <EvidenceLandingPage /> },
-      { path: "run", loader: loadRuns, element: <RunLocallyPage /> },
+      { path: "run", element: <RunLocallyPage /> },
       { path: "runs", loader: loadRuns, element: <RunHistoryPage /> },
       {
         path: "runs/:runId",
@@ -103,6 +137,7 @@ export const appRoutes: RouteObject[] = [
       },
       { path: "corpus", loader: loadCorpus, element: <CorpusPage /> },
       { path: "trials", element: <TrialsPage /> },
+      { path: "settings", element: <SettingsPage /> },
     ],
   },
 ];

@@ -113,7 +113,7 @@ describe("application routes", () => {
     expect(screen.getByText("RISKY")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "New verification" })).toHaveAttribute(
       "href",
-      "/",
+      "/run",
     );
   });
 
@@ -144,22 +144,13 @@ describe("application routes", () => {
     expect(document.querySelector('[class*="[--duration:12s]"]')).toBeInTheDocument();
   });
 
-  it("shows the same empty-run state before opening the local verification flow", async () => {
-    const user = userEvent.setup();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => new Response(JSON.stringify([]), { status: 200 })),
-    );
+  it("opens the local verification form directly", async () => {
     const router = createMemoryRouter(appRoutes, { initialEntries: ["/run"] });
 
     render(<RouterProvider router={router} />);
 
-    expect(await screen.findByRole("heading", { name: "No verification runs yet" })).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: "Start local verification" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "New verification run" })).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Start local verification" }));
     expect(await screen.findByRole("heading", { name: "New verification run" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Repository URL or path/)).toBeInTheDocument();
   });
 
   it("loads the documented trials page from primary navigation", async () => {
@@ -180,6 +171,21 @@ describe("application routes", () => {
         .getAllByRole("link", { name: "Trials" })
         .some((link) => link.getAttribute("aria-current") === "page"),
     ).toBe(true);
+  });
+
+  it("offers global search and a dedicated theme settings page", async () => {
+    const user = userEvent.setup();
+    const router = createMemoryRouter(appRoutes, { initialEntries: ["/settings"] });
+
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByRole("heading", { name: "Interface settings" })).toBeInTheDocument();
+    expect(screen.getByRole("radiogroup", { name: "Theme" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute("aria-current", "page");
+
+    await user.click(screen.getByRole("button", { name: "Search and commands" }));
+    expect(screen.getByPlaceholderText("Type a command or search…")).toBeInTheDocument();
+    expect(screen.getByText("Cross-examine a Python change")).toBeInTheDocument();
   });
 
   it("renders the sourced pinned-check empty state when the corpus is empty", async () => {
