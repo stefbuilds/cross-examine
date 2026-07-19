@@ -34,6 +34,13 @@ class ClaimKind(str, Enum):
     INTENDED_CHANGE = "intended_change"
 
 
+class ClaimOrigin(str, Enum):
+    """Authority that produced a claim identifier."""
+
+    MODEL = "model"
+    SYSTEM = "system"
+
+
 def evidence_hash(command: str, output: str) -> str:
     """Return the stable digest binding one invocation to its captured output."""
 
@@ -62,10 +69,12 @@ class Claim:
     proposed_check: str
     preserve_critical: bool = False
     kind: ClaimKind = ClaimKind.PRESERVATION
+    origin: ClaimOrigin = ClaimOrigin.MODEL
     probe_plans: list[dict[str, object]] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.kind = ClaimKind(self.kind)
+        self.origin = ClaimOrigin(self.origin)
 
 
 @dataclass

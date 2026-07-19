@@ -22,6 +22,7 @@ from cross_examine.schema import (
     BehaviorFixture,
     Claim,
     ClaimKind,
+    ClaimOrigin,
     CommandEvidence,
     CorpusDelta,
     EvidenceReceipt,
@@ -85,10 +86,12 @@ class Pipeline:
 
         try:
             emit("characterizing", "Deriving schema-constrained behavioral claims")
-            claims = self.characterizer.characterize(
+            characterized_claims = self.characterizer.characterize(
                 ingest,
                 timeout=_remaining_timeout(deadline, spec.command_timeout_seconds),
             )
+            _validate_characterizer_claims(characterized_claims)
+            claims = characterized_claims
             _remaining_timeout(deadline, spec.command_timeout_seconds)
         except Exception as exc:  # noqa: BLE001 - stage failures become abstentions
             return self._failure_report(spec, "characterizing", exc, claims, findings, emit)
@@ -286,6 +289,7 @@ class Pipeline:
             risk="high",
             proposed_check=f"complete the {stage} stage",
             preserve_critical=True,
+            origin=ClaimOrigin.SYSTEM,
         )
         synthetic_finding = Finding(
             claim_id=synthetic_id,
@@ -361,6 +365,13 @@ def _critical_claim_ids(claims: Sequence[Claim]) -> set[str]:
     }
 
 
+def _validate_characterizer_claims(claims: Sequence[Claim]) -> None:
+    """Keep model proposals out of the reserved deterministic ID namespace."""
+
+    if any(claim.id.startswith("system:") for claim in claims):
+        raise ValueError("characterizer used a reserved system claim ID")
+
+
 def _coverage_abstentions(
     touched_symbols: Sequence[TouchedSymbol],
     claims: Sequence[Claim],
@@ -385,7 +396,8 @@ def _coverage_abstentions(
                 target_symbol=target_symbol,
                 risk="high",
                 proposed_check="supply a claim for every touched symbol",
-                preserve_critical=True,
+            preserve_critical=True,
+            origin=ClaimOrigin.SYSTEM,
             )
         )
         coverage_findings.append(
@@ -442,6 +454,7 @@ def _run_discovered_tests(
         risk="high",
         proposed_check="execute the conservative discovered test command",
         preserve_critical=True,
+        origin=ClaimOrigin.SYSTEM,
     )
     base = Path(base_path).resolve()
     head = Path(head_path).resolve()
