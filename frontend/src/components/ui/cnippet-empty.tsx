@@ -1,4 +1,3 @@
-// Source: user-supplied cnippet.dev Empty component; adapted only for project imports and types.
 import { cva, type VariantProps } from "class-variance-authority";
 import type React from "react";
 

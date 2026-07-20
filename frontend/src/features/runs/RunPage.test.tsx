@@ -30,7 +30,7 @@ describe("RunProgressView", () => {
     expect(screen.getByText("Ingest")).toBeInTheDocument();
     expect(screen.getByText("Characterize")).toBeInTheDocument();
     expect(screen.getByText("Repository tests")).toBeInTheDocument();
-    expect(screen.getByText("Deriving claims")).toBeInTheDocument();
+    expect(screen.getByLabelText("Deriving claims")).toBeInTheDocument();
     expect(screen.getByRole("progressbar", { name: "Verification progress" })).toHaveAttribute("aria-valuenow", "24");
     expect(screen.getByLabelText("Preparing report")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "See how the run works" })).toBeInTheDocument();

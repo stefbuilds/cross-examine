@@ -21,6 +21,8 @@ Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
 HTMLElement.prototype.animate = () =>
   ({ onfinish: null, playState: "finished" }) as unknown as Animation;
 
+HTMLElement.prototype.scrollIntoView = () => {};
+
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: () => ({

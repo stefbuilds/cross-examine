@@ -9,13 +9,17 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    boneyardPlugin({
-      breakpoints: [375, 768, 1280],
-      framework: "react",
-      out: "./src/bones",
-      routes: ["/", "/fixtures/broken", "/run", "/runs", "/corpus", "/trials", "/settings"],
-      wait: 900,
-    }),
+    ...(process.env.BONEYARD_CAPTURE === "1"
+      ? [
+          boneyardPlugin({
+            breakpoints: [375, 768, 1280],
+            framework: "react",
+            out: "./src/bones",
+            routes: ["/", "/fixtures/broken", "/run", "/runs", "/corpus", "/trials", "/settings"],
+            wait: 900,
+          }),
+        ]
+      : []),
   ],
   build: {
     // FastAPI and the Vercel function both serve this packaged frontend bundle.
