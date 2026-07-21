@@ -516,15 +516,27 @@ void main() {
         .animate-marquee {
           animation: marquee 25s linear infinite;
         }
+        /* The glass gradient is mapped to the theme's ink so it stays legible on the
+           light surface; dark mode keeps the original white glass. */
         .tahoe-glass-text {
+            --glass-ink: 17, 17, 17;
+            --glass-stroke: rgba(17, 17, 17, 0.16);
+            --glass-shadow-a: rgba(0, 0, 0, 0.16);
+            --glass-shadow-b: rgba(0, 0, 0, 0.10);
             color: transparent;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.4) 25%, rgba(255, 255, 255, 0.1) 45%, rgba(255, 255, 255, 0.9) 55%, rgba(255, 255, 255, 0.2) 75%, rgba(255, 255, 255, 1) 100%);
+            background: linear-gradient(135deg, rgba(var(--glass-ink), 1) 0%, rgba(var(--glass-ink), 0.5) 25%, rgba(var(--glass-ink), 0.22) 45%, rgba(var(--glass-ink), 0.92) 55%, rgba(var(--glass-ink), 0.32) 75%, rgba(var(--glass-ink), 1) 100%);
             background-size: 200% auto;
             -webkit-background-clip: text;
             background-clip: text;
-            -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.3);
-            filter: drop-shadow(0 15px 35px rgba(0,0,0,0.4)) drop-shadow(0 5px 10px rgba(0,0,0,0.2));
+            -webkit-text-stroke: 1.5px var(--glass-stroke);
+            filter: drop-shadow(0 12px 30px var(--glass-shadow-a)) drop-shadow(0 4px 8px var(--glass-shadow-b));
              animation: ${c?`none`:`shimmer 8s linear infinite`};
+        }
+        .dark .tahoe-glass-text {
+            --glass-ink: 255, 255, 255;
+            --glass-stroke: rgba(255, 255, 255, 0.3);
+            --glass-shadow-a: rgba(0, 0, 0, 0.4);
+            --glass-shadow-b: rgba(0, 0, 0, 0.2);
         }
         @keyframes shimmer {
             0% { background-position: 200% center; }
