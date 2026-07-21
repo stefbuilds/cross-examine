@@ -5,6 +5,7 @@ import type { FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardSticky } from "@/components/ui/cards-stack";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -187,7 +188,14 @@ export default function CheckoutForm({
           {errors.submit && <p className="text-sm text-destructive" role="alert">{errors.submit}</p>}
           </div>
 
-          <aside className="flex flex-col border-t bg-secondary/35 p-5 md:border-l md:border-t-0 md:p-6" aria-labelledby="run-summary-heading">
+          <CardSticky
+            aria-labelledby="run-summary-heading"
+            className="flex flex-col self-start border-t bg-secondary/35 p-5 max-md:!static md:border-l md:border-t-0 md:p-6"
+            index={0}
+            layout={false}
+            role="complementary"
+            style={{ top: 88 }}
+          >
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Ready for examination</p>
             <h2 className="mt-2 text-lg font-semibold" id="run-summary-heading">
               <GradientShimmer gradient="twilight">Run summary</GradientShimmer>
@@ -205,7 +213,7 @@ export default function CheckoutForm({
             <div className="mt-auto pt-8">
               <p className="text-xs leading-5 text-muted-foreground">No verdict is shown until deterministic aggregation receives executed evidence.</p>
             </div>
-          </aside>
+          </CardSticky>
         </CardContent>
       </Card>
 

@@ -4,7 +4,8 @@ import { Skeleton as BoneyardSkeleton } from "boneyard-js/react";
 import type { FixtureResponse, RunResponse } from "@/app/api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ErrorMessage } from "@/components/ui/error-message";
+import { FlickeringGrid } from "@/components/ui/flickering-grid";
+import { Note } from "@/components/ui/note";
 import { GradientShimmer } from "@/components/ui/gradient-shimmer";
 import { LoaderDotMatrix } from "@/components/ui/loader-dot-matrix";
 import { ProgressiveFluxLoader } from "@/components/ui/progressive-flux-loader";
@@ -96,7 +97,22 @@ export function RunProgressView({
 
   return (
     <main className="page-shell">
-      <header className="page-header">
+      <header className="page-header relative isolate overflow-hidden">
+        {!failed && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10 opacity-60 [mask-image:radial-gradient(120%_80%_at_80%_0%,black,transparent_70%)]"
+          >
+            <FlickeringGrid
+              className="size-full"
+              color="#7f76ca"
+              flickerChance={0.12}
+              gridGap={6}
+              maxOpacity={0.22}
+              squareSize={3}
+            />
+          </div>
+        )}
         <div>
         <p className="eyebrow">
           Live verification · {run.id}
@@ -122,8 +138,13 @@ export function RunProgressView({
       </header>
 
       {failed && (
-        <div className="grid gap-4">
-          <ErrorMessage message={run.message} title="The worker could not finish this run" />
+        <div className="grid gap-4" role="alert">
+          <Note fill size="large" type="error">
+            <span className="grid gap-1">
+              <span className="font-heading font-semibold uppercase">The worker could not finish this run</span>
+              <span className="break-words font-mono text-xs font-normal text-muted-foreground">{run.message}</span>
+            </span>
+          </Note>
           <div className="flex flex-wrap gap-3">
             {run.repo && (
               <Button asChild>

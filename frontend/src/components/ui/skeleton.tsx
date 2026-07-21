@@ -13,7 +13,7 @@ export function Skeleton({
     <div
       aria-hidden="true"
       className={cn(
-        "skeleton-surface rounded-[var(--radius)] bg-muted",
+        "skeleton-surface rounded-lg bg-muted",
         animation === "shimmer" && "skeleton-shimmer",
         animation === "pulse" && "animate-pulse",
         className,

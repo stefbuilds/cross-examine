@@ -1,4 +1,4 @@
-import { Database, RouteIcon } from "lucide-react";
+import { Database } from "lucide-react";
 import { Link, useLoaderData } from "react-router-dom";
 
 import type { CorpusSummary } from "@/app/api";
@@ -6,9 +6,9 @@ import {
   Empty,
   EmptyDescription,
   EmptyHeader,
-  EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/cnippet-empty";
+import { Entropy } from "@/components/ui/entropy";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export function CorpusPage() {
@@ -35,9 +35,9 @@ export function CorpusPage() {
           data-corpus-empty
         >
           <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <RouteIcon />
-            </EmptyMedia>
+            <div aria-hidden="true" className="mx-auto mb-2 overflow-hidden">
+              <Entropy className="mx-auto" size={200} />
+            </div>
             <EmptyTitle>No pinned checks yet</EmptyTitle>
             <EmptyDescription>
               Run a verification to begin accumulating grounded behavioral checks.

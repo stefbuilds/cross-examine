@@ -14,8 +14,40 @@ class ResizeObserverStub implements ResizeObserver {
 
 globalThis.ResizeObserver = ResizeObserverStub;
 
+class IntersectionObserverStub {
+  root = null;
+  rootMargin = "";
+  thresholds: number[] = [];
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+}
+
+globalThis.IntersectionObserver =
+  IntersectionObserverStub as unknown as typeof IntersectionObserver;
+
 Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
-  value: () => ({ clearRect() {}, fillRect() {}, fillStyle: "" }) as unknown as CanvasRenderingContext2D,
+  value: () =>
+    ({
+      scale() {},
+      clearRect() {},
+      fillRect() {},
+      beginPath() {},
+      arc() {},
+      fill() {},
+      moveTo() {},
+      lineTo() {},
+      stroke() {},
+      getImageData: () => ({ data: new Uint8ClampedArray([0, 0, 0, 255]) }),
+      fillStyle: "",
+      strokeStyle: "",
+      lineWidth: 0,
+      font: "",
+      textAlign: "",
+    }) as unknown as CanvasRenderingContext2D,
 });
 
 HTMLElement.prototype.animate = () =>
