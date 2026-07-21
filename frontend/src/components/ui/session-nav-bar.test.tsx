@@ -16,12 +16,11 @@ describe("SessionNavBar", () => {
     const navigation = within(container);
     expect(navigation.queryByRole("link", { name: "Evidence catch" })).not.toBeInTheDocument();
     expect(navigation.getByRole("link", { name: "Trials" })).toHaveAttribute("aria-current", "page");
-    expect(navigation.getByRole("button", { name: "Runs" })).toBeInTheDocument();
+    expect(navigation.getByRole("link", { name: "Runs" })).toHaveAttribute("href", "/runs");
     expect(navigation.queryByRole("link", { name: "About" })).not.toBeInTheDocument();
   });
 
-  it("expands Runs into the real history and local verification destinations", async () => {
-    const user = userEvent.setup();
+  it("leads Runs to the default view while the disclosure reveals the specific pages", () => {
     const { container } = render(
       <MemoryRouter>
         <SessionNavBar />
@@ -29,11 +28,28 @@ describe("SessionNavBar", () => {
     );
 
     const sidebar = within(container);
-    await user.click(sidebar.getByRole("button", { name: "Expand sidebar" }));
-    await user.click(sidebar.getByRole("button", { name: "Runs" }));
+    fireEvent.click(sidebar.getByRole("button", { name: "Expand sidebar" }));
+
+    expect(sidebar.getByRole("link", { name: "Runs" })).toHaveAttribute("href", "/runs");
+
+    fireEvent.click(sidebar.getByRole("button", { name: "Expand runs" }));
 
     expect(sidebar.getByRole("link", { name: "View runs" })).toHaveAttribute("href", "/runs");
     expect(sidebar.getByRole("link", { name: "Run locally" })).toHaveAttribute("href", "/run");
+  });
+
+  it("surfaces a prominent New Run action directly below the header", () => {
+    const onSelect = vi.fn();
+    const { container } = render(
+      <MemoryRouter>
+        <SessionNavBar onSelect={onSelect} />
+      </MemoryRouter>,
+    );
+
+    const newRun = within(container).getByRole("link", { name: "New Run" });
+    expect(newRun).toHaveAttribute("href", "/run");
+    fireEvent.click(newRun);
+    expect(onSelect).toHaveBeenCalledWith("run");
   });
 
   it("notifies the shell after a navigation choice so mobile can close", async () => {
@@ -50,9 +66,10 @@ describe("SessionNavBar", () => {
     expect(onSelect).toHaveBeenCalledWith("trials");
   });
 
-  it("renders product-use cards at the bottom and keeps their links in-app", async () => {
+  it("renders a single onboarding banner with one primary action that dismisses", async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
+    window.localStorage.removeItem("cross-examine-help-dismissed");
 
     const { container } = render(
       <MemoryRouter>
@@ -64,14 +81,18 @@ describe("SessionNavBar", () => {
     fireEvent.click(sidebar.getByRole("button", { name: "Expand sidebar" }));
 
     expect(sidebar.getByText("How to use Cross-Examine")).toBeInTheDocument();
-    expect(sidebar.getByRole("link", { name: "Open Run a local verification" })).toHaveAttribute("href", "/run");
-    expect(sidebar.getByRole("link", { name: "Open Inspect the evidence" })).toHaveAttribute("href", "/fixtures/broken");
+    const start = sidebar.getByRole("link", { name: "Start a verification" });
+    expect(start).toHaveAttribute("href", "/run");
 
-    await user.click(sidebar.getByRole("link", { name: "Open Run a local verification" }));
+    fireEvent.click(start);
     expect(onSelect).toHaveBeenCalledWith("run");
+
+    await user.click(sidebar.getByRole("button", { name: "Dismiss help" }));
+    expect(sidebar.queryByText("How to use Cross-Examine")).not.toBeInTheDocument();
   });
 
-  it("keeps the navigation list scrollable while exposing the workspace profile shortcuts", () => {
+  it("keeps the navigation list scrollable and anchors one Settings destination with appearance controls", () => {
+    window.localStorage.removeItem("cross-examine-help-dismissed");
     const { container } = render(
       <MemoryRouter>
         <SessionNavBar />
@@ -82,8 +103,8 @@ describe("SessionNavBar", () => {
     fireEvent.click(sidebar.getByRole("button", { name: "Expand sidebar" }));
 
     expect(sidebar.getByTestId("sidebar-navigation")).toHaveClass("min-h-0", "flex-1", "overflow-y-auto");
-    expect(sidebar.getByRole("button", { name: "Workspace shortcuts" })).toBeInTheDocument();
-    expect(sidebar.getByRole("link", { name: "Settings" })).toBeInTheDocument();
+    expect(sidebar.getByText("Local workspace")).toBeInTheDocument();
+    expect(sidebar.getAllByRole("link", { name: "Settings" })).toHaveLength(1);
     expect(sidebar.getByRole("button", { name: "Select theme" })).toBeInTheDocument();
   });
 

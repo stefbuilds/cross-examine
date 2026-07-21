@@ -1,15 +1,15 @@
 // Primary workspace navigation.
-// Cross-Examine keeps the hover-expansion motion while replacing demo content
-// with product routes, React Router navigation, and accessible link semantics.
+// Cross-Examine keeps the hover-expansion motion while presenting a clear
+// hierarchy: header, a prominent New Run action, the main navigation, then an
+// anchored secondary area with onboarding, workspace identity, and settings.
 import type React from "react";
 import { motion } from "framer-motion";
-import { Blocks, FlaskConical, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
+import { Blocks, ChevronDown, FlaskConical, LayoutDashboard, PanelLeft, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-import { News, type NewsArticle } from "@/components/ui/sidebar-news";
+import { SidebarHelpBanner } from "@/components/ui/sidebar-help-banner";
 import { WorkspaceProfile } from "@/components/ui/workspace-profile";
-import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "@/components/ui/coss-accordion";
 import { cn } from "@/lib/utils";
 
 const sidebarVariants = {
@@ -18,8 +18,8 @@ const sidebarVariants = {
 };
 
 const contentVariants = {
-  open: { display: "block", opacity: 1 },
-  closed: { display: "block", opacity: 1 },
+  open: { display: "flex", opacity: 1 },
+  closed: { display: "flex", opacity: 1 },
 };
 
 const variants = {
@@ -56,32 +56,13 @@ type NavItemData = {
 const items: NavItemData[] = [
   { id: "trials", title: "Trials", icon: FlaskConical, href: "/trials" },
   { id: "corpus", title: "Corpus", icon: Blocks, href: "/corpus" },
-  { id: "settings", title: "Settings", icon: Settings, href: "/settings" },
 ];
 
-const productUseArticles: NewsArticle[] = [
-  {
-    href: "/run",
-    title: "Run a local verification",
-    summary: "Paste a Python repository and PR refs, then let the five-stage harness run.",
-    image: "Run",
-    navId: "run",
-  },
-  {
-    href: "/fixtures/broken",
-    title: "Inspect the evidence",
-    summary: "Review exact commands, outputs, repro input, and the refuted behavior.",
-    image: "Proof",
-    navId: "runs",
-  },
-  {
-    href: "/trials",
-    title: "Review real trials",
-    summary: "See the documented compatibility trials that back the Build Week demo.",
-    image: "Trials",
-    navId: "trials",
-  },
-];
+const navItemClass =
+  "flex h-8 items-center gap-2 rounded-md px-2 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar";
+
+const subItemClass =
+  "flex h-7 items-center rounded-md px-2 text-[0.8125rem] font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar";
 
 export function SessionNavBar({
   activeId = "evidence",
@@ -110,6 +91,11 @@ export function SessionNavBar({
     onCollapsedChange?.(collapsed);
   };
 
+  const runsActive = activeId === "runs";
+  const viewRunsActive = runsActive && location.pathname.startsWith("/runs");
+  const runLocallyActive =
+    runsActive && location.pathname.startsWith("/run") && !location.pathname.startsWith("/runs");
+
   return (
     <motion.div
       animate={isCollapsed ? "closed" : "open"}
@@ -128,131 +114,186 @@ export function SessionNavBar({
         className="relative z-40 flex h-full shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all"
         variants={contentVariants}
       >
-        <div className="flex h-[54px] w-full shrink-0 items-center border-b border-sidebar-border p-2">
+        {/* Header */}
+        <div className="flex h-[54px] w-full shrink-0 items-center gap-2 border-b border-sidebar-border px-2">
           <Link
             aria-label="Cross-Examine home"
             className={cn(
-              "items-center gap-2 rounded-md px-2 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+              "min-w-0 items-center gap-2 rounded-md px-1 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
               isCollapsed ? "hidden" : "flex",
             )}
             onClick={() => onSelect("evidence")}
             to="/"
           >
-            <span aria-hidden="true" className="grid size-4 place-items-center rounded bg-primary font-heading text-[9px] font-bold text-primary-foreground">X_</span>
+            <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded bg-primary font-heading text-[9px] font-bold text-primary-foreground">
+              X_
+            </span>
             <motion.span className="flex w-fit items-center" variants={variants}>
-              {!isCollapsed && <span className="text-sm font-medium">Cross-Examine</span>}
+              {!isCollapsed && <span className="truncate text-sm font-semibold">Cross-Examine</span>}
             </motion.span>
           </Link>
           <button
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             className={cn(
-              "ml-auto grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground outline-none transition hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
-              isCollapsed && "mx-auto",
+              "grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground outline-none transition hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+              isCollapsed ? "mx-auto" : "ml-auto",
             )}
             onClick={() => setCollapsed(!isCollapsed)}
             title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             type="button"
           >
-            {isCollapsed ? (
-              <PanelLeftOpen aria-hidden="true" className="size-4" />
-            ) : (
-              <PanelLeftClose aria-hidden="true" className="size-4" />
-            )}
+            <PanelLeft aria-hidden="true" className="size-4" />
           </button>
         </div>
 
-        <motion.ul className="flex min-h-0 flex-1 flex-col p-2" variants={staggerVariants}>
-          <li className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-            <motion.span variants={variants}>{!isCollapsed && "Workspace"}</motion.span>
-          </li>
-          <li className="min-h-0 flex-1 overflow-y-auto" data-testid="sidebar-navigation">
-            <ul className="flex flex-col gap-1">
-            {items.map((item) => {
-              const active = item.id === activeId;
-              const Icon = item.icon;
-              return (
-                <motion.li key={item.id} variants={variants}>
-                  <Link
-                    aria-current={active ? "page" : undefined}
-                    aria-label={item.title}
-                    className={cn(
-                      "flex w-full items-center text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
-                      "h-8 rounded-md px-2 py-1.5",
-                      active
-                        ? "bg-primary/15 text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                    onClick={() => onSelect(item.id)}
-                    title={isCollapsed ? item.title : undefined}
-                    to={item.href}
-                  >
-                    <Icon aria-hidden="true" className="size-4 shrink-0" strokeWidth={active ? 2.25 : 1.75} />
-                    {!isCollapsed && <span className="ml-2">{item.title}</span>}
-                  </Link>
-                </motion.li>
-              );
-            })}
-            <motion.li variants={variants}>
-              <Accordion
-                onValueChange={(value) => setRunsOpen(value.includes("runs"))}
-                value={!isCollapsed && runsOpen ? ["runs"] : []}
-              >
-                <AccordionItem value="runs">
-                  <AccordionTrigger
-                    aria-label="Runs"
-                    className={cn(
-                      "text-muted-foreground",
-                      activeId === "runs" && "bg-primary/15 text-primary",
-                      isCollapsed && "justify-center px-0",
-                    )}
-                    title={isCollapsed ? "Runs" : undefined}
-                  >
-                    <span className="flex items-center">
-                      <LayoutDashboard aria-hidden="true" className="size-4 shrink-0" strokeWidth={activeId === "runs" ? 2.25 : 1.75} />
-                      {!isCollapsed && <span className="ml-2">Runs</span>}
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionPanel>
-                    <div className="ml-3 flex flex-col gap-1 border-l border-sidebar-border pl-2">
-                      <Link
-                        aria-current={activeId === "runs" && location.pathname.startsWith("/runs") ? "page" : undefined}
-                        className="flex h-8 items-center rounded-md px-2 text-sm font-medium text-muted-foreground outline-none transition hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
-                        onClick={() => onSelect("runs")}
-                        to="/runs"
-                      >
-                        View runs
-                      </Link>
-                      <Link
-                        aria-current={activeId === "runs" && location.pathname.startsWith("/run") && !location.pathname.startsWith("/runs") ? "page" : undefined}
-                        className="flex h-8 items-center rounded-md px-2 text-sm font-medium text-muted-foreground outline-none transition hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
-                        onClick={() => onSelect("runs")}
-                        to="/run"
-                      >
-                        Run locally
-                      </Link>
-                    </div>
-                  </AccordionPanel>
-                </AccordionItem>
-              </Accordion>
-            </motion.li>
-            </ul>
-          </li>
-          <li className="shrink-0 border-t border-sidebar-border pt-2">
-            <motion.div variants={variants}>
-              {!isCollapsed && (
-                <News
-                  articles={productUseArticles}
-                  onArticleSelect={(article) => onSelect(article.navId ?? article.href)}
-                />
+        {/* Primary action */}
+        <div className="shrink-0 p-2">
+          <Link
+            aria-label="New Run"
+            className={cn(
+              "flex h-9 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-primary-foreground shadow-sm outline-none transition hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+              isCollapsed ? "mx-auto size-9" : "w-full",
+            )}
+            onClick={() => onSelect("run")}
+            title={isCollapsed ? "New Run" : undefined}
+            to="/run"
+          >
+            <Plus aria-hidden="true" className="size-4 shrink-0" strokeWidth={2.25} />
+            {!isCollapsed && <span>New Run</span>}
+          </Link>
+        </div>
+
+        {/* Main navigation */}
+        <motion.ul
+          className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-2 pb-2"
+          data-testid="sidebar-navigation"
+          variants={staggerVariants}
+        >
+          {items.map((item) => {
+            const active = item.id === activeId;
+            const Icon = item.icon;
+            return (
+              <motion.li key={item.id}>
+                <Link
+                  aria-current={active ? "page" : undefined}
+                  aria-label={item.title}
+                  className={cn(
+                    navItemClass,
+                    isCollapsed && "justify-center px-0",
+                    active
+                      ? "bg-primary/10 text-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                  onClick={() => onSelect(item.id)}
+                  title={isCollapsed ? item.title : undefined}
+                  to={item.href}
+                >
+                  <Icon
+                    aria-hidden="true"
+                    className={cn("size-4 shrink-0", active && "text-primary")}
+                    strokeWidth={active ? 2 : 1.75}
+                  />
+                  {!isCollapsed && <span>{item.title}</span>}
+                </Link>
+              </motion.li>
+            );
+          })}
+
+          {/* Runs: clicking navigates to the default runs view; the chevron reveals specifics */}
+          <motion.li>
+            <div
+              className={cn(
+                "flex items-center rounded-md",
+                isCollapsed && "justify-center",
+                runsActive ? "bg-primary/10" : "hover:bg-muted",
               )}
-            </motion.div>
-          </li>
-          <li className="shrink-0 border-t border-sidebar-border pt-2">
-            <motion.div variants={variants}>
-              {!isCollapsed && <WorkspaceProfile onSelect={onSelect} />}
-            </motion.div>
-          </li>
+            >
+              <Link
+                aria-current={runsActive ? "page" : undefined}
+                aria-label="Runs"
+                className={cn(
+                  navItemClass,
+                  "flex-1 bg-transparent hover:bg-transparent",
+                  isCollapsed && "justify-center px-0",
+                  runsActive ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+                onClick={() => onSelect("runs")}
+                title={isCollapsed ? "Runs" : undefined}
+                to="/runs"
+              >
+                <LayoutDashboard
+                  aria-hidden="true"
+                  className={cn("size-4 shrink-0", runsActive && "text-primary")}
+                  strokeWidth={runsActive ? 2 : 1.75}
+                />
+                {!isCollapsed && <span>Runs</span>}
+              </Link>
+              {!isCollapsed && (
+                <button
+                  aria-expanded={runsOpen}
+                  aria-label={runsOpen ? "Collapse runs" : "Expand runs"}
+                  className="mr-1 grid size-6 shrink-0 place-items-center rounded text-muted-foreground outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
+                  onClick={() => setRunsOpen((open) => !open)}
+                  type="button"
+                >
+                  <ChevronDown
+                    aria-hidden="true"
+                    className={cn("size-4 transition-transform duration-200", runsOpen && "rotate-180")}
+                  />
+                </button>
+              )}
+            </div>
+            {!isCollapsed && (
+              <div
+                className={cn(
+                  "grid transition-[grid-template-rows] duration-200 ease-out",
+                  runsOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+                )}
+              >
+                <div className="overflow-hidden">
+                  <div className="mt-0.5 flex flex-col gap-0.5 pl-8">
+                    <Link
+                      aria-current={viewRunsActive ? "page" : undefined}
+                      className={cn(
+                        subItemClass,
+                        viewRunsActive
+                          ? "text-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                      onClick={() => onSelect("runs")}
+                      to="/runs"
+                    >
+                      View runs
+                    </Link>
+                    <Link
+                      aria-current={runLocallyActive ? "page" : undefined}
+                      className={cn(
+                        subItemClass,
+                        runLocallyActive
+                          ? "text-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                      onClick={() => onSelect("runs")}
+                      to="/run"
+                    >
+                      Run locally
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.li>
         </motion.ul>
+
+        {/* Secondary area, anchored to the bottom */}
+        <div className="flex shrink-0 flex-col gap-2 border-t border-sidebar-border p-2">
+          {!isCollapsed && <SidebarHelpBanner onOpen={() => onSelect("run")} />}
+          <WorkspaceProfile
+            collapsed={isCollapsed}
+            onSelect={onSelect}
+            settingsActive={activeId === "settings"}
+          />
+        </div>
       </motion.div>
     </motion.div>
   );

@@ -64,7 +64,7 @@ describe("application routes", () => {
     expect(
       screen.getByRole("navigation", { name: "Primary" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Runs" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Runs" })).toHaveAttribute("href", "/runs");
     expect(screen.getByRole("link", { name: "Corpus" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "About" })).not.toBeInTheDocument();
     expect(screen.queryByText("Independent verification harness")).not.toBeInTheDocument();

@@ -1,6 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { configureBoneyard } from "boneyard-js/react";
+import "@fontsource-variable/lexend/index.css";
+import "@fontsource-variable/space-grotesk/index.css";
 import "./index.css";
 import { App } from "./app/App";
 import "./bones/registry";
