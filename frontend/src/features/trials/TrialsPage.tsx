@@ -49,7 +49,7 @@ export function TrialsPage() {
         <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           Historical manual trials · unblinded shadow evidence
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight">
+        <h1 className="text-3xl font-bold tracking-[-0.045em] md:text-4xl">
           Real-world compatibility trials
         </h1>
         <p className="max-w-3xl text-sm leading-6 text-muted-foreground">

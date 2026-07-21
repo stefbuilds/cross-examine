@@ -124,7 +124,17 @@ describe("application routes", () => {
 
     expect(await screen.findByRole("heading", { name: "Evidence, examined." })).toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "Primary" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Enter dashboard" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Enter dashboard" })).toHaveAttribute("href", "/evidence");
+  });
+
+  it("renders the welcome hero at the root URL", async () => {
+    const router = createMemoryRouter(appRoutes, { initialEntries: ["/"] });
+
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByRole("heading", { name: "Evidence, examined." })).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Primary" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Enter dashboard" })).toHaveAttribute("href", "/evidence");
   });
 
   it("renders the sourced verification-run empty state when no runs exist", async () => {
@@ -247,12 +257,12 @@ describe("application routes", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("routes evidence to root and submissions to /run without retaining an About route", async () => {
+  it("routes evidence to /evidence and submissions to /run without retaining an About route", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response(JSON.stringify(fixtureResponse), { status: 200 })),
     );
-    const router = createMemoryRouter(appRoutes, { initialEntries: ["/"] });
+    const router = createMemoryRouter(appRoutes, { initialEntries: ["/evidence"] });
 
     render(<RouterProvider router={router} />);
 

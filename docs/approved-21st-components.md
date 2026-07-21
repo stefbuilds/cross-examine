@@ -61,6 +61,16 @@ permission to edit these components as needed to preserve core functionality):
 - **Entropy** — the hardcoded black background and white particle color were
   parameterized to the primary theme color and a transparent surface; a
   reduced-motion static frame replaces the animation loop; size made responsive.
+  2026-07-21 (owner-authorized): particle velocity/return-to-order constants
+  slowed roughly 2x and dot size increased (2px → 3px) so the corpus
+  empty-state animation reads as calmer; the Corpus page instance size
+  increased 200 → 280 to match. Simulation logic and connective-line
+  structure are unchanged.
+- **Gradient shimmer configurator** — 2026-07-21 (owner-authorized): default
+  `duration` (1.45s → 3.2s) and `pauseBetween` (700ms → 900ms) slowed so the
+  rainbow sweep reads as calmer everywhere it's used (New Run hero,
+  in-progress run heading, checkout-form summary label). Gradient presets,
+  markup, and the animation mechanism are unchanged.
 - **Flickering grid** — used only as a `pointer-events-none`, masked, low-opacity
   decorative layer; a reduced-motion static frame added; theme color applied.
 - **Cards stack** — `motion/react` import changed to the project's `framer-motion`;

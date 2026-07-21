@@ -36,7 +36,7 @@ export function CorpusPage() {
         >
           <EmptyHeader>
             <div aria-hidden="true" className="mx-auto mb-2 overflow-hidden">
-              <Entropy className="mx-auto" size={200} />
+              <Entropy className="mx-auto" size={280} />
             </div>
             <EmptyTitle>No pinned checks yet</EmptyTitle>
             <EmptyDescription>

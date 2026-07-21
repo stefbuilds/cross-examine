@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/command";
 
 const destinations = [
-  { icon: Home, label: "Evidence catch", path: "/" },
+  { icon: Home, label: "Evidence catch", path: "/evidence" },
   { icon: Play, label: "Run locally", path: "/run" },
   { icon: History, label: "Run history", path: "/runs" },
   { icon: Library, label: "Behavioral corpus", path: "/corpus" },

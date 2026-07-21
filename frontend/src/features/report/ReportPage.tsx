@@ -47,7 +47,7 @@ export function ReportPage({
               </span>
             )}
           </div>
-          <h1 className="mt-2 max-w-3xl [overflow-wrap:anywhere] text-3xl font-semibold uppercase tracking-[-0.04em] text-foreground md:text-5xl">
+          <h1 className="mt-2 max-w-3xl [overflow-wrap:anywhere] text-3xl font-bold tracking-[-0.045em] text-foreground md:text-5xl">
             {report.repo}
           </h1>
           <p className="break-all font-mono text-xs text-muted-foreground">

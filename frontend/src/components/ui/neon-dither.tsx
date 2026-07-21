@@ -68,7 +68,7 @@ export function PaperDesignBackground({
       return {
         back: "#00000000",
         front: mix("#7F76CA", "#AC82DB", t * 0.35),
-        bg: "#F5F1FA",
+        bg: "#ffffff",
         speed: 0.22 + t * 0.28,
         px: Math.round(2 + t * 2),
         scale: 1.03 + t * 0.12,

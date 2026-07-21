@@ -30,7 +30,10 @@ const segmentPaths: Record<string, string> = {
 
 export function WorkspaceToolbar() {
   const location = useLocation();
-  const segments = location.pathname.split("/").filter(Boolean);
+  const segments = location.pathname
+    .split("/")
+    .filter(Boolean)
+    .filter((segment, index) => !(index === 0 && segment === "evidence"));
 
   return (
     <header className="sticky top-0 z-20 flex h-[54px] items-center justify-between gap-4 border-b bg-background/88 px-4 backdrop-blur-xl md:px-7">
@@ -40,7 +43,7 @@ export function WorkspaceToolbar() {
             {segments.length === 0 ? (
               <BreadcrumbPage>Evidence</BreadcrumbPage>
             ) : (
-              <Link className="transition-colors hover:text-foreground" to="/">Evidence</Link>
+              <Link className="transition-colors hover:text-foreground" to="/evidence">Evidence</Link>
             )}
           </BreadcrumbItem>
           {segments.map((segment, index) => {

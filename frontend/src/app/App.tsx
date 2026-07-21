@@ -42,6 +42,16 @@ function pageSkeletonName(pathname: string): string {
   return "evidence-page";
 }
 
+async function loadEvidenceLanding() {
+  const [fixture, runs] = await Promise.all([
+    loadBrokenFixture(),
+    loadRuns()
+      .then((value) => (Array.isArray(value) ? value : []))
+      .catch(() => []),
+  ]);
+  return { fixture, runs };
+}
+
 function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(
     () => typeof window === "undefined" || window.innerWidth >= 768,
@@ -52,10 +62,10 @@ function AppShell() {
   const destinationPath = navigation.location?.pathname ?? location.pathname;
 
   return (
-    <div className="flex min-h-screen bg-background/80">
+    <div className="flex h-screen overflow-hidden bg-background/80">
       <aside
         aria-hidden={!sidebarOpen}
-        className={`fixed inset-y-0 left-0 z-30 shrink-0 overflow-hidden bg-card shadow-xl transition-[width,opacity] duration-300 motion-reduce:transition-none md:static md:z-auto md:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-30 shrink-0 overflow-hidden bg-card shadow-xl transition-[width,opacity] duration-300 motion-reduce:transition-none md:sticky md:top-0 md:z-auto md:h-screen md:shadow-none ${
           sidebarOpen
             ? sidebarCollapsed
               ? "w-[15rem] opacity-100 md:w-[3.05rem]"
@@ -85,7 +95,7 @@ function AppShell() {
         />
       )}
 
-      <div className="min-w-0 flex-1">
+      <div className="h-screen min-w-0 flex-1 overflow-y-auto">
         <WorkspaceToolbar />
         <BoneyardSkeleton
           animate="shimmer"
@@ -117,22 +127,15 @@ function LoadingShell() {
 
 // oxlint-disable-next-line react/only-export-components -- route objects are exported for deterministic tests.
 export const appRoutes: RouteObject[] = [
+  { path: "/", element: <WelcomePage /> },
   { path: "welcome", element: <WelcomePage /> },
   {
     element: <AppShell />,
     hydrateFallbackElement: <LoadingShell />,
     children: [
       {
-        index: true,
-        loader: async () => {
-          const [fixture, runs] = await Promise.all([
-            loadBrokenFixture(),
-            loadRuns()
-              .then((value) => (Array.isArray(value) ? value : []))
-              .catch(() => []),
-          ]);
-          return { fixture, runs };
-        },
+        path: "evidence",
+        loader: loadEvidenceLanding,
         element: <EvidenceLandingPage />,
       },
       { path: "run", element: <RunLocallyPage /> },

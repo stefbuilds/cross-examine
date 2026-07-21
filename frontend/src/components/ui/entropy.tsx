@@ -52,11 +52,11 @@ export function Entropy({ className = "", size = 400, color = "#7f76ca" }: Entro
         this.y = y;
         this.originalX = x;
         this.originalY = y;
-        this.size = 2;
+        this.size = 3;
         this.order = order;
         this.velocity = {
-          x: (Math.random() - 0.5) * 2,
-          y: (Math.random() - 0.5) * 2,
+          x: (Math.random() - 0.5) * 0.9,
+          y: (Math.random() - 0.5) * 0.9,
         };
         this.influence = 0;
         this.neighbors = [];
@@ -78,13 +78,13 @@ export function Entropy({ className = "", size = 400, color = "#7f76ca" }: Entro
             }
           });
 
-          this.x += dx * 0.05 * (1 - this.influence) + chaosInfluence.x * this.influence;
-          this.y += dy * 0.05 * (1 - this.influence) + chaosInfluence.y * this.influence;
+          this.x += dx * 0.025 * (1 - this.influence) + chaosInfluence.x * this.influence;
+          this.y += dy * 0.025 * (1 - this.influence) + chaosInfluence.y * this.influence;
 
           this.influence *= 0.99;
         } else {
-          this.velocity.x += (Math.random() - 0.5) * 0.5;
-          this.velocity.y += (Math.random() - 0.5) * 0.5;
+          this.velocity.x += (Math.random() - 0.5) * 0.22;
+          this.velocity.y += (Math.random() - 0.5) * 0.22;
           this.velocity.x *= 0.95;
           this.velocity.y *= 0.95;
           this.x += this.velocity.x;

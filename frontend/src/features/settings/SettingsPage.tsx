@@ -13,7 +13,7 @@ const themes: { icon: typeof Sun; label: string; value: ThemeName }[] = [
 function ThemePreview({ value }: { value: ThemeName }) {
   const dark = value === "dark";
   return (
-    <div className={cn("overflow-hidden rounded-t-[var(--radius-sm)] border border-b-0 p-3", dark ? "border-zinc-700 bg-zinc-950" : "border-zinc-200 bg-[#faf8f3]")}>
+    <div className={cn("overflow-hidden rounded-t-[var(--radius-sm)] border border-b-0 p-3", dark ? "border-zinc-700 bg-zinc-950" : "border-zinc-200 bg-white")}>
       <div className="flex gap-2">
         <div className={cn("h-24 w-12 rounded-md", dark ? "bg-zinc-800" : "bg-[#ebe9e3]")} />
         <div className="flex-1 space-y-2 pt-1">

@@ -123,7 +123,7 @@ export function SessionNavBar({
               isCollapsed ? "hidden" : "flex",
             )}
             onClick={() => onSelect("evidence")}
-            to="/"
+            to="/evidence"
           >
             <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded bg-primary font-heading text-[9px] font-bold text-primary-foreground">
               X_

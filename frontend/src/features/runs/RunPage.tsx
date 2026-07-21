@@ -117,7 +117,7 @@ export function RunProgressView({
         <p className="eyebrow">
           Live verification · {run.id}
         </p>
-        <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-[-0.04em] md:text-6xl">
+        <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-[-0.045em] md:text-6xl">
           {failed ? "Verification stopped" : <GradientShimmer>Cross-examination in progress</GradientShimmer>}
         </h1>
         {run.repo ? (
