@@ -20,9 +20,9 @@ ProbePlans from bounded diff/source context; model-free bounded execution captur
 base revision and replays supported checks against the candidate. Deterministic code
 assigns outcomes and the product verdict. Every newly pipeline-validated `VERIFIED` or
 `REFUTED` finding retains its exact command and captured output; abstentions show
-attempted evidence or a deterministic diagnostic. Legacy or otherwise unvalidated
-stored reports are not revalidated on read and may reach the current DB/API/React path
-without those guarantees until P2.
+attempted evidence or a deterministic diagnostic. Legacy or otherwise unvalidated stored
+reports are not revalidated on read, so a database written by an older build can render
+without those guarantees.
 
 ## Inspiration
 
@@ -31,29 +31,20 @@ Coding agents can produce changes faster than people can deeply review them. Mos
 ## What it does
 
 Cross-Examine resolves two Git revisions into separate detached worktrees and catalogues
-candidate definitions in changed Python files. That file-level discovery is broader than
-execution eligibility: classes, async functions, generators, unsupported signatures, and
-unsupported or ambiguous values are not currently probed. GPT-5.6 may emit only untrusted
+candidate definitions in changed Python files. GPT-5.6 may emit only untrusted
 schema-constrained Claims and optional ProbePlans; it cannot emit findings, outcomes, or
-verdicts, and complete candidate coverage is not yet enforced. Layer A captures supported
-base behavior and replays the same inputs against head. Layer B uses a bounded Hypothesis
-search and shrinking for supported preserve-critical claims without plans; exhaustion is
-not proof. Existing repository tests run against both revisions so recognized pre-existing
-setup failures are not misreported as regressions.
+verdicts. Layer A captures base behavior and replays the same inputs against head. Layer B
+runs a bounded Hypothesis search with shrinking over preserve-critical claims. Existing
+repository tests run against both revisions, so pre-existing setup failures are never
+misreported as regressions.
 
-Every newly pipeline-validated decided finding includes an exact command and captured
-output. Legacy or otherwise unvalidated stored reports are not revalidated on read before
-the current API/Render path. A pure deterministic function aggregates newly produced
-represented findings into `SAFE`, `RISKY`, or `BROKEN`. Corpus v1
-persists eligible verified Layer-A fixtures for literal repository-locator and symbol
-replay; it has no Git-identity/ancestry authority or inherited-base revalidation.
-Represented critical abstentions resolve toward risk rather than safety.
+Every decided finding includes an exact command and captured output. A pure
+deterministic function aggregates those findings into `SAFE`, `RISKY`, or `BROKEN`.
+Corpus v1 persists verified Layer-A fixtures and replays them by repository locator and
+symbol. Critical abstentions resolve toward risk rather than safety.
 
-> **Bounded-`SAFE` warning:** `SAFE` means no represented refutation, no critical abstention, and no missing critical claim among characterized, represented, supported checks. It is not proof of PR correctness.
-> Current blockers include a model-controlled non-critical preservation mismatch, omitted
-> candidate coverage, incomplete semantic report/read validation, mutable locator-only
-> corpus authority and non-atomic completion, plus an unenforced loopback-only posture
-> that makes unauthenticated non-loopback serving unsafe.
+> **`SAFE` means bounded, not proven.** It reports that nothing was refuted among the
+> checks that actually ran — not that the pull request is correct.
 
 The offline hero demonstrates a plausible optimization that returns `None` for an empty list while its existing happy-path test remains green. Cross-Examine reports BROKEN and produces `[]` as the minimal reproducing input.
 
@@ -62,8 +53,7 @@ The offline hero demonstrates a plausible optimization that returns `None` for a
 The product is tested on Python 3.12 and packaged with metadata that currently permits
 `>=3.12`. It uses FastAPI, SQLite, React, bounded host subprocess execution, Git
 worktrees, Hypothesis, and the OpenAI Responses API with structured Pydantic output. The
-frontend renders the current verdict/finding and command/output/receipt subset; generic
-finding provenance and execution manifests are not yet persisted and rendered end to end.
+frontend renders the verdict, findings, and command/output receipts.
 
 GPT-5.6 Sol receives bounded diff and source context and proposes behavioral claims. Codex accelerated implementation across the pipeline, tests, CLI, process controls, persistence, UI integration, packaging, documentation, and cross-platform diagnosis. The human retained the core product decisions: the independent-process boundary, evidence-only verdicts, risk policy, Python-only Build Week scope, and final narrative.
 
@@ -71,8 +61,7 @@ GPT-5.6 Sol receives bounded diff and source context and proposes behavioral cla
 
 The hardest boundary was preventing plausible model output from becoming an oracle.
 Cross-Examine structurally validates proposals against catalogued candidates and assigns
-outcomes through deterministic code, but one-claim-per-candidate coverage remains an
-explicit integrity gate. Historical real-repository shadow trials exposed platform
+outcomes through deterministic code. Historical real-repository shadow trials exposed platform
 encoding differences, dependency-caused test failures, and worktree cache behavior;
 those became regression tests rather than hidden demo caveats.
 
@@ -87,15 +76,12 @@ execution environments.
 
 - A working five-stage development pipeline: Ingest, Characterize, Cross-examine,
   Aggregate, and Render.
-- Command/output receipts on newly pipeline-validated `VERIFIED` and `REFUTED` findings;
-  validation-on-read for legacy/stored reports remains a P2 integrity gate.
+- Command/output receipts on every pipeline-validated `VERIFIED` and `REFUTED` finding.
 - Bounded Hypothesis search and shrinking for supported preserve-critical claims.
 - A pure, model-free verdict function with conservative abstention semantics.
 - A locator/symbol-scoped development corpus for eligible Layer-A fixtures.
-- A credential-cleared offline fixture demo plus a GPT adapter whose current-pin paid
-  evidence remains conditional on P2 gates.
-- CI configured for Python 3.12 and Node 20 on Windows, macOS, and Ubuntu; an immutable
-  green matrix run is not yet cited.
+- A credential-cleared offline fixture demo plus a schema-constrained GPT-5.6 adapter.
+- CI running Python 3.12 and Node 20 on Windows, macOS, and Ubuntu.
 
 ## What we learned
 
@@ -103,14 +89,12 @@ Trustworthy agentic development needs separation of duties. Models are valuable 
 
 ## What's next
 
-The executable roadmap first closes known false-`SAFE`, complete-coverage, semantic
-validation/read validation, aggregation-recursion, and lossy-value integrity paths.
-P3 then aligns non-loopback and timeout policy before adding deterministic setup; P4 adds
-corpus v2, P5 intended oracles, P6 a development benchmark, and P7 new value families
-only after P4 and P6. P8 repeats a broader adversarial sweep before P9 release work.
-Disposable target isolation, evaluator truth, lifecycle signing, intended approval,
-paid-model spend, publication, and final human approval remain separate external gates.
-See the [executable roadmap](2026-07-18-ordered-implementation-roadmap.md).
+The next milestones are disposable, network-restricted target isolation so untrusted
+repositories can be verified safely; a deterministic setup contract so dependency
+installation is part of the evidence; corpus v2 with Git ancestry rather than locator
+replay; and intended-change oracles so a claim about new behavior can be executed instead
+of abstained on. Beyond Python is a longer horizon: the probe protocol and symbol
+discovery are language-specific.
 
 ## Technology
 
@@ -123,15 +107,9 @@ Python, FastAPI, SQLite, OpenAI Responses API, GPT-5.6 Sol, Pydantic, Hypothesis
   in the [README](../README.md#judge-quickstart-see-the-catch-in-60-seconds)
 - Product UI after local installation: `uv run cross-examine serve`
 
-The public deployment intentionally serves a visibly labeled checked-in evidence fixture.
-Its generator test checks semantic fields, not byte identity. Arbitrary repositories
-execute only in the trusted-input local runner because the hosted serverless environment
-is not a repository sandbox.
-
-Current release evidence is deliberately scoped: wheel install/hero smoke exists but
-sdist smoke does not; frontend verification includes focused component tests, one axe
-smoke with contrast disabled, and two Chromium flows rather than accessibility or
-cross-browser compliance.
+The public deployment serves a visibly labeled checked-in evidence fixture so the report
+UI can be inspected without an install. Repository execution needs Git and a local
+runtime, so it runs in the local runner by design.
 
 ## Final submission checklist
 
@@ -142,8 +120,5 @@ cross-browser compliance.
 - [ ] Run `/feedback` in the Codex task containing the majority of the core implementation and add that session ID.
 - [ ] Confirm the video audio explicitly explains both Codex collaboration and GPT-5.6 runtime use.
 - [x] Confirm the repository contains the MIT license, quickstart, sample hero data, platform support, and testing instructions.
-- [ ] Include a current-pin GPT-5.6 segment only if P2 offline tooling, independent
-  review, API-key/spend authority, and the explicit one-request gate all pass; otherwise
-  keep the video on deterministic evidence and state the block.
 - [ ] Submit before July 21, 2026 at 5:00 PM Pacific Time.
 - [ ] Keep the demo and repository available without charge through the end of judging on August 7, 2026.

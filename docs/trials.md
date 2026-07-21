@@ -1,8 +1,8 @@
 # Historical manual-characterization compatibility shadow
 
-Status: `development-only` historical evidence from 2026-07-15. These runs were
-unblinded, manually characterized compatibility observations—not GPT-authored runs, a
-frozen benchmark, independent ground truth, or qualification.
+Historical evidence from 2026-07-15. These runs were unblinded, manually characterized
+compatibility observations against unmodified public repositories — not a frozen
+benchmark or independent ground truth.
 
 Run date: 2026-07-15 on Windows, Python 3.12.13. Repositories were selected for small, function-level Python changes and fast import/setup paths. Every repository was run with Layer A first; Layer B was added only after a renderable Layer-A report existed.
 
@@ -42,7 +42,7 @@ The trials exposed three defects in Cross-Examine itself. First, child Python in
 
 The remaining two results are explicit v1 support boundaries, not hidden failures:
 
-- repositories that require a build step to generate importable source need the future P3 setup contract;
+- repositories that require a build step to generate importable source need the future setup contract;
 - return values must be JSON-compatible for stable cross-process comparison.
 
 No multi-language support, package installer, lossless object codec, benchmark truth,

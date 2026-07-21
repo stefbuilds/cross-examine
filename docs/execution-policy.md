@@ -5,9 +5,8 @@ trusted-input host-process adapter, **not a sandbox**. Use it only for
 repositories and revisions an operator is willing to execute with their local
 account permissions.
 
-Status: `implemented` for the stated trusted-input command boundary;
-`development-only` as a service/release boundary. See the authoritative
-[capability matrix](capability-status.md).
+This policy governs the trusted-input command boundary. See the
+[capability matrix](capability-status.md) for current scope.
 
 Each command is governed by a typed `ExecutionPolicy`. The policy records a
 version and stable identity, wall-clock and output limits, allowed executable

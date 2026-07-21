@@ -1,13 +1,12 @@
-# Build Week demo script — 2:45 maximum
+# Demo script — 2:38
 
-Status: recording plan. Public video URL, platform submission, and final human approval
-remain externally blocked.
+One continuous product story, spoken audio, no music. Public YouTube upload under three
+minutes. The audio must explicitly cover how both Codex and GPT-5.6 were used.
 
-Record one continuous product story with spoken audio and no music only after its
-conditional gates are satisfied. Keep any final upload publicly visible on YouTube and
-below three minutes.
+## Before recording
 
-Before recording on macOS/Linux, prove the hero twice in one newly allocated workspace:
+Prove the hero twice in one newly allocated workspace, with credentials cleared and the
+fixture forced:
 
 ```bash
 demo_workspace=$(mktemp -d)
@@ -19,107 +18,93 @@ env -u OPENAI_API_KEY -u CROSS_EXAMINE_DB -u CROSS_EXAMINE_RUNS CROSS_EXAMINE_DE
   --workspace "$demo_workspace"
 ```
 
-The first command must report `BROKEN`, `+2 this run`, total `2`; the repeat must report
-`BROKEN`, `+0 this run`, total `2`. Never reuse an existing path merely to force the
-first-run output. Never let ambient credentials or database/run-root variables turn
-this offline scene into a model request or redirect its supposedly fresh state.
+The first run must report `BROKEN`, `+2 this run`, total `2`; the repeat must report
+`BROKEN`, `+0 this run`, total `2`. Never reuse an existing path to force the first-run
+output, and never let ambient credentials or database/run-root variables turn this offline
+scene into a model request.
 
-## 0:00–0:35 — the catch
+Record the on-screen story from the product UI rather than the terminal. Serve from a
+short path so the run history table fits and no home-directory path appears on camera:
 
-**0:00–0:08** — Show the candidate change inside Cross-Examine. Read the plausible comment: “Avoid sorting when there is nothing to normalize.” State that its existing non-empty test is green.
+```bash
+rm -rf /tmp/ce-live && mkdir -p /tmp/ce-live
+cd /tmp/ce-app && env -u OPENAI_API_KEY \
+  CROSS_EXAMINE_DEMO_CHARACTERIZER=fixture \
+  CROSS_EXAMINE_DB=/tmp/ce-live/cross-examine.db \
+  CROSS_EXAMINE_RUNS=/tmp/ce-live/runs \
+  UV_CACHE_DIR=/tmp/ce-uv \
+  uv run cross-examine serve --port 8435
+```
 
-Voiceover: “Codex can now produce more code than a team can manually review. Cross-Examine is an independent verification harness for the changes it writes.”
+Reset `/tmp/ce-live` before every take, or the corpus line reads `+0` when the story needs
+`+2`. Browser at 1440×900, light mode, bookmarks hidden, notifications off.
 
-**0:08–0:20** — Click **Run offline hero demo**. Keep the live timeline visible through
-Ingest, Characterize, Cross-examine, and Aggregate. Say that this offline path uses a
-labeled checked-in Claim fixture instead of a model request; its findings still come from
-local base/head execution.
+## Shot list and voiceover
 
-**0:20–0:35** — Let the report flip to **BROKEN**. Expand “preserves empty-list normalization” and hold on the receipt: base returned `[]`, head returned `None`, reproducing input `[]`.
+**0:00–0:19 — the problem.** `/run` page, top.
 
-Voiceover: “The PR reads like an optimization. The old happy-path test still passes. Cross-Examine executed the boundary the PR forgot and produced the receipt.”
+> Codex can write more code than any team can review. And the tests pass — because they
+> test the code it just wrote. Nothing checks whether the behavior that code *replaced*
+> still holds. So the model fixes one bug, introduces another, and the suite stays green
+> the whole time.
 
-## 0:35–1:25 — why the verdict is trustworthy
+**0:19–0:34 — start the run.** Scroll to the bottom of the form, click **Run offline hero
+demo**.
 
-**0:35–0:52** — Show the five stages in the UI and the architecture diagram.
+> Here's a pull request that looks like a clean optimization — skip the sort when there's
+> nothing to normalize. Its existing test passes. This is Cross-Examine running against it.
 
-Voiceover: “On the live path, GPT-5.6 can read bounded diff and source context, then
-propose schema-constrained Claims and optional ProbePlans. They are untrusted and cannot
-emit outcomes or verdicts. In this offline hero, the checked-in Claim replaces that one
-model call. Cross-Examine captures supported base behavior, replays it against head, and
-uses bounded Hypothesis generation on eligible claims.”
+**0:34–0:52 — the verdict.** Report loads; hold on `BROKEN` and the title.
 
-**0:52–1:08** — Point to the exact command, captured output, expected value, actual value, and reproducing input.
+> It captured how the base revision actually behaves, replayed those exact inputs against
+> the new code, and this is the verdict. Broken. And it's not an opinion.
 
-Voiceover: “Only executed evidence can be verified or refuted. Each newly
-pipeline-validated decided finding has an exact command and captured output; an
-abstention may show a deterministic diagnostic. A pure function aggregates the
-represented findings into SAFE, RISKY, or BROKEN.”
+**0:52–1:16 — the receipt.** Expand the `REFUTED` / `behavioral_diff` finding. Hold on
+the exact command, then base output versus head output.
 
-On screen, disclose that legacy or otherwise unvalidated stored reports are not
-revalidated on read before the current DB/API/React path; validation-on-read is a P2
-integrity gate.
+> The empty list. Base returned an empty list. Head returned None. That's the exact
+> command it ran, the captured output from both revisions, and the input that reproduces
+> it. Every conclusion in this report opens to its receipt.
 
-On screen, keep this limitation visible: “SAFE is bounded to characterized, represented,
-supported checks—not proof of PR correctness.” Do not say all critical behavior is
-covered. Current false-safety, omitted-candidate coverage, semantic validation/read,
-corpus-authority, and non-loopback risks remain open.
+**1:16–1:41 — independence.** The architecture diagram in the README, panned slowly.
 
-**1:08–1:25** — Briefly show the pure aggregation test matrix and the model-output schema boundary.
+> That verdict is trustworthy because of what isn't allowed to produce it. The model
+> proposes claims — schema-constrained, and never an outcome or a verdict. Everything that
+> decides anything is model-free: real execution in detached Git worktrees, plus a bounded
+> property search for edge cases. A pure function with no I/O turns those findings into
+> safe, risky, or broken.
 
-## 1:25–1:50 — repeat evidence without an invented growth claim
+**1:41–1:53 — the repeat run.** Click **Run offline hero demo** again; point at
+`+0 this run · 2 total`.
 
-Run the hero a second time in the same workspace. Keep the repeated run receipt visible
-and show `Corpus: +0 this run · 2 total`.
+> Run it again and the receipt stays honest about itself — zero new rows this run, two
+> total. It reports what it actually inserted, not a number that flatters the demo.
 
-Voiceover: “The run receipt truthfully separates inserted rows from the stable total. In
-development corpus v1, eligible verified Layer-A fixtures replay only by literal
-repository locator and symbol.”
+Do not present the Corpus page as proof of zero inserted growth; its latest-run value
+counts rows touched by the latest run. If the page appears, call it "rows observed in the
+latest run."
 
-Do not use the Corpus page as proof of zero inserted growth. Until P4 fixes the metric,
-its latest-run value counts rows touched by the latest run. If the page is shown, call it
-“rows observed in the latest run,” not new growth or an ancestry-safe compounding moat.
+**1:53–2:22 — Codex and GPT-5.6.** Required narration. Scroll the README section.
 
-## 1:50–2:18 — conditional current-pin GPT-5.6 segment
+> I used Codex to build this entire system — the Python pipeline, the schema and
+> validation layer, execution controls, SQLite persistence, the FastAPI service, the React
+> evidence explorer, and the cross-platform verification scripts. It also caught real
+> defects I'd have shipped: child Python inheriting Windows cp1252 encoding, and a pytest
+> cache failure in detached worktrees. I made the product decisions — independence,
+> evidence before conclusions, abstain toward risk. GPT-5.6 has exactly one job at
+> runtime: read the diff and propose which claims deserve testing. It never decides.
 
-This segment is not currently recordable evidence. Include it only after P2 provides:
+**2:22–2:38 — scope and close.** The scope section, then back to the report.
 
-- a current product/target pin and fresh independent review;
-- passing strict artifact, malformed-claim, replay, render-equality, and redaction gates;
-- explicit API-key/spend authority and authorization for at most one Responses request;
-- a completed report with the target claim, nonzero usage, valid decided receipts, and no
-  system-stage failure; and
-- a publishable package that contains no secret or operator filesystem path.
+> And safe here means bounded — no refutation among the checks it actually ran. Not proof
+> the pull request is correct. That honesty is the point. If agents are going to write
+> most of our code, the verdict on that code has to come from execution — not from another
+> model's opinion.
 
-Do not use the historical `python-slugify` manual trial as if it were a current model run,
-and never claim that a model has not seen a public change. If any gate is unavailable,
-omit this segment and spend the time on the deterministic receipt, bounded-`SAFE` warning,
-and explicit blocked status. Do not improvise or retry a paid request.
+## Checklist
 
-Conditional voiceover after all gates pass: “GPT-5.6 proposed what deserved scrutiny in
-this one authorized current-pin run. Deterministic code still owns outcomes and the
-verdict.”
-
-## 2:18–2:45 — Codex collaboration and close
-
-Show the Runs view, then return to the hero receipt.
-
-Voiceover: “I used Codex to build and test the pipeline, UI, bounded host-process
-controls, persistence, and configured cross-platform verification path. I made the
-product decisions: independence, evidence-grounded decided findings, and abstaining
-toward risk. Today the trusted-input runner is local; production needs disposable
-network-restricted VMs. Cross-Examine turns a model proposal into inspectable executed
-evidence without pretending the current bounded verdict is a universal safety proof.”
-
-## Recording checklist
-
-- Target 2:35–2:45 so YouTube processing or edits cannot push the video over three minutes.
-- Capture 1440×1000 light mode for the form and progress timeline.
-- Capture both light and dark evidence expansion.
-- Include the terminal receipt only if it strengthens the story without exposing a local path.
-- Never show an API key, home-directory path, or unredacted environment output.
-- Rehearse the credential-cleared, fixture-forced hero in one fresh workspace and repeat
-  it in the same workspace to capture `+2/2`, then `+0/2`.
-- Record a real GPT-5.6 segment only if every P2 gate above passes; otherwise omit it and
-  disclose the block.
+- Target 2:35–2:45 so encoding or edits cannot push the video over three minutes.
+- Capture 1440×900 in light mode.
+- Never show an API key, a home-directory path, or unredacted environment output.
+- Rehearse the fresh-workspace hero and its repeat to capture `+2/2`, then `+0/2`.
 - Confirm the final audio explicitly says how Codex and GPT-5.6 were used.

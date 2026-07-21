@@ -1,8 +1,7 @@
 # ProbePlan execution contract
 
-Status: `development-only` v1 proposal path. The reliable current path is list-based,
-single-seed, and non-minimizing. See the authoritative
-[capability matrix](capability-status.md).
+The v1 proposal path is list-based, single-seed, and non-minimizing. See the
+[capability matrix](capability-status.md) for current scope.
 
 `ProbePlan` is an optional, versioned proposal attached to a characterized
 claim. It never carries a verdict. The only supported oracle category is

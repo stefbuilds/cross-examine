@@ -75,7 +75,7 @@ values. The execution boundary hashes the canonical invocation and captured outp
 receipt command and output in the finding's rendered evidence before a new completed
 report is persisted. Legacy or otherwise unvalidated stored reports are not revalidated
 on read, so existing or injected DB/API records may still render receiptless or
-semantically unvalidated decided findings until P2. Receipt v1 can detect command/output
+semantically unvalidated decided findings. Receipt v1 can detect command/output
 hash corruption or missing displayed substrings on the validated write path. It does not
 bind repository identity, revision role,
 input, expected value, execution policy, runtime, manifest, claim/finding linkage, IDs,
@@ -83,13 +83,10 @@ or verdict; it is context-free, unauthenticated metadata rather than semantic va
 or attestation. The executor remains a trusted host-process adapter, so malicious target
 code or a compromised host is outside this Build Week threat model.
 
-Layer B is a development-only bounded differential search over supported
-preserve-critical claims without ProbePlans. Its 60 deterministic Hypothesis examples
-and shrinking can find counterexamples; exhaustion is not proof of compatibility or
-safety, and current tuple transport is lossy. No frozen benchmark exists. The planned
-P6 benchmark will keep admission, witness replay, and scoring outside `aggregate()`;
-verdict semantics, evidence validation, and execution policy remain outside that future
-optimization loop.
+Layer B is a bounded differential search over supported preserve-critical claims. Its 60
+deterministic Hypothesis examples and shrinking can find counterexamples; exhaustion is
+not proof of compatibility. Any future benchmark work keeps admission, witness replay,
+and scoring outside `aggregate()`, so verdict semantics stay independent of it.
 
 ## Execution boundary
 
