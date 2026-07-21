@@ -104,16 +104,14 @@ export function RunProgressView({
         <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-[-0.04em] md:text-6xl">
           {failed ? "Verification stopped" : <GradientShimmer>Cross-examination in progress</GradientShimmer>}
         </h1>
-        <p className="page-copy mt-4 break-words">
-          {run.repo ? (
-            <>
-              <span className="font-mono text-sm text-foreground">{run.repo}</span>
-              <span className="mx-2 font-mono text-sm text-muted-foreground">
-                {run.base_ref} → {run.head_ref}
-              </span>
-            </>
-          ) : null}
-        </p>
+        {run.repo ? (
+          <p className="page-copy mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <span className="[overflow-wrap:anywhere] font-mono text-sm text-foreground">{run.repo}</span>
+            <span className="break-all font-mono text-sm text-muted-foreground">
+              {run.base_ref} → {run.head_ref}
+            </span>
+          </p>
+        ) : null}
         <p className="page-copy mt-2">
           {failed
             ? "The run stopped before a verdict. This is an execution failure, not a finding about the change."

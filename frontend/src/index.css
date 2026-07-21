@@ -152,7 +152,7 @@
 
 @layer components {
   .page-shell { @apply mx-auto grid w-full max-w-6xl gap-7 p-5 md:p-9 lg:p-12; }
-  .page-header { @apply flex flex-col gap-5 border-b-2 border-foreground pb-7 md:flex-row md:items-end md:justify-between; }
+  .page-header { @apply flex min-w-0 flex-col gap-5 border-b-2 border-foreground pb-7 md:flex-row md:items-end md:justify-between; }
   .eyebrow { @apply font-heading text-xs font-semibold uppercase tracking-[0.2em] text-primary; }
   .page-title { @apply max-w-3xl text-4xl font-semibold uppercase leading-[0.95] tracking-[-0.045em] md:text-6xl; }
   .page-copy { @apply max-w-2xl text-sm leading-6 text-muted-foreground md:text-base; }
