@@ -1,6 +1,8 @@
-# OpenAI Build Week 2026 — Cross-Examine
+# Cross-Examine
 
 > **Codex writes the code. Cross-Examine puts it on the stand.**
+>
+> OpenAI Build Week 2026 · **Track: Developer tools** (testing · agentic workflows)
 >
 > Git worktrees → GPT-5.6 Sol claims → trusted-input base/head execution → pure `aggregate()` → FastAPI/React report.
 
@@ -12,26 +14,29 @@
 ![Hackathon Submission](https://img.shields.io/badge/Build%20Week-submission-8A2BE2)
 [![Live evidence explorer](https://img.shields.io/badge/Live-evidence%20explorer-000000)](https://cross-examine-six.vercel.app)
 
-Cross-Examine is an independent verification harness for Codex-authored Python changes.
-It captures the base revision's behavior, executes the head revision against the same
-inputs, and hunts adversarial boundaries. Newly executed reports that pass pipeline
-validation show the exact command and captured output for every `VERIFIED` or `REFUTED`
+**The problem.** Agent-authored code passes the tests that exist. Nothing checks whether the
+behavior it replaced still holds — so the model fixes one bug, introduces another, and the
+suite stays green throughout. Anyone merging Codex-authored pull requests is reviewing a
+diff with no evidence about the behavior that diff silently changed.
+
+**The tool.** Cross-Examine is an independent verification harness for Codex-authored Python
+changes. It captures the base revision's behavior, executes the head revision against the
+same inputs, and hunts adversarial boundaries. Newly executed reports that pass pipeline
+validation show the exact command and captured output behind every `VERIFIED` or `REFUTED`
 finding. Abstentions show attempted evidence or a deterministic diagnostic instead of
-fabricating a receipt. Legacy or otherwise unvalidated stored reports are not revalidated
-on read and may reach the DB/API/React path without those guarantees until the P2
-integrity gate lands.
+fabricating a receipt.
 
-Agent-authored code passes the tests that exist. Nothing checked whether the behavior it replaced still holds — so the model fixes one bug, introduces another, and the suite stays green throughout.
-
-The catch is the product: a plausible optimization returns `None` for an empty list, the existing happy-path test stays green, and Cross-Examine produces `BROKEN` with `[]` as the reproducing input.
+**The catch is the product.** A plausible optimization returns `None` for an empty list, the
+existing happy-path test stays green, and Cross-Examine returns `BROKEN` with `[]` as the
+reproducing input — reproducible in 60 seconds from a clean checkout by the command below.
 
 ## Contents
 
 - [Judge quickstart: see the catch in 60 seconds](#judge-quickstart-see-the-catch-in-60-seconds)
+- [How Codex and GPT-5.6 were used](#how-codex-and-gpt-56-were-used)
 - [Why this is not a Codex skill](#why-this-is-not-a-codex-skill)
 - [Architecture](#architecture)
 - [Safety limitation](#safety-limitation)
-- [Human decisions versus Codex decisions](#human-decisions-versus-codex-decisions)
 - [License](#license)
 
 Also in this repo: [requirements](#requirements) · [directory map](#directory-map) · [Windows setup](#windows-powershell-setup) · [real repository runs](#real-repository-run) · [tests](#tests) · [video outline](#three-minute-video-outline)
@@ -77,7 +82,52 @@ server reads the same workspace-local database and run root, so the exact comman
 output, head output, expected value, actual value, and reproducing input come from that
 pipeline-validated persisted report.
 
-**Zero-install option:** the [live evidence explorer](https://cross-examine-six.vercel.app) serves an explicitly labeled, checked-in evidence fixture. Vercel Functions do not provide the Git and local-runtime capabilities required to execute repositories, so arbitrary repository analysis is intentionally local-only — the quickstart above runs the real five-stage pipeline.
+**Test it without building anything.** The [live evidence explorer](https://cross-examine-six.vercel.app)
+is a deployed demo instance — no clone, no install, no API key. It serves an explicitly
+labeled, checked-in evidence fixture so the report UI, the exact-command receipts, and the
+verdict surface can be inspected directly in a browser. Vercel Functions do not provide the
+Git and local-runtime capabilities required to execute repositories, so arbitrary repository
+analysis is intentionally local-only — the quickstart above runs the real five-stage pipeline.
+
+**Supported platforms.** macOS, Linux, and Windows. The commands above are macOS/Linux; the
+equivalent [Windows PowerShell setup](#windows-powershell-setup) is below. CI exercises
+Python 3.12 on all three.
+
+## How Codex and GPT-5.6 were used
+
+**Where Codex accelerated the work.** Codex authored and iterated the whole application:
+the Python pipeline, the schema and validation layer, execution controls, SQLite
+persistence, the FastAPI service, the React evidence explorer, the CLI, packaging, the
+cross-platform verification scripts, and the test suite. It also did the work that is easy
+to underestimate — diagnosing a Windows `cp1252` child-encoding failure, a pytest-cache
+rename denial in detached worktrees, and the dependency-shaped false positives documented
+in [docs/trials.md](docs/trials.md) — each of which changed the execution policy rather
+than just the code. The dated Git history and the Codex session supplied with the Devpost
+submission show that progression.
+
+**Where the key decisions were made.** The human held product authority throughout; Codex
+chose the implementation. The split was deliberate and is the reason the verdict is
+trustworthy: every doctrine on the left constrains what the code on the right is allowed
+to conclude.
+
+| Human-provided doctrine | Codex-chosen implementation |
+| --- | --- |
+| Problem selection and Python-only scope | FastAPI / SQLite / React stack |
+| The contract and five-stage structure | Worktree and subprocess mechanics |
+| Abstain-toward-risk policy | Edge catalog and Hypothesis bounds |
+| Layer-A-before-Layer-B sequencing | Persistence and SSE protocol |
+| Trusted-input execution boundary | CLI surface and deterministic hero construction |
+| Build Week deadline | Component selection and adaptation |
+| Interface design requirement | Responsive behavior, tests, packaging |
+| Evidence doctrine and final submission story | Cross-platform diagnosis, release verification |
+
+**How GPT-5.6 is used at run time.** GPT-5.6 Sol (`gpt-5.6-sol`) reads bounded diff and
+source context and emits schema-constrained Claims plus optional ProbePlans. It never emits
+an outcome or a verdict. Malformed, duplicate, unknown-target, or forbidden structured
+fields are rejected; proposal text stays untrusted, and complete candidate coverage remains
+an open limitation. The model is a deliberately constrained component rather than the
+judge — it proposes behavioral claims, while model-free execution supplies the evidence and
+a pure deterministic `aggregate()` decides the product verdict.
 
 ## Why this is not a Codex skill
 
@@ -99,70 +149,76 @@ boundary.
 ---
 config:
   theme: base
-  look: neo
   layout: dagre
   themeVariables:
-    fontFamily: 'ui-sans-serif, -apple-system, Segoe UI, sans-serif'
+    fontFamily: 'ui-sans-serif, -apple-system, Segoe UI, Helvetica, Arial, sans-serif'
     fontSize: 14px
-    lineColor: '#64748b'
-    primaryTextColor: '#0f172a'
+    lineColor: '#9ca3af'
+    primaryTextColor: '#111827'
+    edgeLabelBackground: '#ffffff'
+    tertiaryTextColor: '#4b5563'
   flowchart:
     curve: basis
-    nodeSpacing: 55
+    nodeSpacing: 44
     rankSpacing: 60
-    padding: 18
+    padding: 16
     htmlLabels: true
 ---
 flowchart TB
-  PR["<b>Python diff</b><br/><code>base..head</code>"]:::input
+  PR["<b>Python diff</b><br/>base to head"]:::input
 
-  subgraph U ["UNTRUSTED PROPOSAL"]
+  subgraph U ["UNTRUSTED PROPOSAL — model-authored, schema-constrained"]
     direction LR
-    I["<b>Ingest</b><br/>Git worktrees · changed-file candidates"]:::untrusted
-    C["<b>Characterize</b><br/>Claims + optional ProbePlans<br/><b>never a verdict</b>"]:::untrusted
+    I["<b>1 · Ingest</b><br/>Git worktrees<br/>changed-file candidates"]:::untrusted
+    C["<b>2 · Characterize</b><br/>GPT-5.6 Sol<br/>claims, never a verdict"]:::untrusted
     I --> C
   end
 
-  subgraph EX ["GROUNDED EXECUTION · model-free bounded"]
+  subgraph EX ["3 · CROSS-EXAMINE — model-free, bounded, deterministic"]
     direction LR
-    LA["<b>Layer A</b><br/>base capture → head replay"]:::grounded
-    LB["<b>Layer B</b><br/>bounded Hypothesis + shrink"]:::grounded
-    RT["<b>Repository tests</b><br/>discovered command → finding"]:::grounded
+    LA["<b>Layer A</b><br/>base capture<br/>head replay"]:::grounded
+    LB["<b>Layer B</b><br/>bounded Hypothesis<br/>and shrink"]:::grounded
+    RT["<b>Repository tests</b><br/>discovered command"]:::grounded
     LA --> LB --> RT
   end
 
-  P[("<b>Development corpus v1</b>")]:::corpus
-  AG{{"<b>aggregate()</b><br/>pure · no IO · no model"}}:::pure
-  R["<b>Report</b><br/>SQLite + grounded UI<br/>validated writes carry decided receipts"]:::report
+  AG[["<b>4 · aggregate()</b><br/>pure · no I/O · no model"]]:::pure
+
+  CORPUS["<b>Corpus v1</b><br/>verified Layer-A fixtures"]:::corpus
+  R["<b>5 · Render</b><br/>SQLite and grounded UI"]:::report
 
   PR --> I
   C -- "claims, unproven" --> LA
   RT ==> AG
 
-  LA -. "pins" .-> P
-  P -. "replays" .-> LA
+  LA -. "pins eligible fixtures" .-> CORPUS
+  CORPUS -. "replays next run" .-> LA
 
   AG -- "preserve-critical refutation" --> BROKEN(["<b>BROKEN</b>"]):::broken
-  AG -- "other represented refutation / critical abstain / missing critical" --> RISKY(["<b>RISKY</b>"]):::risky
-  AG -- "no represented refutation / critical abstain / missing critical" --> SAFE(["<b>SAFE · bounded</b>"]):::safe
+  AG -- "other refutation, critical abstain" --> RISKY(["<b>RISKY</b>"]):::risky
+  AG -- "none of the above" --> SAFE(["<b>SAFE · bounded</b>"]):::safe
 
   BROKEN --> R
   RISKY --> R
   SAFE --> R
 
-  classDef input fill:#ffffff,stroke:#94a3b8,stroke-width:1.5px,color:#334155
-  classDef untrusted fill:#fffbeb,stroke:#d97706,stroke-width:1.5px,color:#78350f
-  classDef grounded fill:#f0f9ff,stroke:#0369a1,stroke-width:1.5px,color:#0c4a6e
-  classDef pure fill:#0f172a,stroke:#0f172a,stroke-width:2px,color:#ffffff
-  classDef corpus fill:#f0fdf4,stroke:#15803d,stroke-width:1.5px,color:#14532d
-  classDef report fill:#ffffff,stroke:#475569,stroke-width:1.5px,color:#1e293b
-  classDef broken fill:#fef2f2,stroke:#b91c1c,stroke-width:2px,color:#7f1d1d
-  classDef risky fill:#fffbeb,stroke:#b45309,stroke-width:2px,color:#78350f
-  classDef safe fill:#f0fdf4,stroke:#15803d,stroke-width:2px,color:#14532d
+  classDef input fill:#ffffff,stroke:#9ca3af,stroke-width:1px,color:#374151
+  classDef untrusted fill:#ffffff,stroke:#b45309,stroke-width:1px,color:#78350f
+  classDef grounded fill:#ffffff,stroke:#475569,stroke-width:1px,color:#1e293b
+  classDef pure fill:#111827,stroke:#111827,stroke-width:1px,color:#ffffff
+  classDef corpus fill:#ffffff,stroke:#9ca3af,stroke-width:1px,color:#4b5563
+  classDef report fill:#ffffff,stroke:#374151,stroke-width:1px,color:#111827
+  classDef broken fill:#ffffff,stroke:#991b1b,stroke-width:2px,color:#7f1d1d
+  classDef risky fill:#ffffff,stroke:#b45309,stroke-width:2px,color:#78350f
+  classDef safe fill:#ffffff,stroke:#15803d,stroke-width:2px,color:#14532d
 
-  style U fill:#fef3c7,stroke:#d97706,stroke-width:2px,stroke-dasharray:6 4,color:#78350f
-  style EX fill:#e0f2fe,stroke:#0369a1,stroke-width:2px,color:#0c4a6e
+  style U fill:#fdfcfb,stroke:#d6d3d1,stroke-width:1px,color:#78350f
+  style EX fill:#fafafa,stroke:#d4d4d8,stroke-width:1px,color:#1e293b
 ```
+
+Characterize is the only stage that contacts a model over the network. Every execution
+stage is offline, model-free, and deterministic. The numbered stages match the five steps
+below.
 
 1. **Ingest** resolves base and head into detached Git worktrees and catalogues class,
    function, async, and nested candidate definitions in changed Python files. This is
@@ -201,6 +257,9 @@ Current release blockers are visible rather than converted into confidence:
   enforced;
 - report verdict, IDs, claim/finding linkage, read-time semantics, and one aggregation
   failure path lack complete validation;
+- legacy or otherwise unvalidated stored reports are not revalidated on read, so they can
+  reach the DB/API/React path without the receipt guarantees described above until the P2
+  integrity gate lands;
 - corpus v1 uses mutable locator/symbol authority without Git ancestry or inherited-base
   revalidation, and run/corpus completion is not atomic; and
 - the supported service posture is `127.0.0.1`, but the CLI does not enforce it;
@@ -214,34 +273,6 @@ commands spawned by target code or remove its local filesystem/network authority
 only repositories you trust; production requires real isolation and network denial.
 
 The public Vercel deployment is an evidence explorer, not a repository runner. Its report is labeled **Hosted evidence fixture**, and arbitrary repository submissions are rejected with instructions to use the trusted-input local runner.
-
-## GPT-5.6 and Codex usage
-
-- **GPT-5.6 Sol (`gpt-5.6-sol`)** reads bounded diff/source context and emits
-  schema-constrained Claims plus optional ProbePlans. It never emits outcomes or
-  verdicts. Malformed, duplicate, unknown-target, or forbidden structured fields are
-  rejected; proposal text remains untrusted and complete candidate coverage is open.
-- **Codex** authored and iterated this application: the Python pipeline, tests, React UI,
-  CLI, packaging, documentation, and verification flow. Cross-Examine remains independent
-  at run time; model-free bounded execution supplies evidence and pure `aggregate()`
-  decides the product verdict.
-
-## Human decisions versus Codex decisions
-
-The human retained product authority; Codex accelerated implementation.
-
-| Human-provided doctrine | Codex-chosen implementation |
-| --- | --- |
-| Problem selection and Python-only scope | FastAPI / SQLite / React stack |
-| The contract and five-stage structure | Worktree and subprocess mechanics |
-| Abstain-toward-risk policy | Edge catalog and Hypothesis bounds |
-| Layer-A-before-Layer-B sequencing | Persistence and SSE protocol |
-| Trusted-input execution boundary | CLI surface and deterministic hero construction |
-| Build Week deadline | Component selection and adaptation |
-| Interface design requirement | Responsive behavior, tests, packaging |
-| Evidence doctrine and final submission story | Cross-platform diagnosis, release verification |
-
-The Build Week work is visible in the dated Git history and the primary Codex task supplied with the Devpost submission. GPT-5.6 is a deliberately constrained runtime component rather than the judge: it proposes behavioral claims, while execution and a pure deterministic function decide the outcome.
 
 ## Requirements
 
@@ -342,15 +373,22 @@ resolves 2.7.0 because Starlette `TestClient` imports it directly.
 
 ## Three-minute video outline
 
+Submission constraints: a public YouTube video under three minutes, with audio that
+explicitly covers how both Codex and GPT-5.6 were used.
+
 - **0:00–0:30 — the catch:** confident PR, `BROKEN`, open `[]`, exact command, captured difference.
-- **0:30–1:05 — independence:** why a second process and pure aggregation matter.
-- **1:05–1:50 — five stages:** live progress from Ingest through Aggregate.
-- **1:50–2:20 — repeat receipt:** rerun and show `+0 this run · 2 total`; do not use
+- **0:30–1:00 — independence:** why a second process and pure aggregation matter.
+- **1:00–1:40 — five stages:** live progress from Ingest through Aggregate.
+- **1:40–2:15 — Codex and GPT-5.6 (required narration):** how Codex authored the pipeline,
+  tests, React evidence explorer, packaging, and the cross-platform execution fixes; and how
+  GPT-5.6 Sol is constrained to schema-bound claims that can never carry an outcome or a
+  verdict.
+- **2:15–2:35 — repeat receipt:** rerun and show `+0 this run · 2 total`; do not use
   the current Corpus summary as proof of inserted growth.
-- **2:20–2:45 — conditional real repository:** include only after P2 current-pin
+- **2:35–2:50 — conditional real repository:** include only after P2 current-pin
   preflight, review, and explicit one-request authority pass; otherwise stay with the
   deterministic replay and limitations.
-- **2:45–3:00 — impact:** trustworthy unattended agentic coding.
+- **2:50–3:00 — impact:** trustworthy unattended agentic coding.
 
 The exact shot and voiceover script is in [docs/demo.md](docs/demo.md).
 
