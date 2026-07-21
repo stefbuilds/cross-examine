@@ -1,3 +1,5 @@
+![Cross-Examine](docs/assets/banner.jpg)
+
 # Cross-Examine
 
 > **Codex writes the code. Cross-Examine puts it on the stand.**
