@@ -151,7 +151,6 @@ config:
   theme: base
   layout: dagre
   themeVariables:
-    fontFamily: 'ui-sans-serif, -apple-system, Segoe UI, Helvetica, Arial, sans-serif'
     fontSize: 14px
     lineColor: '#9ca3af'
     primaryTextColor: '#111827'
@@ -167,14 +166,14 @@ config:
 flowchart TB
   PR["<b>Python diff</b><br/>base to head"]:::input
 
-  subgraph U ["UNTRUSTED PROPOSAL — model-authored, schema-constrained"]
+  subgraph U ["UNTRUSTED PROPOSAL"]
     direction LR
     I["<b>1 · Ingest</b><br/>Git worktrees<br/>changed-file candidates"]:::untrusted
     C["<b>2 · Characterize</b><br/>GPT-5.6 Sol<br/>claims, never a verdict"]:::untrusted
     I --> C
   end
 
-  subgraph EX ["3 · CROSS-EXAMINE — model-free, bounded, deterministic"]
+  subgraph EX ["3 · CROSS-EXAMINE"]
     direction LR
     LA["<b>Layer A</b><br/>base capture<br/>head replay"]:::grounded
     LB["<b>Layer B</b><br/>bounded Hypothesis<br/>and shrink"]:::grounded
@@ -216,9 +215,10 @@ flowchart TB
   style EX fill:#fafafa,stroke:#d4d4d8,stroke-width:1px,color:#1e293b
 ```
 
-Characterize is the only stage that contacts a model over the network. Every execution
-stage is offline, model-free, and deterministic. The numbered stages match the five steps
-below.
+The untrusted zone is model-authored and schema-constrained: it may propose, never
+conclude. Characterize is the only stage that contacts a model over the network; every
+execution stage is offline, model-free, bounded, and deterministic. The numbered stages
+match the five steps below.
 
 1. **Ingest** resolves base and head into detached Git worktrees and catalogues class,
    function, async, and nested candidate definitions in changed Python files. This is
