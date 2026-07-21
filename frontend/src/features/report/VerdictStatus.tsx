@@ -26,7 +26,7 @@ export function VerdictStatus({ verdict }: { verdict: Verdict }) {
 
   return (
     <div
-      className={`flex h-[35px] w-40 items-center justify-center rounded-xl ${container}`}
+      className={`flex h-[35px] w-28 items-center justify-center rounded-xl sm:w-40 ${container}`}
     >
       <h1 className={`flex items-center font-semibold ${label}`}>
         <Icon className="mr-2 h-4 w-4" strokeWidth={3} />

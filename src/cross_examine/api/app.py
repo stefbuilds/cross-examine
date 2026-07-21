@@ -86,7 +86,7 @@ def create_app(
 
     @app.get("/api/health", response_model=HealthResponse)
     def health() -> HealthResponse:
-        return HealthResponse(status="ok")
+        return HealthResponse(status="ok", hosted=hosted_mode)
 
     @app.get("/api/fixtures/broken", response_model=FixtureResponse)
     def broken_fixture() -> FixtureResponse:
@@ -168,6 +168,9 @@ def create_app(
         report = json.loads(report_to_json(run.report)) if run.report is not None else None
         return RunResponse(
             id=run.id,
+            repo=run.repo,
+            base_ref=run.base_ref,
+            head_ref=run.head_ref,
             status=run.status,
             stage=run.stage,
             message=run.message,

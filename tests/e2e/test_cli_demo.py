@@ -121,7 +121,7 @@ def test_serve_starts_health_endpoint_on_requested_port(tmp_path: Path) -> None:
         while time.monotonic() < startup_deadline:
             try:
                 with urlopen(f"http://127.0.0.1:{port}/api/health", timeout=0.2) as response:
-                    assert json.load(response) == {"status": "ok"}
+                    assert json.load(response) == {"status": "ok", "hosted": False}
                     break
             except OSError:
                 if process.poll() is not None:

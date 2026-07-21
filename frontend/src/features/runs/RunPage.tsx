@@ -1,7 +1,8 @@
-import { useLoaderData } from "react-router-dom";
+import { Link, useLoaderData } from "react-router-dom";
 import { Skeleton as BoneyardSkeleton } from "boneyard-js/react";
 
 import type { FixtureResponse, RunResponse } from "@/app/api";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { GradientShimmer } from "@/components/ui/gradient-shimmer";
@@ -103,15 +104,43 @@ export function RunProgressView({
         <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-[-0.04em] md:text-6xl">
           {failed ? "Verification stopped" : <GradientShimmer>Cross-examination in progress</GradientShimmer>}
         </h1>
-        <p className="page-copy mt-4">
-          No verdict appears until executed findings have been aggregated.
+        <p className="page-copy mt-4 break-words">
+          {run.repo ? (
+            <>
+              <span className="font-mono text-sm text-foreground">{run.repo}</span>
+              <span className="mx-2 font-mono text-sm text-muted-foreground">
+                {run.base_ref} → {run.head_ref}
+              </span>
+            </>
+          ) : null}
+        </p>
+        <p className="page-copy mt-2">
+          {failed
+            ? "The run stopped before a verdict. This is an execution failure, not a finding about the change."
+            : "No verdict appears until executed findings have been aggregated."}
         </p>
         </div>
         <VerificationMethodDialog />
       </header>
 
       {failed && (
-        <ErrorMessage message={run.message} title="The worker could not finish this run" />
+        <div className="grid gap-4">
+          <ErrorMessage message={run.message} title="The worker could not finish this run" />
+          <div className="flex flex-wrap gap-3">
+            {run.repo && (
+              <Button asChild>
+                <Link
+                  to={`/run?repo=${encodeURIComponent(run.repo)}&base=${encodeURIComponent(run.base_ref)}&head=${encodeURIComponent(run.head_ref)}`}
+                >
+                  Retry with the same inputs
+                </Link>
+              </Button>
+            )}
+            <Button asChild variant="outline">
+              <Link to="/runs">View run history</Link>
+            </Button>
+          </div>
+        </div>
       )}
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,.72fr)_minmax(24rem,1.28fr)]">
@@ -145,6 +174,11 @@ export function RunProgressView({
                   {isCurrent
                     ? run.message
                     : (stageEvent?.message ?? description)}
+                  {isDone && stageEvent != null && stageEvent.elapsed_seconds > 0 && (
+                    <span className="ml-2 font-mono text-xs text-muted-foreground">
+                      {stageEvent.elapsed_seconds.toFixed(1)}s
+                    </span>
+                  )}
                 </TimelineContent>
                 {index < STAGES.length - 1 && <TimelineLine done={isDone} />}
               </TimelineItem>
@@ -152,16 +186,18 @@ export function RunProgressView({
           })}
         </Timeline>
       </Card>
-      <BoneyardSkeleton
-        animate="shimmer"
-        className="min-w-0"
-        fallback={<ReportLoadingSkeleton />}
-        loading
-        name="verification-report"
-        select="viewport"
-      >
-        <ReportLoadingSkeleton />
-      </BoneyardSkeleton>
+      {!failed && (
+        <BoneyardSkeleton
+          animate="shimmer"
+          className="min-w-0"
+          fallback={<ReportLoadingSkeleton />}
+          loading
+          name="verification-report"
+          select="viewport"
+        >
+          <ReportLoadingSkeleton />
+        </BoneyardSkeleton>
+      )}
       </section>
     </main>
   );

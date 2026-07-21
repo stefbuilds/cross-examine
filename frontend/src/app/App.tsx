@@ -122,7 +122,19 @@ export const appRoutes: RouteObject[] = [
     element: <AppShell />,
     hydrateFallbackElement: <LoadingShell />,
     children: [
-      { index: true, loader: loadBrokenFixture, element: <EvidenceLandingPage /> },
+      {
+        index: true,
+        loader: async () => {
+          const [fixture, runs] = await Promise.all([
+            loadBrokenFixture(),
+            loadRuns()
+              .then((value) => (Array.isArray(value) ? value : []))
+              .catch(() => []),
+          ]);
+          return { fixture, runs };
+        },
+        element: <EvidenceLandingPage />,
+      },
       { path: "run", element: <RunLocallyPage /> },
       { path: "runs", loader: loadRuns, element: <RunHistoryPage /> },
       {

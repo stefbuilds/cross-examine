@@ -29,7 +29,7 @@ export default function EmptyState({ action }: { action?: ReactNode }) {
               </Marquee>
             </div>
             <EmptyTitle>No verification runs yet</EmptyTitle>
-            <EmptyDescription>Create a run to capture exact commands, outputs, and grounded verdicts.</EmptyDescription>
+            <EmptyDescription>Create a run to capture exact commands, outputs, and grounded verdicts. The offline hero demo is a safe first run — no credentials required.</EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             {action ?? (

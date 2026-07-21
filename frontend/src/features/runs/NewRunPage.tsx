@@ -1,19 +1,35 @@
-import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, type FormEvent } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { createHeroRun, createRun } from "@/app/api";
+import { createHeroRun, createRun, loadHealth } from "@/app/api";
 import CheckoutForm from "@/components/ui/checkout-form";
 import { GradientShimmer } from "@/components/ui/gradient-shimmer";
 
 export function NewRunPage() {
   const navigate = useNavigate();
-  const [repo, setRepo] = useState("");
-  const [baseRef, setBaseRef] = useState("");
-  const [headRef, setHeadRef] = useState("");
+  const [searchParams] = useSearchParams();
+  const [repo, setRepo] = useState(() => searchParams.get("repo") ?? "");
+  const [baseRef, setBaseRef] = useState(() => searchParams.get("base") ?? "");
+  const [headRef, setHeadRef] = useState(() => searchParams.get("head") ?? "");
   const [layerB, setLayerB] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [heroSubmitting, setHeroSubmitting] = useState(false);
+  const [hosted, setHosted] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadHealth()
+      .then((health) => {
+        if (!cancelled) setHosted(health.hosted === true);
+      })
+      .catch(() => {
+        if (!cancelled) setHosted(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -79,6 +95,7 @@ export function NewRunPage() {
         errors={errors}
         headRef={headRef}
         heroSubmitting={heroSubmitting}
+        hosted={hosted}
         layerB={layerB}
         onBaseRefChange={(value) => {
           setBaseRef(value);

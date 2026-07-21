@@ -20,6 +20,8 @@ type CheckoutFormProps = {
   errors: Record<string, string>;
   submitting: boolean;
   heroSubmitting: boolean;
+  /** true = hosted deployment (arbitrary repos rejected), false = local runner, null = unknown */
+  hosted: boolean | null;
   onRepoChange: (value: string) => void;
   onBaseRefChange: (value: string) => void;
   onHeadRefChange: (value: string) => void;
@@ -36,6 +38,7 @@ export default function CheckoutForm({
   errors,
   submitting,
   heroSubmitting,
+  hosted,
   onRepoChange,
   onBaseRefChange,
   onHeadRefChange,
@@ -127,15 +130,28 @@ export default function CheckoutForm({
               <ScanSearch aria-hidden="true" className="size-4 text-muted-foreground" />
               <h2 className="text-sm font-medium" id="execution-method-heading">Execution method</h2>
             </div>
-            <aside aria-label="Hosted deployment limitation" className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm leading-6">
-              <p className="font-semibold text-foreground">Hosted evidence explorer only</p>
-              <p className="mt-1 text-muted-foreground">
-                This Vercel deployment cannot execute submitted repositories. Run Cross-Examine locally instead:
-              </p>
-              <code className="mt-3 block overflow-x-auto rounded-lg bg-background px-3 py-2 font-mono text-xs text-foreground">
-                uv sync --extra dev && uv run cross-examine demo --no-open
-              </code>
-            </aside>
+            {hosted === true ? (
+              <aside aria-label="Hosted deployment limitation" className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm leading-6">
+                <p className="font-semibold text-foreground">Hosted demo — sample run only</p>
+                <p className="mt-1 text-muted-foreground">
+                  This hosted deployment does not execute submitted repositories. Use the sample verification below, or run your own repositories with the local runner:
+                </p>
+                <code className="mt-3 block overflow-x-auto rounded-lg bg-background px-3 py-2 font-mono text-xs text-foreground">
+                  uv sync --extra dev && uv run cross-examine serve
+                </code>
+              </aside>
+            ) : (
+              <aside aria-label="Execution environment" className="rounded-xl border bg-secondary/45 p-4 text-sm leading-6">
+                <p className="font-semibold text-foreground">
+                  {hosted === false ? "Local execution" : "Execution environment"}
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  {hosted === false
+                    ? "Runs execute on this machine with the trusted-input local runner. Point it at a repository path or URL you trust."
+                    : "Hosted deployments verify only the built-in sample; the local runner executes any repository you trust."}
+                </p>
+              </aside>
+            )}
           </section>
 
           <Separator />
@@ -197,7 +213,9 @@ export default function CheckoutForm({
         <div>
           <span className="text-lg font-bold">Ready</span>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Offline hero uses a checked-in fixture and the real comparison pipeline.
+            {hosted === true
+              ? "The sample verification replays a checked-in regression through the real comparison pipeline."
+              : "The sample verification uses a checked-in fixture and the real comparison pipeline."}
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -206,16 +224,27 @@ export default function CheckoutForm({
             disabled={submitting || heroSubmitting}
             onClick={onHeroRun}
             type="button"
-            variant="outline"
+            variant={hosted === true ? "default" : "outline"}
           >
             {heroSubmitting ? <><LoaderDotMatrix cols={4} dotSize={2} pattern="wave" /> Starting hero…</> : "Run offline hero demo"}
           </Button>
-          <Button aria-busy={submitting} disabled={submitting || heroSubmitting} type="submit">
+          <Button
+            aria-busy={submitting}
+            aria-describedby={hosted === true ? "hosted-submit-note" : undefined}
+            disabled={submitting || heroSubmitting || hosted === true}
+            type="submit"
+            variant={hosted === true ? "outline" : "default"}
+          >
             <Play aria-hidden="true" />
             {submitting ? <><LoaderDotMatrix cols={4} dotSize={2} pattern="wave" /> Starting…</> : "Cross-examine PR"}
           </Button>
         </div>
       </div>
+      {hosted === true && (
+        <p className="w-full max-w-4xl text-right text-xs text-muted-foreground" id="hosted-submit-note">
+          Submitting your own repository requires the local runner.
+        </p>
+      )}
     </form>
   );
 }

@@ -19,6 +19,15 @@ const routeLabels: Record<string, string> = {
   trials: "Trials",
 };
 
+const segmentPaths: Record<string, string> = {
+  corpus: "/corpus",
+  fixtures: "/fixtures/broken",
+  run: "/run",
+  runs: "/runs",
+  settings: "/settings",
+  trials: "/trials",
+};
+
 export function WorkspaceToolbar() {
   const location = useLocation();
   const segments = location.pathname.split("/").filter(Boolean);
@@ -37,11 +46,20 @@ export function WorkspaceToolbar() {
           {segments.map((segment, index) => {
             const last = index === segments.length - 1;
             const label = routeLabels[segment] ?? (segment.length > 18 ? `${segment.slice(0, 10)}…` : segment);
+            const path = segmentPaths[segment];
             return (
               <Fragment key={`${segment}-${index}`}>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  {last ? <BreadcrumbPage>{label}</BreadcrumbPage> : <span>{label}</span>}
+                  {last ? (
+                    <BreadcrumbPage>{label}</BreadcrumbPage>
+                  ) : path ? (
+                    <Link className="transition-colors hover:text-foreground" to={path}>
+                      {label}
+                    </Link>
+                  ) : (
+                    <span>{label}</span>
+                  )}
                 </BreadcrumbItem>
               </Fragment>
             );

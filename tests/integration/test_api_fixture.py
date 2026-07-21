@@ -51,7 +51,7 @@ def test_health_endpoint_reports_ready_database(tmp_path: Path) -> None:
     response = client.get("/api/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json() == {"status": "ok", "hosted": False}
 
 
 def test_completed_run_is_available_by_id(tmp_path: Path) -> None:

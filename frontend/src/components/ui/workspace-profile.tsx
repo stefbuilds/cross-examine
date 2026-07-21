@@ -3,6 +3,7 @@
 // profile or shortcut control.
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Theme } from "@/components/ui/theme-dropdown";
+import { VerificationMethodDialog } from "@/components/ui/verification-method-dialog";
 import { Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -42,7 +43,7 @@ export function WorkspaceProfile({ collapsed = false, settingsActive = false, on
           aria-label="Settings"
           className={cn(
             "flex h-8 items-center gap-2 rounded-md px-2 text-sm font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
-            collapsed ? "w-8 justify-center px-0" : "flex-1",
+            collapsed ? "w-8 justify-center px-0" : "min-w-0",
             settingsActive
               ? "bg-primary/10 text-foreground"
               : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -58,7 +59,10 @@ export function WorkspaceProfile({ collapsed = false, settingsActive = false, on
           />
           {!collapsed && <span>Settings</span>}
         </Link>
-        <Theme size="sm" variant="dropdown" themes={["light", "dark", "system"]} />
+        <div className={cn("flex items-center gap-1", collapsed && "flex-col")}>
+          {!collapsed && <VerificationMethodDialog triggerLabel="Help" />}
+          <Theme size="sm" variant="dropdown" themes={["light", "dark", "system"]} />
+        </div>
       </div>
     </div>
   );
