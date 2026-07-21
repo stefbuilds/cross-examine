@@ -96,7 +96,12 @@ permission to edit these components as needed to preserve core functionality):
 
 ## Change rules
 
-See `.claude/skills/using-21st-components/SKILL.md` (workspace) for the binding
-policy: data wiring, content, dimensions, token mapping, neutral wrappers, and
-accessibility fixes are permitted; internal structure, spacing, typography, icons,
-decoration, animation, and interaction patterns must not be altered.
+Permitted when adapting a component: wiring data, state, events, and routing; replacing
+sample content with Cross-Examine content; changing width, height, and responsive
+dimensions; mapping colors and radii to the shared theme tokens; positioning with neutral
+wrappers; and accessibility fixes that preserve the original visual design.
+
+Not permitted without the owner's explicit approval: internal structure, internal spacing,
+typography, icons, borders, shadows, decoration, animation, transitions, hover and focus
+appearance, visual hierarchy, and interaction patterns. Approved exceptions are recorded
+per component above.
