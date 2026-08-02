@@ -371,26 +371,6 @@ Coverage is Python 3.12 across Windows, macOS, and Ubuntu: unit, integration, en
 and release tests on the backend; component, accessibility, and two Chromium flows on the
 frontend.
 
-## Three-minute video outline
-
-Submission constraints: a public YouTube video under three minutes, with audio that
-explicitly covers how both Codex and GPT-5.6 were used.
-
-- **0:00–0:19 — the problem:** agent-written tests pass because they test the code that was
-  just written; nothing checks the behavior it replaced.
-- **0:19–0:52 — the catch:** run the offline hero demo, land on `BROKEN`.
-- **0:52–1:16 — the receipt:** open the refuted finding — exact command, base output vs
-  head output, reproducing input `[]`.
-- **1:16–1:41 — independence:** the model proposes claims; execution and a pure
-  `aggregate()` decide.
-- **1:41–1:53 — repeat run:** `+0 this run · 2 total`.
-- **1:53–2:22 — Codex and GPT-5.6 (required narration):** what Codex authored, the
-  cross-platform defects it caught, which decisions stayed human, and GPT-5.6's single
-  constrained runtime job.
-- **2:22–2:38 — scope and impact:** `SAFE` is bounded; verdicts on agent-written code
-  should come from execution.
-
-The exact shot and voiceover script is in [docs/demo.md](docs/demo.md).
 
 ## License
 
