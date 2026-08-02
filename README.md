@@ -16,8 +16,8 @@
 ![Hackathon Submission](https://img.shields.io/badge/Build%20Week-submission-8A2BE2)
 [![Live evidence explorer](https://img.shields.io/badge/Live-evidence%20explorer-000000)](https://cross-examine-six.vercel.app)
 
-**The problem.** Agent-authored code passes the tests that exist. Nothing checks whether the
-behavior it replaced still holds — so the model fixes one bug, introduces another, and the
+**The problem.** Agent-authored code passes the tests that exist. Nothing yet checks whether the
+behavior it replaced still holds. So, the model fixes one bug, introduces another, and the
 suite stays green throughout. Anyone merging Codex-authored pull requests is reviewing a
 diff with no evidence about the behavior that diff silently changed.
 
