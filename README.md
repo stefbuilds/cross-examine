@@ -41,7 +41,7 @@ reproducing input — reproducible in 60 seconds from a clean checkout by the co
 - [Scope and safety](#scope-and-safety)
 - [License](#license)
 
-Also in this repo: [requirements](#requirements) · [directory map](#directory-map) · [Windows setup](#windows-powershell-setup) · [real repository runs](#real-repository-run) · [tests](#tests) · [video outline](#three-minute-video-outline)
+Also in this repo: [requirements](#requirements) · [directory map](#directory-map) · [Windows setup](#windows-powershell-setup) · [real repository runs](#real-repository-run) · [tests](#tests)
 
 ## Judge quickstart: see the catch in 60 seconds
 
