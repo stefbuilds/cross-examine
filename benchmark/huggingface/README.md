@@ -1,5 +1,5 @@
 ---
-license: cc-by-4.0
+license: other
 language:
 - en
 task_categories:
@@ -25,7 +25,7 @@ Three additional records are included under the `compatibility_shadow` split. Th
 
 ## Data files
 
-Upload `data/verified.jsonl` and `data/compatibility_shadow.jsonl` alongside this card. The complete schema and methodology live in the Cross-Examine GitHub repository.
+The data files are proprietary materials. Do not upload, redistribute, or publish `data/verified.jsonl` or `data/compatibility_shadow.jsonl` without prior written permission from Stefanos Palyvos.
 
 ## Fields
 
@@ -45,12 +45,12 @@ Upload `data/verified.jsonl` and `data/compatibility_shadow.jsonl` alongside thi
 
 ## Uses
 
-Suitable for developing and evaluating behavioral-regression detectors, counterexample generators, differential verification tools, and abstention policies. The current verified set is intentionally a seed release and is not large enough for statistically meaningful model rankings.
+Use requires prior written permission from Stefanos Palyvos. The current verified set is intentionally a seed release and is not large enough for statistically meaningful model rankings.
 
 ## License
 
-Benchmark metadata: CC BY 4.0. Cross-Examine software: MIT. Referenced third-party repositories retain their original licenses and are not redistributed.
+Proprietary. Copyright (c) 2026 Stefanos Palyvos. All rights reserved. No copying, redistribution, modification, publication, or reuse is permitted without prior written permission. Referenced third-party repositories retain their original licenses and are not redistributed.
 
 ## Citation
 
-Please cite the corresponding Cross-Examine software release and state the benchmark version used.
+If permission to use the benchmark is granted, cite the corresponding Cross-Examine software release and state the benchmark version used. Citation does not itself grant permission to use the materials.
