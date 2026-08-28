@@ -65,8 +65,8 @@ The verified hero row is derived from the checked-in `src/cross_examine/fixture_
 
 ## Licensing
 
-Benchmark metadata in this directory is released under CC BY 4.0. Source code remains under the repository's MIT license. Third-party repositories referenced by compatibility records retain their original licenses; no third-party source code is redistributed in the dataset.
+All CrossExamine-Bench metadata, schemas, documentation, and data created in this directory are proprietary and all rights are reserved. No copying, redistribution, modification, publication, or reuse is permitted without prior written permission from Stefanos Palyvos. Third-party repositories referenced by compatibility records retain their original licenses and rights; no third-party source code is redistributed in the dataset.
 
 ## Citation
 
-If you use this benchmark, cite the Cross-Examine software release and identify the benchmark version used. Citation metadata is available in the repository root as `CITATION.cff`.
+If you have written permission to use this benchmark, cite the Cross-Examine software release and identify the benchmark version used. Citation metadata is available in the repository root as `CITATION.cff`. Citation alone does not grant reuse rights.
