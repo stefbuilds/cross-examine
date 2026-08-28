@@ -175,10 +175,10 @@ A further engineering priority is stronger isolation for repository execution, f
 
 Cross-Examine treats AI-authored code as something to verify rather than something to trust because its tests are green. Its central contribution is architectural: model proposals and executable authority are separated. The system captures base behavior, replays the changed revision, searches bounded adversarial inputs, stores evidence receipts, and computes the final verdict with deterministic policy. The initial execution-grounded regression demonstrates how this design can expose a boundary change that representative behavior misses, while historical compatibility trials demonstrate that unsupported conditions lead to abstention rather than invented certainty.
 
-The accompanying citation metadata and CrossExamine-Bench seed release turn the project into a citable research-software artifact and establish a foundation for broader empirical evaluation.
+The accompanying citation metadata and CrossExamine-Bench seed release document the project as a research-software artifact and establish a foundation for broader empirical evaluation.
 
 ## Artifact availability
 
-Source code: `https://github.com/stefbuilds/cross-examine`  
-Live evidence explorer: `https://cross-examine-six.vercel.app`  
-License: MIT (software); CC BY 4.0 (benchmark metadata)
+Repository: `https://github.com/stefbuilds/cross-examine`  
+Historical evidence explorer: `https://cross-examine-six.vercel.app`  
+Current license: Proprietary — Copyright (c) 2026 Stefanos Palyvos. All rights reserved. No copying, redistribution, modification, publication, or reuse without prior written permission.
