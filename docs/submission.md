@@ -102,23 +102,23 @@ Python, FastAPI, SQLite, OpenAI Responses API, GPT-5.6 Sol, Pydantic, Hypothesis
 
 ## Testing access
 
-- Public evidence explorer: `https://cross-examine-six.vercel.app`
+- Historical public evidence explorer: `https://cross-examine-six.vercel.app`
 - Real offline hero: use the credential-cleared, fixture-forced, fresh-workspace command
   in the [README](../README.md#judge-quickstart-see-the-catch-in-60-seconds)
 - Product UI after local installation: `uv run cross-examine serve`
 
-The public deployment serves a visibly labeled checked-in evidence fixture so the report
-UI can be inspected without an install. Repository execution needs Git and a local
+The historical deployment served a visibly labeled checked-in evidence fixture so the report
+UI could be inspected without an install. Repository execution needs Git and a local
 runtime, so it runs in the local runner by design.
 
-## Final submission checklist
+## Historical submission checklist
 
-- [ ] Join the Developer Tools category.
-- [ ] Add the public repository: `https://github.com/stefbuilds/cross-examine`.
-- [x] Add the deployed judge-demo URL: `https://cross-examine-six.vercel.app`.
-- [ ] Upload the final 2:45-or-shorter video publicly to YouTube and add its URL.
-- [ ] Run `/feedback` in the Codex task containing the majority of the core implementation and add that session ID.
-- [ ] Confirm the video audio explicitly explains both Codex collaboration and GPT-5.6 runtime use.
-- [x] Confirm the repository contains the MIT license, quickstart, sample hero data, platform support, and testing instructions.
-- [ ] Submit before July 21, 2026 at 5:00 PM Pacific Time.
-- [ ] Keep the demo and repository available without charge through the end of judging on August 7, 2026.
+- [x] Entered the Developer Tools category.
+- [x] Repository was made available for Build Week judging during the required period.
+- [x] Added the deployed judge-demo URL: `https://cross-examine-six.vercel.app`.
+- [x] Repository included the required license during the public competition period.
+- [x] Kept the demo and repository available through the judging period.
+
+## Current ownership and licensing
+
+Cross-Examine is now proprietary software. Copyright (c) 2026 Stefanos Palyvos. All rights reserved. The earlier competition checklist above is historical and does not describe the current licensing terms.
