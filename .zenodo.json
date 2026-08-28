@@ -1,0 +1,27 @@
+{
+  "title": "Cross-Examine: Execution-Grounded Verification for AI-Authored Python Changes",
+  "description": "Cross-Examine is an independent verification harness for AI-authored Python changes. It captures base behavior, replays the same inputs against a changed revision, searches bounded adversarial inputs, and computes verdicts from executed evidence rather than model assertions.",
+  "creators": [
+    {
+      "name": "Palyvos, Stefanos"
+    }
+  ],
+  "license": "mit",
+  "keywords": [
+    "software verification",
+    "AI-generated code",
+    "behavioral regression",
+    "testing",
+    "program analysis"
+  ],
+  "access_right": "open",
+  "upload_type": "software",
+  "publication_date": "2026-08-29",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/stefbuilds/cross-examine",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}
