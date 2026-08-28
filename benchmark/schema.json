@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CrossExamine-Bench record",
+  "type": "object",
+  "required": ["case_id", "split", "repository", "target_symbol", "claim", "outcome", "provenance"],
+  "properties": {
+    "case_id": {"type": "string"},
+    "split": {"enum": ["verified", "compatibility_shadow"]},
+    "repository": {"type": "string"},
+    "base_ref": {"type": ["string", "null"]},
+    "head_ref": {"type": ["string", "null"]},
+    "target_symbol": {"type": "string"},
+    "claim": {"type": "string"},
+    "repro_input": {"type": ["string", "null"]},
+    "expected": {"type": ["string", "null"]},
+    "actual": {"type": ["string", "null"]},
+    "outcome": {"enum": ["verified", "refuted", "unverifiable"]},
+    "verdict": {"enum": ["safe", "risky", "broken", null]},
+    "evidence_hashes": {"type": "array", "items": {"type": "string"}},
+    "provenance": {
+      "type": "object",
+      "required": ["source", "ground_truth_status", "notes"],
+      "properties": {
+        "source": {"type": "string"},
+        "ground_truth_status": {"enum": ["execution_grounded", "historical_observation"]},
+        "notes": {"type": "string"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
