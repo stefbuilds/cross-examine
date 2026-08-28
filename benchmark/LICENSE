@@ -1,7 +1,7 @@
-CrossExamine-Bench metadata is licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0).
+CrossExamine-Bench Proprietary Notice
 
-You are free to share and adapt the material for any purpose, provided appropriate credit is given, a link to the license is provided, and changes are indicated.
+Copyright (c) 2026 Stefanos Palyvos. All rights reserved.
 
-License text: https://creativecommons.org/licenses/by/4.0/legalcode
+The benchmark metadata, schemas, documentation, data files, and associated materials in this directory are proprietary. No permission is granted to copy, redistribute, modify, adapt, publish, sublicense, commercialize, create derivative works from, or otherwise reuse these materials without prior written permission from Stefanos Palyvos.
 
-This license applies only to benchmark metadata created in this directory. Cross-Examine source code remains licensed under the repository MIT License. Third-party repositories referenced by benchmark records retain their own licenses; their source code is not redistributed here.
+Referenced third-party repositories and third-party materials retain their own licenses and rights; their source code is not redistributed here.
