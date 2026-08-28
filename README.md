@@ -12,7 +12,7 @@
 
 [![Verify](https://github.com/stefbuilds/cross-examine/actions/workflows/verify.yml/badge.svg)](https://github.com/stefbuilds/cross-examine/actions/workflows/verify.yml)
 [![Python >=3.12](https://img.shields.io/badge/Python-%3E%3D3.12-3776AB?logo=python&logoColor=white)](pyproject.toml)
-[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-black.svg)](LICENSE)
 ![Hackathon Submission](https://img.shields.io/badge/Build%20Week-submission-8A2BE2)
 [![Live evidence explorer](https://img.shields.io/badge/Live-evidence%20explorer-000000)](https://cross-examine-six.vercel.app)
 
@@ -371,7 +371,6 @@ Coverage is Python 3.12 across Windows, macOS, and Ubuntu: unit, integration, en
 and release tests on the backend; component, accessibility, and two Chromium flows on the
 frontend.
 
-
 ## License
 
-[MIT](LICENSE)
+**Proprietary. Copyright (c) 2026 Stefanos Palyvos. All rights reserved.** No permission is granted to copy, redistribute, modify, publish, sublicense, commercialize, create derivative works from, or otherwise reuse Cross-Examine without prior written permission. See [LICENSE](LICENSE).
