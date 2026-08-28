@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "If you use Cross-Examine in research or engineering work, please cite this software."
+message: "Cross-Examine is proprietary software. Citation does not grant permission to copy, modify, distribute, or reuse the software."
 title: "Cross-Examine: Execution-Grounded Verification for AI-Authored Python Changes"
 type: software
 authors:
@@ -10,7 +10,6 @@ version: 0.1.0
 date-released: 2026-08-29
 url: "https://github.com/stefbuilds/cross-examine"
 repository-code: "https://github.com/stefbuilds/cross-examine"
-license: MIT
 keywords:
   - software verification
   - AI-generated code
