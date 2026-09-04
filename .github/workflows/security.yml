@@ -1,0 +1,37 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 7 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  dependencies:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.19.0"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - name: Audit frontend dependencies
+        working-directory: frontend
+        run: |
+          npm ci
+          npm audit --audit-level=high
+      - name: Audit Python dependencies
+        run: |
+          uv export --frozen --no-dev --no-emit-project --format requirements-txt > audit-requirements.txt
+          uvx pip-audit --requirement audit-requirements.txt

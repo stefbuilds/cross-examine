@@ -371,7 +371,17 @@ def _validate_request(
 ) -> Path:
     if not argv or not argv[0].strip():
         raise CommandNotAllowedError("An executable is required")
-    executable = Path(argv[0]).name.casefold()
+    requested_executable = Path(argv[0])
+    if str(argv[0]) != requested_executable.name:
+        try:
+            is_active_python = requested_executable.resolve() == Path(sys.executable).resolve()
+        except OSError:
+            is_active_python = False
+        if not requested_executable.is_absolute() or not is_active_python:
+            raise CommandNotAllowedError(
+                "Executable must be a bare command or absolute path to the active Python runtime"
+            )
+    executable = requested_executable.name.casefold()
     if executable not in policy.allowed_executables:
         raise CommandNotAllowedError(f"Executable is not allowlisted: {executable}")
     candidate = cwd.resolve()

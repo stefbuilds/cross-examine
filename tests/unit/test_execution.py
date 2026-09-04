@@ -28,6 +28,14 @@ def test_shell_executables_are_rejected(executable: str, tmp_path: Path) -> None
         run_command([executable, "-c", "echo unsafe"], cwd=tmp_path)
 
 
+def test_allowlisted_executable_cannot_be_spoofed_by_a_relative_path(tmp_path: Path) -> None:
+    fake_git = tmp_path / ("git.exe" if os.name == "nt" else "git")
+    fake_git.write_text("", encoding="utf-8")
+
+    with pytest.raises(CommandNotAllowedError, match="bare command or absolute path"):
+        run_command([f".{os.sep}{fake_git.name}"], cwd=tmp_path)
+
+
 def test_command_and_output_are_captured_exactly(tmp_path: Path) -> None:
     argv = [sys.executable, "-c", "print('ok')"]
 

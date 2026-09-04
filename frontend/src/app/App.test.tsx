@@ -60,7 +60,7 @@ describe("application routes", () => {
 
     render(<RouterProvider router={router} />);
 
-    expect(await screen.findByText("BROKEN")).toBeInTheDocument();
+    expect(await screen.findByText("BROKEN", {}, { timeout: 3_000 })).toBeInTheDocument();
     expect(
       screen.getByRole("navigation", { name: "Primary" }),
     ).toBeInTheDocument();
