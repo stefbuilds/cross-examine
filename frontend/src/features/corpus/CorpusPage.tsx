@@ -1,4 +1,4 @@
-import { Database, RouteIcon } from "lucide-react";
+import { Database } from "lucide-react";
 import { Link, useLoaderData } from "react-router-dom";
 
 import type { CorpusSummary } from "@/app/api";
@@ -6,9 +6,9 @@ import {
   Empty,
   EmptyDescription,
   EmptyHeader,
-  EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/cnippet-empty";
+import { Entropy } from "@/components/ui/entropy";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export function CorpusPage() {
@@ -23,8 +23,8 @@ export function CorpusPage() {
           Behavioral corpus
         </h1>
         <p className="page-copy mt-4">
-          Passing executed checks become durable regression evidence for later
-          runs on the same repository.
+          Eligible locator/symbol Layer-A fixtures are retained for later runs on
+          the same repository.
         </p>
         </div>
         <Database aria-hidden="true" className="size-12 text-primary" strokeWidth={1.25} />
@@ -35,9 +35,9 @@ export function CorpusPage() {
           data-corpus-empty
         >
           <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <RouteIcon />
-            </EmptyMedia>
+            <div aria-hidden="true" className="mx-auto mb-2 overflow-hidden">
+              <Entropy className="mx-auto" size={280} />
+            </div>
             <EmptyTitle>No pinned checks yet</EmptyTitle>
             <EmptyDescription>
               Run a verification to begin accumulating grounded behavioral checks.
@@ -59,7 +59,7 @@ export function CorpusPage() {
                     className="hidden text-right sm:table-cell"
                     scope="col"
                   >
-                    Latest growth
+                    Rows observed in latest run
                   </TableHead>
                   <TableHead
                     className="hidden md:table-cell"

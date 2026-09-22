@@ -3,7 +3,7 @@ name = "cross-examine"
 version = "0.1.0"
 description = "Independent execution-grounded verification for Codex-authored Python PRs"
 requires-python = ">=3.12"
-license = "MIT"
+license = "LicenseRef-Proprietary"
 license-files = ["LICENSE"]
 dependencies = [
   "fastapi",

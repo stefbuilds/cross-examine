@@ -2,6 +2,12 @@ export type Verdict = "safe" | "risky" | "broken";
 export type Outcome = "verified" | "refuted" | "unverifiable";
 export type Layer = "behavioral_diff" | "adversarial";
 
+export interface EvidenceReceipt {
+  command: string;
+  output: string;
+  evidence_hash: string;
+}
+
 export interface Claim {
   id: string;
   text: string;
@@ -22,6 +28,7 @@ export interface Finding {
   expected: string | null;
   actual: string | null;
   confidence: number;
+  receipts?: EvidenceReceipt[];
 }
 
 export interface Report {

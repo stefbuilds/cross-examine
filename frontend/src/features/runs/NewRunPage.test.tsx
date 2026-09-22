@@ -90,6 +90,8 @@ describe("NewRunPage", () => {
     expect(screen.getByText("Layer selection")).toBeInTheDocument();
     expect(screen.getByText("Run summary")).toBeInTheDocument();
     expect(screen.getByText("Ready")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Layer A" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Layer A + B" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cross-examine PR" })).toBeInTheDocument();
   });
 });

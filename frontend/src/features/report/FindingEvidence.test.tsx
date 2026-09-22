@@ -14,6 +14,13 @@ const finding: Finding = {
   expected: "[]",
   actual: "null",
   confidence: 1,
+  receipts: [
+    {
+      command: "python -m pytest -q tests/test_normalize.py -k empty",
+      output: "AssertionError: assert None == []",
+      evidence_hash: "abc123",
+    },
+  ],
 };
 
 describe("FindingEvidence", () => {
@@ -31,5 +38,7 @@ describe("FindingEvidence", () => {
     expect(screen.getByText("Reproducing input")).toBeInTheDocument();
     expect(screen.getByText("Expected")).toBeInTheDocument();
     expect(screen.getByText("Actual")).toBeInTheDocument();
+    expect(screen.getByText("Evidence receipt hash")).toBeInTheDocument();
+    expect(screen.getByText("abc123")).toBeInTheDocument();
   });
 });

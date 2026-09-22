@@ -144,7 +144,7 @@
 }
 
 :root {
-  --background: #faf8f3;
+  --background: #ffffff;
   --foreground: #000000;
   --card: #ffffff;
   --card-foreground: #000000;
@@ -167,8 +167,8 @@
   --chart-3: #ac82db;
   --chart-4: #323232;
   --chart-5: #e9e8e6;
-  --radius: 0.8rem;
-  --sidebar: #f1efe9;
+  --radius: 0.875rem;
+  --sidebar: #ffffff;
   --sidebar-foreground: #000000;
   --sidebar-primary: #7f76ca;
   --sidebar-primary-foreground: #000000;
@@ -213,8 +213,10 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    background-image: radial-gradient(circle at 1px 1px, rgb(127 118 202 / 0.14) 1px, transparent 0);
-    background-size: 24px 24px;
+    background-image:
+      radial-gradient(circle at 15% 0%, rgb(208 140 232 / 0.13), transparent 30rem),
+      radial-gradient(circle at 90% 16%, rgb(127 118 202 / 0.11), transparent 25rem);
+    background-attachment: fixed;
   }
   html {
     @apply font-sans;
@@ -235,11 +237,38 @@
   .stroke-lit { @apply border border-border; }
   .interactive { @apply transition-[color,background-color,border-color,opacity,transform] duration-200; }
   .page-shell { @apply mx-auto grid w-full max-w-6xl gap-7 p-5 md:p-9 lg:p-12; }
-  .page-header { @apply flex flex-col gap-5 border-b-2 border-foreground pb-7 md:flex-row md:items-end md:justify-between; }
+  .page-header { @apply flex min-w-0 flex-col gap-5 border-b-2 border-foreground pb-7 md:flex-row md:items-end md:justify-between; }
   .eyebrow { @apply font-heading text-xs font-semibold uppercase tracking-[0.2em] text-primary; }
-  .page-title { @apply max-w-3xl text-4xl font-semibold uppercase leading-[0.95] tracking-[-0.045em] md:text-6xl; }
+  .page-title { @apply max-w-3xl text-4xl font-bold tracking-[-0.045em] md:text-6xl; }
   .page-copy { @apply max-w-2xl text-sm leading-6 text-muted-foreground md:text-base; }
-  .surface-frame { @apply overflow-hidden rounded-[1.4rem] border border-border bg-card shadow-[7px_7px_25px_-12px_rgba(0,0,0,0.45)]; }
+  .surface-frame { @apply overflow-hidden rounded-[var(--radius-xl)] border border-border bg-card shadow-[7px_7px_25px_-12px_rgba(0,0,0,0.35)]; }
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes dot-matrix-pulse {
+  0%, 100% { opacity: 0.15; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.skeleton-shimmer {
+  background-image: linear-gradient(105deg, var(--muted) 25%, color-mix(in oklab, var(--muted) 55%, white) 48%, var(--muted) 72%);
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.6s linear infinite;
+}
+
+.dark .skeleton-shimmer {
+  background-image: linear-gradient(105deg, var(--muted) 25%, color-mix(in oklab, var(--muted) 72%, white) 48%, var(--muted) 72%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer,
+  [data-slot="loader-dot-matrix"] span {
+    animation: none !important;
+  }
 }
 
 @custom-variant data-open (&:where([data-state="open"], [data-open]:not([data-open="false"])));

@@ -4,7 +4,15 @@ from fastapi.testclient import TestClient
 
 from cross_examine.api.app import create_app
 from cross_examine.fixtures import broken_fixture_report
-from cross_examine.schema import BehaviorFixture, Finding, Layer, Outcome, RunSpec
+from cross_examine.schema import (
+    BehaviorFixture,
+    EvidenceReceipt,
+    Finding,
+    Layer,
+    Outcome,
+    RunSpec,
+    evidence_hash,
+)
 
 
 def test_fixture_report_is_renderable(tmp_path: Path) -> None:
@@ -20,13 +28,30 @@ def test_fixture_report_is_renderable(tmp_path: Path) -> None:
     assert payload["report"]["findings"][0]["output"]
 
 
+def test_hosted_fixture_contains_the_hero_pipeline_receipt() -> None:
+    report = broken_fixture_report()
+    finding = report.refuted[0]
+
+    assert "cross_examine.cross_examine.probe_runner call normalizer.core:normalize" in finding.command
+    assert "BASE OUTPUT" in finding.output
+    assert '"value": []' in finding.output
+    assert "HEAD OUTPUT" in finding.output
+    assert '"value": null' in finding.output
+    assert finding.repro_input == "[]"
+    assert finding.expected == "[]"
+    assert finding.actual == "null"
+    assert report.corpus is not None
+    assert report.corpus.pinned_this_run == 2
+    assert report.corpus.corpus_total == 2
+
+
 def test_health_endpoint_reports_ready_database(tmp_path: Path) -> None:
     client = TestClient(create_app(tmp_path / "app.db"))
 
     response = client.get("/api/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json() == {"status": "ok", "hosted": False}
 
 
 def test_completed_run_is_available_by_id(tmp_path: Path) -> None:
@@ -87,6 +112,9 @@ def test_run_history_lists_persisted_runs_newest_first_with_a_bound(tmp_path: Pa
 
 def test_corpus_endpoint_exposes_grounded_growth(tmp_path: Path) -> None:
     app = create_app(tmp_path / "app.db")
+    command = "python -m probe call request.json"
+    output = '{"ok":true,"value":[]}'
+    receipt = EvidenceReceipt(command, output, evidence_hash(command, output))
     fixture = BehaviorFixture(
         id="fixture-empty",
         claim_id="preserve-empty",
@@ -94,8 +122,9 @@ def test_corpus_endpoint_exposes_grounded_growth(tmp_path: Path) -> None:
         args_json="[[]]",
         kwargs_json="{}",
         expected_json='{"ok":true,"value":[]}',
-        command="python -m probe call request.json",
-        output='{"ok":true,"value":[]}',
+        command=command,
+        output=output,
+        receipt=receipt,
     )
     finding = Finding(
         claim_id="preserve-empty",
@@ -104,6 +133,7 @@ def test_corpus_endpoint_exposes_grounded_growth(tmp_path: Path) -> None:
         command=fixture.command,
         output=fixture.output,
         repro_input="[]",
+        receipts=[receipt],
     )
     assert app.state.corpus.pin("sample", "run-1", fixture, finding) is True
 

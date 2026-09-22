@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -21,14 +22,18 @@ from cross_examine.schema import (
     BehaviorFixture,
     Claim,
     ClaimKind,
+    ClaimOrigin,
     CommandEvidence,
     CorpusDelta,
+    EvidenceReceipt,
     Finding,
     Layer,
     Outcome,
     Report,
     RunProgress,
     RunSpec,
+    TouchedSymbol,
+    Verdict,
     aggregate,
 )
 from cross_examine.probe_plans import ProbePlan
@@ -82,42 +87,55 @@ class Pipeline:
 
         try:
             emit("characterizing", "Deriving schema-constrained behavioral claims")
-            claims = self.characterizer.characterize(
+            characterized_claims = self.characterizer.characterize(
                 ingest,
                 timeout=_remaining_timeout(deadline, spec.command_timeout_seconds),
             )
+            _validate_characterizer_claims(characterized_claims)
+            claims = characterized_claims
             _remaining_timeout(deadline, spec.command_timeout_seconds)
         except Exception as exc:  # noqa: BLE001 - stage failures become abstentions
             return self._failure_report(spec, "characterizing", exc, claims, findings, emit)
 
+        executable_claims = list(claims)
+        coverage_claims, coverage_findings = _coverage_abstentions(
+            ingest.touched_symbols,
+            executable_claims,
+        )
+        claims.extend(coverage_claims)
+        findings.extend(coverage_findings)
+
         try:
             emit("capturing", "Executing deterministic probes against base")
             fixtures = capture_base(
-                claims,
+                executable_claims,
                 ingest.base_path,
                 self.runs_root / identifier / "probe-state",
                 timeout=spec.command_timeout_seconds,
                 deadline=deadline,
             )
-            fixtures = _dedupe_fixtures([*self._applicable_corpus(spec.repo, claims), *fixtures])
+            fixtures = _dedupe_fixtures(
+                [*self._applicable_corpus(spec.repo, executable_claims), *fixtures]
+            )
         except Exception as exc:  # noqa: BLE001 - stage failures become abstentions
             return self._failure_report(spec, "capturing", exc, claims, findings, emit)
 
         try:
             emit("layer_a", "Replaying captured base behavior against head")
             findings = run_layer_a(
-                claims,
+                executable_claims,
                 fixtures,
                 ingest.head_path,
                 self.runs_root / identifier / "probe-state",
                 timeout=spec.command_timeout_seconds,
                 deadline=deadline,
             )
-            plans = _probe_plans(claims)
+            findings = [*coverage_findings, *findings]
+            plans = _probe_plans(executable_claims)
             if plans:
                 findings.extend(
                     run_probe_plans(
-                        claims,
+                        executable_claims,
                         plans,
                         ingest.base_path,
                         ingest.head_path,
@@ -128,7 +146,7 @@ class Pipeline:
                             claim.target_symbol: len(
                                 self.corpus.applicable(spec.repo, claim.target_symbol)
                             )
-                            for claim in claims
+                            for claim in executable_claims
                         },
                     )
                 )
@@ -140,7 +158,7 @@ class Pipeline:
                 emit("layer_b", "Hunting and shrinking adversarial differential inputs")
                 findings.extend(
                     run_layer_b(
-                        claims,
+                        executable_claims,
                         ingest.base_path,
                         ingest.head_path,
                         self.runs_root / identifier / "layer-b-state",
@@ -169,25 +187,28 @@ class Pipeline:
         except Exception as exc:  # noqa: BLE001 - test runner failures become abstentions
             return self._failure_report(spec, "testing", exc, claims, findings, emit)
 
-        emit("aggregating", "Computing verdict and pinning verified behavior")
+        emit("aggregating", "Computing verdict and validating evidence")
         try:
             _remaining_timeout(deadline, spec.command_timeout_seconds)
             verdict = aggregate(findings, _critical_claim_ids(claims))
-            pinned = self._pin_verified(spec.repo, identifier, fixtures, findings)
-            corpus = CorpusDelta(pinned_this_run=pinned, corpus_total=self.corpus.total(spec.repo))
-        except Exception as exc:  # noqa: BLE001 - aggregation failures become abstentions
-            return self._failure_report(spec, "aggregating", exc, claims, findings, emit)
-
-        report = validate_report(
-            Report(
-                repo=spec.repo,
-                pr_ref=f"{ingest.base_sha}..{ingest.head_sha}",
-                verdict=verdict,
-                findings=findings,
-                claims=claims,
-                corpus=corpus,
+            report = validate_report(
+                Report(
+                    repo=spec.repo,
+                    pr_ref=f"{ingest.base_sha}..{ingest.head_sha}",
+                    verdict=verdict,
+                    findings=findings,
+                    claims=claims,
+                    corpus=None,
+                )
             )
-        )
+            pinned = self._pin_verified(spec.repo, identifier, fixtures, findings)
+            report.corpus = CorpusDelta(
+                pinned_this_run=pinned,
+                corpus_total=self.corpus.total(spec.repo),
+            )
+        except Exception as exc:  # noqa: BLE001 - aggregation failures become abstentions
+            return self._aggregation_failure_report(spec, exc, emit)
+
         emit("complete", "Report ready")
         return report
 
@@ -222,6 +243,11 @@ class Pipeline:
         for claim in claims:
             for check in self.corpus.applicable(repo, claim.target_symbol):
                 inputs = json.loads(check.input_json)
+                receipt = (
+                    EvidenceReceipt(check.command, check.output, check.evidence_hash)
+                    if check.evidence_hash
+                    else None
+                )
                 fixtures.append(
                     BehaviorFixture(
                         id=f"corpus-{check.id[:20]}",
@@ -242,6 +268,7 @@ class Pipeline:
                         expected_json=check.expected_json,
                         command=check.command,
                         output=check.output,
+                        receipt=receipt,
                     )
                 )
         return fixtures
@@ -263,6 +290,7 @@ class Pipeline:
             risk="high",
             proposed_check=f"complete the {stage} stage",
             preserve_critical=True,
+            origin=ClaimOrigin.SYSTEM,
         )
         synthetic_finding = Finding(
             claim_id=synthetic_id,
@@ -290,6 +318,44 @@ class Pipeline:
             )
         )
         emit("complete", "Risky report ready with an unverifiable stage")
+        return report
+
+    def _aggregation_failure_report(
+        self,
+        spec: RunSpec,
+        error: Exception,
+        emit: Callable[[str, str], None],
+    ) -> Report:
+        """Discard untrusted partial evidence when the semantic gate itself fails."""
+
+        claim_id = "system:aggregating"
+        claim = Claim(
+            id=claim_id,
+            text="aggregation must complete for the verdict to be trusted",
+            target_symbol=claim_id,
+            risk="high",
+            proposed_check="repair the aggregation integrity failure",
+            preserve_critical=True,
+            origin=ClaimOrigin.SYSTEM,
+        )
+        finding = Finding(
+            claim_id=claim_id,
+            layer=Layer.BEHAVIORAL_DIFF,
+            outcome=Outcome.UNVERIFIABLE,
+            command=claim_id,
+            output=f"{type(error).__name__}: {error}",
+        )
+        report = validate_report(
+            Report(
+                repo=spec.repo,
+                pr_ref=f"{spec.base_ref}..{spec.head_ref}",
+                verdict=Verdict.RISKY,
+                findings=[finding],
+                claims=[claim],
+                corpus=None,
+            )
+        )
+        emit("complete", "Risky report ready after aggregation integrity failure")
         return report
 
 
@@ -338,6 +404,53 @@ def _critical_claim_ids(claims: Sequence[Claim]) -> set[str]:
     }
 
 
+def _validate_characterizer_claims(claims: Sequence[Claim]) -> None:
+    """Keep model proposals out of the reserved deterministic ID namespace."""
+
+    if any(claim.id.startswith("system:") for claim in claims):
+        raise ValueError("characterizer used a reserved system claim ID")
+
+
+def _coverage_abstentions(
+    touched_symbols: Sequence[TouchedSymbol],
+    claims: Sequence[Claim],
+) -> tuple[list[Claim], list[Finding]]:
+    covered_targets = {claim.target_symbol for claim in claims}
+    missing_targets = sorted(
+        {
+            symbol.target_symbol
+            for symbol in touched_symbols
+            if symbol.target_symbol not in covered_targets
+        }
+    )
+    coverage_claims: list[Claim] = []
+    coverage_findings: list[Finding] = []
+    for target_symbol in missing_targets:
+        identifier = hashlib.sha256(target_symbol.encode()).hexdigest()[:16]
+        claim_id = f"system:coverage:{identifier}"
+        coverage_claims.append(
+            Claim(
+                id=claim_id,
+                text=f"characterization covers touched symbol {target_symbol}",
+                target_symbol=target_symbol,
+                risk="high",
+                proposed_check="supply a claim for every touched symbol",
+            preserve_critical=True,
+            origin=ClaimOrigin.SYSTEM,
+            )
+        )
+        coverage_findings.append(
+            Finding(
+                claim_id=claim_id,
+                layer=Layer.BEHAVIORAL_DIFF,
+                outcome=Outcome.UNVERIFIABLE,
+                command=f"coverage:{target_symbol}",
+                output=f"Characterization omitted touched symbol {target_symbol}.",
+            )
+        )
+    return coverage_claims, coverage_findings
+
+
 def _probe_plans(claims: Sequence[Claim]) -> list[ProbePlan]:
     """Deserialize proposed plans without granting malformed payloads authority."""
     plans: list[ProbePlan] = []
@@ -380,6 +493,7 @@ def _run_discovered_tests(
         risk="high",
         proposed_check="execute the conservative discovered test command",
         preserve_critical=True,
+        origin=ClaimOrigin.SYSTEM,
     )
     base = Path(base_path).resolve()
     head = Path(head_path).resolve()
@@ -403,7 +517,9 @@ def _run_discovered_tests(
         output = _test_comparison_output(base, base_evidence, head, head_evidence)
         base_passed = _command_passed(base_evidence)
         head_passed = _command_passed(head_evidence)
-        if head_passed:
+        if not base_passed:
+            outcome = Outcome.UNVERIFIABLE
+        elif head_passed:
             outcome = Outcome.VERIFIED
         elif (
             head_evidence.timed_out
@@ -411,18 +527,21 @@ def _run_discovered_tests(
             or _looks_environmental_test_failure(head_evidence.output)
         ):
             outcome = Outcome.UNVERIFIABLE
-        elif base_passed:
-            outcome = Outcome.REFUTED
         else:
-            outcome = Outcome.UNVERIFIABLE
+            outcome = Outcome.REFUTED
         findings.append(
             Finding(
                 claim_id=claim.id,
                 layer=Layer.BEHAVIORAL_DIFF,
                 outcome=outcome,
-                command=head_evidence.command,
+                command=f"{base_evidence.command}\n{head_evidence.command}",
                 output=output,
                 confidence=1.0,
+                receipts=[
+                    receipt
+                    for receipt in (base_evidence.receipt, head_evidence.receipt)
+                    if receipt is not None
+                ],
             )
         )
     return claim, findings

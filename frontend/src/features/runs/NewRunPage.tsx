@@ -1,18 +1,35 @@
-import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, type FormEvent } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { createHeroRun, createRun } from "@/app/api";
+import { createHeroRun, createRun, loadHealth } from "@/app/api";
 import CheckoutForm from "@/components/ui/checkout-form";
+import { GradientShimmer } from "@/components/ui/gradient-shimmer";
 
 export function NewRunPage() {
   const navigate = useNavigate();
-  const [repo, setRepo] = useState("");
-  const [baseRef, setBaseRef] = useState("");
-  const [headRef, setHeadRef] = useState("");
+  const [searchParams] = useSearchParams();
+  const [repo, setRepo] = useState(() => searchParams.get("repo") ?? "");
+  const [baseRef, setBaseRef] = useState(() => searchParams.get("base") ?? "");
+  const [headRef, setHeadRef] = useState(() => searchParams.get("head") ?? "");
   const [layerB, setLayerB] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [heroSubmitting, setHeroSubmitting] = useState(false);
+  const [hosted, setHosted] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadHealth()
+      .then((health) => {
+        if (!cancelled) setHosted(health.hosted === true);
+      })
+      .catch(() => {
+        if (!cancelled) setHosted(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -60,12 +77,14 @@ export function NewRunPage() {
 
   return (
     <main className="page-shell">
-      <header className="page-header">
-        <div className="grid gap-4">
+      <header className="grid gap-5 border-b pb-7 text-center">
+        <div className="mx-auto grid max-w-4xl gap-4">
           <p className="eyebrow">Contract-first / Python</p>
-          <h1 className="page-title">Trust the evidence. Not the patch.</h1>
+          <h1 className="text-4xl font-bold tracking-[-0.045em] md:text-6xl">
+            <GradientShimmer>Trust the evidence. Not the patch.</GradientShimmer>
+          </h1>
         </div>
-        <p className="page-copy md:max-w-sm">
+        <p className="page-copy mx-auto">
           Compare captured base behavior with the head revision, then hunt
           adversarial boundaries. Every conclusion opens to its receipt.
         </p>
@@ -76,6 +95,7 @@ export function NewRunPage() {
         errors={errors}
         headRef={headRef}
         heroSubmitting={heroSubmitting}
+        hosted={hosted}
         layerB={layerB}
         onBaseRefChange={(value) => {
           setBaseRef(value);

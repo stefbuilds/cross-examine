@@ -98,6 +98,10 @@ def test_hosted_mode_completes_hero_inline_and_rejects_arbitrary_repositories(
     )
 
     with TestClient(app) as client:
+        health = client.get("/api/health")
+        assert health.status_code == 200
+        assert health.json()["hosted"] is True
+
         rejected = client.post(
             "/api/runs",
             json={

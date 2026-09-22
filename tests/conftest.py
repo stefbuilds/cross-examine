@@ -3,11 +3,13 @@ import pytest
 from cross_examine.schema import (
     Claim,
     CorpusDelta,
+    EvidenceReceipt,
     Finding,
     Layer,
     Outcome,
     Report,
     Verdict,
+    evidence_hash,
 )
 
 
@@ -38,8 +40,14 @@ def sample_report() -> Report:
                 expected="[]",
                 actual="null",
                 confidence=0.95,
+                receipts=[
+                    EvidenceReceipt(
+                        "python probe.py",
+                        "AssertionError",
+                        evidence_hash("python probe.py", "AssertionError"),
+                    )
+                ],
             )
         ],
         corpus=CorpusDelta(pinned_this_run=1, corpus_total=7),
     )
-

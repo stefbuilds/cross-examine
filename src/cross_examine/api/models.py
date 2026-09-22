@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, field_validator
 
 class HealthResponse(BaseModel):
     status: str
+    hosted: bool = False
 
 
 class FixtureResponse(BaseModel):
@@ -16,6 +17,9 @@ class FixtureResponse(BaseModel):
 
 class RunResponse(BaseModel):
     id: str
+    repo: str
+    base_ref: str
+    head_ref: str
     status: str
     stage: str
     message: str

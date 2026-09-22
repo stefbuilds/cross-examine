@@ -1,4 +1,4 @@
-// Imported from serafimcloud/error-message on 21st.dev; accessibility adapted.
+// Shared accessible error message.
 import { memo } from "react";
 
 import { cn } from "@/lib/utils";

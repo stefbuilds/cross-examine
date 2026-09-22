@@ -1,20 +1,29 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import subprocess
 import time
 from pathlib import Path
+
+import pytest
 
 from cross_examine.corpus.repository import CorpusRepository
 from cross_examine.persistence.database import Database
 from cross_examine.pipeline import Pipeline, _run_discovered_tests
 from cross_examine.schema import (
+    BehaviorFixture,
     Claim,
+    EvidenceReceipt,
+    Finding,
     IngestResult,
+    Layer,
     Outcome,
+    Report,
     RunProgress,
     RunSpec,
     TouchedSymbol,
     Verdict,
+    evidence_hash,
 )
 
 
@@ -86,6 +95,29 @@ class ImmediateIngest:
             ],
             test_commands=[],
             evidence=[],
+        )
+
+
+class OmittedCoverageIngest(ImmediateIngest):
+    def ingest(
+        self,
+        spec: RunSpec,
+        run_dir: Path,
+        *,
+        deadline: float | None = None,
+    ) -> IngestResult:
+        result = super().ingest(spec, run_dir, deadline=deadline)
+        return replace(
+            result,
+            touched_symbols=[
+                *result.touched_symbols,
+                TouchedSymbol(
+                    module="normalizer.extra",
+                    qualname="untested",
+                    target_symbol="normalizer.extra:untested",
+                    file_path="src/normalizer/extra.py",
+                ),
+            ],
         )
 
 
@@ -192,6 +224,132 @@ def test_complete_layer_a_pipeline_produces_broken_grounded_report(tmp_path: Pat
     assert test_finding.outcome is Outcome.VERIFIED
     assert "-m pytest -q" in test_finding.command
     assert "1 passed" in test_finding.output
+    assert len(test_finding.receipts) == 2
+    assert all(receipt.command in test_finding.command for receipt in test_finding.receipts)
+    assert all(receipt.output in test_finding.output for receipt in test_finding.receipts)
+
+
+def test_pipeline_validates_report_before_pinning_corpus(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import cross_examine.pipeline as pipeline_module
+
+    events: list[str] = []
+    database = Database(tmp_path / "app.db")
+    corpus = CorpusRepository(database)
+    original_pin = corpus.pin
+    original_validate = pipeline_module.validate_report
+
+    def recording_pin(*args: object, **kwargs: object) -> bool:
+        events.append("pin")
+        return original_pin(*args, **kwargs)  # type: ignore[arg-type]
+
+    def recording_validate(report: Report) -> Report:
+        events.append("validate")
+        return original_validate(report)
+
+    command = "python probe.py"
+    output = "captured"
+    receipt = EvidenceReceipt(command, output, evidence_hash(command, output))
+    fixture = BehaviorFixture(
+        id="fixture",
+        claim_id="preserve-empty",
+        target_symbol="normalizer.core:normalize",
+        args_json="[[]]",
+        kwargs_json="{}",
+        expected_json="null",
+        command=command,
+        output=output,
+        receipt=receipt,
+    )
+    finding = Finding(
+        claim_id="preserve-empty",
+        layer=Layer.BEHAVIORAL_DIFF,
+        outcome=Outcome.VERIFIED,
+        command=command,
+        output=output,
+        repro_input="[]",
+        receipts=[receipt],
+    )
+
+    monkeypatch.setattr(corpus, "pin", recording_pin)
+    monkeypatch.setattr(pipeline_module, "validate_report", recording_validate)
+    monkeypatch.setattr(pipeline_module, "capture_base", lambda *args, **kwargs: [fixture])
+    monkeypatch.setattr(pipeline_module, "run_layer_a", lambda *args, **kwargs: [finding])
+    pipeline = Pipeline(
+        characterizer=FakeCharacterizer(),
+        corpus=corpus,
+        runs_root=tmp_path / "runs",
+        ingest=ImmediateIngest(tmp_path / "materialized"),  # type: ignore[arg-type]
+    )
+
+    pipeline.run(
+        RunSpec(repo="sample", base_ref="base", head_ref="head", layer_b=False),
+        run_id="validate-before-pin",
+    )
+
+    assert "pin" in events
+    assert events.index("validate") < events.index("pin")
+
+
+def test_aggregation_failure_discards_invalid_partial_evidence_and_abstains(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import cross_examine.pipeline as pipeline_module
+
+    corpus = CorpusRepository(Database(tmp_path / "app.db"))
+    invalid_finding = Finding(
+        claim_id="preserve-empty",
+        layer=Layer.BEHAVIORAL_DIFF,
+        outcome=Outcome.REFUTED,
+        command="python probe.py",
+        output="regression",
+    )
+    monkeypatch.setattr(pipeline_module, "capture_base", lambda *args, **kwargs: [])
+    monkeypatch.setattr(pipeline_module, "run_layer_a", lambda *args, **kwargs: [invalid_finding])
+    pipeline = Pipeline(
+        characterizer=FakeCharacterizer(),
+        corpus=corpus,
+        runs_root=tmp_path / "runs",
+        ingest=ImmediateIngest(tmp_path / "materialized"),  # type: ignore[arg-type]
+    )
+
+    report = pipeline.run(
+        RunSpec(repo="sample", base_ref="base", head_ref="head", layer_b=False),
+        run_id="aggregation-failure",
+    )
+
+    assert report.verdict is Verdict.RISKY
+    assert [claim.id for claim in report.claims] == ["system:aggregating"]
+    assert [finding.claim_id for finding in report.findings] == ["system:aggregating"]
+    assert report.findings[0].outcome is Outcome.UNVERIFIABLE
+    assert corpus.total("sample") == 0
+
+
+def test_omitted_touched_symbol_becomes_a_critical_risky_coverage_finding(
+    tmp_path: Path,
+) -> None:
+    pipeline = Pipeline(
+        characterizer=FakeCharacterizer(),
+        corpus=CorpusRepository(Database(tmp_path / "app.db")),
+        runs_root=tmp_path / "runs",
+        ingest=OmittedCoverageIngest(tmp_path / "materialized"),  # type: ignore[arg-type]
+    )
+
+    report = pipeline.run(
+        RunSpec(repo="coverage", base_ref="base", head_ref="head", layer_b=False),
+        run_id="coverage-run",
+    )
+
+    coverage = next(
+        finding
+        for finding in report.findings
+        if finding.claim_id.startswith("system:coverage:")
+    )
+    assert coverage.outcome is Outcome.UNVERIFIABLE
+    assert report.verdict is Verdict.RISKY
 
 
 def test_stage_failure_becomes_a_risky_unverifiable_report(tmp_path: Path) -> None:
@@ -287,6 +445,32 @@ def test_preexisting_test_failure_does_not_blame_the_head_revision(tmp_path: Pat
     assert findings[0].outcome is Outcome.UNVERIFIABLE
     assert "BASE OUTPUT" in findings[0].output
     assert "HEAD OUTPUT" in findings[0].output
+
+
+def test_failing_base_test_that_passes_on_head_is_unverifiable(tmp_path: Path) -> None:
+    base = tmp_path / "base"
+    head = tmp_path / "head"
+    base.mkdir()
+    head.mkdir()
+    (base / "test_recovery.py").write_text(
+        "def test_behavior() -> None:\n    assert False\n",
+        encoding="utf-8",
+    )
+    (head / "test_recovery.py").write_text(
+        "def test_behavior() -> None:\n    assert True\n",
+        encoding="utf-8",
+    )
+
+    _claim, findings = _run_discovered_tests(
+        [["python", "-m", "pytest", "-q"]],
+        base,
+        head,
+        timeout=10,
+    )
+
+    assert findings[0].outcome is Outcome.UNVERIFIABLE
+    assert "1 failed" in findings[0].output
+    assert "1 passed" in findings[0].output
 
 
 def test_passing_base_test_that_fails_on_head_is_refuted(tmp_path: Path) -> None:

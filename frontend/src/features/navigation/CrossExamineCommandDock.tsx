@@ -31,7 +31,7 @@ type DockItemData = {
 };
 
 const itemsBeforeAction: DockItemData[] = [
-  { end: true, icon: <PleromaIcon />, label: "Evidence", to: "/" },
+  { end: true, icon: <PleromaIcon />, label: "Evidence", to: "/evidence" },
 ];
 
 const itemsAfterAction: DockItemData[] = [
@@ -75,7 +75,7 @@ export function CrossExamineCommandDock() {
   const [assistantMounted, setAssistantMounted] = useState(assistantOpen);
   const assistantTrigger = useRef<HTMLButtonElement>(null);
   const assistantPanel = useRef<HTMLDivElement>(null);
-  const returnPath = useRef("/");
+  const returnPath = useRef("/evidence");
   const expandAssistant = () => {
     if (!fullPage) returnPath.current = location.pathname + location.search + location.hash;
     document.documentElement.dataset.assistantTransition = "expand";

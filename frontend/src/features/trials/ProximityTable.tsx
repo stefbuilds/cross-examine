@@ -1,6 +1,6 @@
 "use client";
 
-// Source: micka_design/table on 21st.dev (demo 10378).
+// Trial proximity table.
 import {
   createContext,
   forwardRef,
@@ -234,4 +234,3 @@ export const ProximityTableCell = forwardRef<
   />
 ));
 ProximityTableCell.displayName = "ProximityTableCell";
-

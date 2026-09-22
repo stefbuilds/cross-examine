@@ -20,17 +20,13 @@ const variants = {
   },
 } as const;
 
-/**
- * Content adaptation of arihantcodes_1f7b8c4d/status-badge from 21st.dev.
- * The source pill dimensions, rounded treatment, icon weight, and state colors
- * are preserved while Cross-Examine supplies its verdict labels.
- */
+/** Compact verdict status presentation. */
 export function VerdictStatus({ verdict }: { verdict: Verdict }) {
   const { Icon, container, label } = variants[verdict];
 
   return (
     <div
-      className={`flex h-[35px] w-40 items-center justify-center rounded-xl ${container}`}
+      className={`flex h-[35px] w-28 items-center justify-center rounded-xl sm:w-40 ${container}`}
     >
       <h1 className={`flex items-center font-semibold ${label}`}>
         <Icon className="mr-2 h-4 w-4" strokeWidth={3} />

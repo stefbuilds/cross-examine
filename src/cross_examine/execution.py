@@ -31,6 +31,8 @@ from cross_examine.schema import (
     CwdIdentity,
     ExecutableIdentity,
     ExecutionManifest,
+    EvidenceReceipt,
+    evidence_hash,
 )
 from cross_examine.settings import (
     DEFAULT_COMMAND_TIMEOUT_SECONDS,
@@ -308,6 +310,12 @@ class BoundedHostProcessRunner:
             output_truncated=output_truncated,
             redaction_applied=bool(secrets),
         )
+        captured_output = "\n".join(part for part in (stdout, stderr) if part)
+        receipt = EvidenceReceipt(
+            rendered,
+            captured_output,
+            evidence_hash(rendered, captured_output),
+        )
         return CommandEvidence(
             rendered,
             process.returncode,
@@ -317,6 +325,7 @@ class BoundedHostProcessRunner:
             timed_out,
             output_truncated,
             manifest,
+            receipt,
         )
 
 

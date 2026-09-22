@@ -1,4 +1,4 @@
-// Visual grammar adapted from the user-supplied 21st.dev WithAvatar component.
+// Shared accessible context-menu primitive.
 import * as React from "react";
 import { ContextMenu as ContextMenuPrimitive } from "radix-ui";
 

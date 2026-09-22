@@ -6,6 +6,8 @@ produce it. Verdict aggregation remains a pure function in this module.
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass, field
 from enum import Enum
 
@@ -32,6 +34,32 @@ class ClaimKind(str, Enum):
     INTENDED_CHANGE = "intended_change"
 
 
+class ClaimOrigin(str, Enum):
+    """Authority that produced a claim identifier."""
+
+    MODEL = "model"
+    SYSTEM = "system"
+
+
+def evidence_hash(command: str, output: str) -> str:
+    """Return the stable digest binding one invocation to its captured output."""
+
+    payload = json.dumps(
+        {"command": command, "output": output},
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    return hashlib.sha256(f"cross-examine-evidence-v1\0{payload}".encode()).hexdigest()
+
+
+@dataclass(frozen=True)
+class EvidenceReceipt:
+    command: str
+    output: str
+    evidence_hash: str
+
+
 @dataclass
 class Claim:
     id: str
@@ -41,10 +69,12 @@ class Claim:
     proposed_check: str
     preserve_critical: bool = False
     kind: ClaimKind = ClaimKind.PRESERVATION
+    origin: ClaimOrigin = ClaimOrigin.MODEL
     probe_plans: list[dict[str, object]] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.kind = ClaimKind(self.kind)
+        self.origin = ClaimOrigin(self.origin)
 
 
 @dataclass
@@ -59,6 +89,7 @@ class Finding:
     actual: str | None = None
     confidence: float = 1.0
     provenance: dict[str, object] | None = None
+    receipts: list[EvidenceReceipt] = field(default_factory=list)
 
 
 @dataclass
@@ -101,6 +132,7 @@ class CommandEvidence:
     timed_out: bool = False
     output_truncated: bool = False
     manifest: "ExecutionManifest | None" = None
+    receipt: EvidenceReceipt | None = None
 
     @property
     def output(self) -> str:
@@ -186,6 +218,7 @@ class BehaviorFixture:
     expected_json: str
     command: str
     output: str
+    receipt: EvidenceReceipt | None = None
 
 
 @dataclass(frozen=True)
@@ -202,6 +235,10 @@ def aggregate(findings: list[Finding], critical_claim_ids: set[str]) -> Verdict:
     refuted = [finding for finding in findings if finding.outcome is Outcome.REFUTED]
     if any(finding.claim_id in critical_claim_ids for finding in refuted):
         return Verdict.BROKEN
+
+    covered_claim_ids = {finding.claim_id for finding in findings}
+    if critical_claim_ids - covered_claim_ids:
+        return Verdict.RISKY
 
     unverifiable_critical = any(
         finding.outcome is Outcome.UNVERIFIABLE

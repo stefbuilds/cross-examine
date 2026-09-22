@@ -6,11 +6,19 @@ test("opens every grounded receipt from a packaged direct route", async ({ page 
 
   await page.goto("/fixtures/broken");
   await expect(page.getByRole("heading", { name: "BROKEN" })).toBeVisible();
-  await page.getByRole("button", { name: /preserves empty-list normalization/i }).click();
+  await page
+    .getByRole("row", {
+      name: /preserves empty-list normalization.*behavioral_diff refuted/i,
+    })
+    .getByRole("button")
+    .click();
 
   await expect(page.getByText("Exact command")).toBeVisible();
-  await expect(page.getByText("python -m pytest -q tests/test_normalize.py -k empty")).toBeVisible();
-  await expect(page.getByText("AssertionError: assert None == []")).toBeVisible();
+  await expect(
+    page.getByText(/probe_runner call normalizer\.core:normalize/).first(),
+  ).toBeVisible();
+  await expect(page.getByText(/"value": \[\]/).first()).toBeVisible();
+  await expect(page.getByText(/"value": null/).first()).toBeVisible();
   await expect(page.getByText("Reproducing input")).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
@@ -20,10 +28,11 @@ test("runs the offline hero from the browser without model credentials", async (
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/run");
-  // First-run installations disclose the form from the empty state.
-  const start = page.getByRole("button", { name: "Start local verification" });
-  if (await start.isVisible()) await start.click();
-  await page.getByRole("button", { name: "Run offline hero demo" }).click();
+  const startLocalVerification = page.getByRole("button", { name: "Start local verification" });
+  const runOfflineHero = page.getByRole("button", { name: "Run offline hero demo" });
+  await expect(startLocalVerification.or(runOfflineHero)).toBeVisible();
+  if (await startLocalVerification.isVisible()) await startLocalVerification.click();
+  await runOfflineHero.click();
 
   await expect(page).toHaveURL(/\/runs\/[a-f0-9]+$/);
   await expect(page.getByRole("heading", { name: "BROKEN" })).toBeVisible({

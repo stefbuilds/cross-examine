@@ -8,7 +8,6 @@ describe("documented trials fixture", () => {
       "python-slugify",
       "humanize",
       "validators",
-      "packaging",
     ]);
     expect(
       trials.filter((trial) => trial.layerAB.verdict === "RISKY"),

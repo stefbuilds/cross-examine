@@ -67,6 +67,7 @@ def run_layer_b(
                     command=evidence.command,
                     output=evidence.output or "Layer-B worker produced no grounded output",
                     confidence=1.0,
+                    receipts=[evidence.receipt] if evidence.receipt is not None else [],
                 )
             )
             continue
@@ -88,6 +89,7 @@ def run_layer_b(
                 expected=payload.get("expected"),
                 actual=payload.get("actual"),
                 confidence=1.0,
+                receipts=[evidence.receipt] if evidence.receipt is not None else [],
             )
         )
     return findings

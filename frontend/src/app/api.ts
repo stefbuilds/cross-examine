@@ -7,6 +7,9 @@ export interface FixtureResponse {
 
 export interface RunResponse {
   id: string;
+  repo: string;
+  base_ref: string;
+  head_ref: string;
   status: string;
   stage: string;
   message: string;
@@ -64,6 +67,15 @@ async function getJson<T>(path: string): Promise<T> {
   return jsonResponse<T>(
     await fetch(path, { headers: { Accept: "application/json" } }),
   );
+}
+
+export interface HealthResponse {
+  status: string;
+  hosted: boolean;
+}
+
+export function loadHealth(): Promise<HealthResponse> {
+  return getJson("/api/health");
 }
 
 export function loadBrokenFixture(): Promise<FixtureResponse> {

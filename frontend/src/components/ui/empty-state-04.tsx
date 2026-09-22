@@ -1,4 +1,4 @@
-// Visual grammar adapted from the user-supplied 21st.dev Empty State 04 component.
+// Shared empty-state composition.
 import { FolderCheck, PlusIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
@@ -29,7 +29,7 @@ export default function EmptyState({ action }: { action?: ReactNode }) {
               </Marquee>
             </div>
             <EmptyTitle>No verification runs yet</EmptyTitle>
-            <EmptyDescription>Create a run to capture exact commands, outputs, and grounded verdicts.</EmptyDescription>
+            <EmptyDescription>Create a run to capture exact commands, outputs, and grounded verdicts. The offline hero demo is a safe first run — no credentials required.</EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             {action ?? (

@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import axe from "axe-core";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
@@ -61,22 +61,17 @@ describe("application routes", () => {
     render(<RouterProvider router={router} />);
 
     expect(await screen.findByText("BROKEN")).toBeInTheDocument();
+    const dock = within(screen.getByRole("navigation", { name: "Primary" }));
+    expect(dock.getByRole("link", { name: "Evidence" })).toHaveAttribute("href", "/evidence");
+    expect(dock.getByRole("button", { name: "Assistant" })).toHaveAttribute("aria-expanded", "false");
+    expect(dock.getByRole("link", { name: "Verify" })).toHaveAttribute("href", "/run");
+    expect(dock.getByRole("link", { name: "Runs" })).toHaveAttribute("href", "/runs");
+    expect(dock.getByRole("link", { name: "Trials" })).toHaveAttribute("href", "/trials");
+    expect(dock.queryByRole("link", { name: "Corpus" })).not.toBeInTheDocument();
+    expect(dock.queryByRole("textbox", { name: "Search Cross-Examine" })).not.toBeInTheDocument();
     expect(
       screen.getByRole("navigation", { name: "Primary" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "Primary" })).toHaveClass(
-      "fixed",
-      "bottom-4",
-      "command-dock-dark",
-    );
-    expect(screen.getByRole("link", { name: "Evidence" })).toHaveAttribute("href", "/");
-    expect(screen.getByRole("button", { name: "Assistant" })).toHaveAttribute("aria-expanded", "false");
-    expect(screen.getByRole("link", { name: "Verify" })).toHaveAttribute("href", "/run");
-    expect(screen.getByRole("link", { name: "Runs" })).toHaveAttribute("href", "/runs");
-    expect(screen.getByRole("link", { name: "Trials" })).toHaveAttribute("href", "/trials");
-    expect(screen.queryByRole("link", { name: "Corpus" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("textbox", { name: "Search Cross-Examine" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "About" })).not.toBeInTheDocument();
     expect(screen.queryByText("Independent verification harness")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Created By Deerflow" })).not.toBeInTheDocument();
@@ -123,7 +118,7 @@ describe("application routes", () => {
     expect(screen.getByText("RISKY")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "New verification" })).toHaveAttribute(
       "href",
-      "/",
+      "/run",
     );
   });
 
@@ -134,7 +129,17 @@ describe("application routes", () => {
 
     expect(await screen.findByRole("heading", { name: "Evidence, examined." })).toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "Primary" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Enter dashboard" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Enter dashboard" })).toHaveAttribute("href", "/evidence");
+  });
+
+  it("renders the welcome hero at the root URL", async () => {
+    const router = createMemoryRouter(appRoutes, { initialEntries: ["/"] });
+
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByRole("heading", { name: "Evidence, examined." })).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Primary" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Enter dashboard" })).toHaveAttribute("href", "/evidence");
   });
 
   it("renders the sourced verification-run empty state when no runs exist", async () => {
@@ -148,28 +153,19 @@ describe("application routes", () => {
 
     expect(await screen.findByRole("heading", { name: "No verification runs yet" })).toBeInTheDocument();
     expect(
-      screen.getByText("Create a run to capture exact commands, outputs, and grounded verdicts."),
+      screen.getByText(/Create a run to capture exact commands, outputs, and grounded verdicts\./),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "New verification run" })).toHaveAttribute("href", "/run");
     expect(document.querySelector('[class*="[--duration:12s]"]')).toBeInTheDocument();
   });
 
-  it("shows the same empty-run state before opening the local verification flow", async () => {
-    const user = userEvent.setup();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => new Response(JSON.stringify([]), { status: 200 })),
-    );
+  it("opens the local verification form directly", async () => {
     const router = createMemoryRouter(appRoutes, { initialEntries: ["/run"] });
 
     render(<RouterProvider router={router} />);
 
-    expect(await screen.findByRole("heading", { name: "No verification runs yet" })).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: "Start local verification" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "New verification run" })).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Start local verification" }));
     expect(await screen.findByRole("heading", { name: "New verification run" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Repository URL or path/)).toBeInTheDocument();
   });
 
   it("loads the documented trials page from primary navigation", async () => {
@@ -192,6 +188,20 @@ describe("application routes", () => {
     ).toBe(true);
   });
 
+  it("offers global search and a dedicated theme settings page", async () => {
+    const user = userEvent.setup();
+    const router = createMemoryRouter(appRoutes, { initialEntries: ["/settings"] });
+
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByRole("heading", { name: "Interface settings" })).toBeInTheDocument();
+    expect(screen.getByRole("radiogroup", { name: "Theme" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Search and commands" }));
+    expect(screen.getByPlaceholderText("Type a command or search…")).toBeInTheDocument();
+    expect(screen.getByText("Cross-examine a Python change")).toBeInTheDocument();
+  });
+
   it("renders the sourced pinned-check empty state when the corpus is empty", async () => {
     vi.stubGlobal(
       "fetch",
@@ -209,12 +219,54 @@ describe("application routes", () => {
     expect(document.querySelector('[data-slot="empty"][data-corpus-empty]')).toBeInTheDocument();
   });
 
-  it("routes evidence to root and submissions to /run without retaining an About route", async () => {
+  it("presents the corpus metric and Layer-A fixture scope truthfully", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify([
+              {
+                repo: "owner/repo",
+                corpus_total: 7,
+                latest_growth: 3,
+                last_run_id: "run-latest",
+                updated_at: "2026-07-19T00:00:00Z",
+              },
+            ]),
+            { status: 200 },
+          ),
+      ),
+    );
+    const router = createMemoryRouter(appRoutes, { initialEntries: ["/corpus"] });
+
+    render(<RouterProvider router={router} />);
+
+    expect(
+      await screen.findByRole("columnheader", {
+        name: "Rows observed in latest run",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Eligible locator/symbol Layer-A fixtures are retained for later runs on the same repository.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("+3")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("columnheader", { name: "Latest growth" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Passing executed checks become durable regression evidence/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("routes evidence to /evidence and submissions to /run without retaining an About route", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response(JSON.stringify(fixtureResponse), { status: 200 })),
     );
-    const router = createMemoryRouter(appRoutes, { initialEntries: ["/"] });
+    const router = createMemoryRouter(appRoutes, { initialEntries: ["/evidence"] });
 
     render(<RouterProvider router={router} />);
 

@@ -59,6 +59,9 @@ def test_permutation_relation_detects_a_length_three_defect_missed_by_catalog(tm
     assert [finding.outcome for finding in findings] == [Outcome.REFUTED]
     assert "permutation_invariance" in findings[0].output
     assert "plan_id=permutation_invariance-plan" in findings[0].output
+    assert findings[0].receipts
+    assert all(receipt.command in findings[0].command for receipt in findings[0].receipts)
+    assert all(receipt.output in findings[0].output for receipt in findings[0].receipts)
 
 
 def test_partition_relation_detects_a_length_three_defect_missed_by_catalog(tmp_path: Path) -> None:
@@ -78,6 +81,29 @@ def test_partition_relation_detects_a_length_three_defect_missed_by_catalog(tmp_
 
     assert [finding.outcome for finding in findings] == [Outcome.REFUTED]
     assert "partition_concatenation" in findings[0].output
+
+
+def test_noncritical_failed_relation_is_refuted_and_risky(tmp_path: Path) -> None:
+    base, head = tmp_path / "base", tmp_path / "head"
+    write_target(base, "def transform(items: list[int]) -> list[int]:\n    return sorted(items)\n")
+    write_target(
+        head,
+        "def transform(items: list[int]) -> list[int]:\n"
+        "    return items if len(items) == 3 else sorted(items)\n",
+    )
+    noncritical = claim()
+    noncritical.preserve_critical = False
+
+    findings = run_probe_plans(
+        [noncritical],
+        [relation_plan("permutation_invariance", [[3, 1, 2]])],
+        base,
+        head,
+        tmp_path / "state",
+    )
+
+    assert [finding.outcome for finding in findings] == [Outcome.REFUTED]
+    assert aggregate(findings, set()).value == "risky"
 
 
 def test_malformed_plan_becomes_unverifiable_and_never_refutes(tmp_path: Path) -> None:
