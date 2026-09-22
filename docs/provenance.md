@@ -42,3 +42,117 @@ The shared tokens cover light and dark color modes even though the Build Week sh
 ## License and attribution boundary
 
 This file records source identity and material adaptations. Upstream package licenses in `frontend/node_modules` are not copied into the application bundle; distribution must retain any notices required by those packages.
+## Embedded assistant (2026-09-20)
+
+The thinking and long-running-work loader is adapted from the exact React source
+provided by the product owner on 2026-09-20. Its Drive, Dots, Orbit, and optional
+Surfer patterns, elapsed timer, shimmer, fallback, and reduced-motion behavior are
+preserved. Cross-Examine maps Dots to model reasoning and Drive to verification;
+only the source's `ink` and overlay tokens were mapped to existing semantic tokens.
+
+The user explicitly selected assistant-ui for this integration. Chat components
+were installed from `https://r.assistant-ui.com/styles/radix-nova/thread.json` via
+the shadcn registry: Thread, attachments/file/image support components, Markdown,
+reasoning, tool groups/fallback, tooltip button, and their hooks and UI primitives.
+The installed packages are pinned by `frontend/package-lock.json`.
+
+Upstream layout, scrolling, composer, cancellation, Markdown/code copying, tool
+disclosure, and responsive behavior are retained. Import paths were repaired for
+this Vite project's aliases. Existing project Button and Avatar styling was
+preserved; AvatarImage was added for source compatibility. The chat consumes the
+existing font/color tokens and adds upstream tw-shimmer and collapse animations.
+Copy and capabilities are adapted to append-only verification conversations:
+editing/regeneration are removed, unsupported attachments are hidden, tool groups
+start expanded, and the welcome content describes Cross-Examine.
+
+Investigation results reuse existing 21st-derived Card, coss Accordion,
+VerdictStatus, ErrorMessage, and FindingEvidence components. Navigation reuses the
+existing 21st-derived SessionNavBar. Conversation controls use the existing Button
+and a labeled native select. Their data comes from the custom Python runtime.
+
+Verification includes production build, frontend tests, and a packaged browser
+flow through real hero execution, expanded receipts, follow-up, reload, and a
+390px viewport. Provider token streaming/tool calling is tested with a controlled
+provider; a live provider test requires an operator-supplied OPENAI_API_KEY.
+
+## Bottom command dock (2026-09-22)
+
+The primary navigation uses UImaxxing's `command-dock` registry component from
+`https://uimaxx.ing/r/command-dock.json`. The canonical source is retained
+unchanged at `frontend/src/components/uimaxxing/command-dock.tsx`; it preserves
+the source search field, pill action, active indicator, gradients, spacing, and
+icon treatment.
+
+Cross-Examine routing lives separately in
+`frontend/src/features/navigation/CrossExamineCommandDock.tsx`. That adapter
+maps the dock grammar to Evidence, Assistant, Verify, Runs, Trials, and Corpus,
+adds semantic React Router links and active-route state, and uses the existing
+application color and font tokens. Only the small `stroke-lit` and `interactive`
+utilities required by this component were transferred, preventing the registry's
+full global theme sheet from recoloring unrelated evidence surfaces.
+
+## Assistant UImaxxing composition (2026-09-22)
+
+The assistant uses the UImaxxing registry sources `neon-prompt-bar`,
+`ai-chat-thread`, `code-diff-card`, and `issue-activity-card` from
+`https://uimaxx.ing/r/*.json`. Their canonical TSX sources are retained unchanged
+under `frontend/src/components/uimaxxing/`; the registry CSS is retained at
+`frontend/src/app/uimaxxing.css`.
+
+Product wiring is isolated in `frontend/src/features/assistant/`. The adapters
+preserve the sources' structure, motion, glow, disclosure, and activity-card
+grammar while replacing demo data with assistant-ui streaming, run progress,
+saved-report links, and exact evidence receipts. A scoped `.uimax-assistant`
+token map selects Cross-Examine's white theme without recoloring other routes.
+The shared Avatar primitive only adds the `seed` and `size` compatibility props
+required by the untouched activity-card source.
+
+## Persistent assistant island (2026-09-22)
+
+At the user's request, the UImaxxing command-dock adapter now expands into one
+pair of joined pills containing the existing assistant composition. The original
+registry components remain the visual source for the dock, icons, chat, and
+composer. The expansion itself is a Cross-Examine interaction: coordinated
+width/height easing, delayed content reveal, a 540px-wide compact assistant
+capsule connected by a central neck to a 520px navbar. The user's supplied
+Dynamic Island reference grounds the pure-black fill and capsule silhouette;
+fine inset highlights and layered contact/ambient shadows provide edge depth.
+The compact assistant is 72px tall and contains only the ask bar and small
+expand/close controls. Its bar comes from the explicitly requested
+`https://uimaxx.ing/r/compact-ask-bar.json`, adapted in `CompactAssistantBar.tsx`
+with the source geometry, sheen, shadows, plus icon, and gradient waveform
+button. The controls connect to the existing assistant runtime rather than
+the registry demo: Enter or the waveform sends a draft and expands the thread;
+the plus opens the full assistant. No voice capability is implied or added.
+No new dependency was added.
+
+The assistant stays mounted across navigation and closure, preserving the
+current draft and runtime. The open state persists for the browser tab until
+closed. The close control and Escape return focus to Assistant; hidden content
+is inert. Reduced-motion preferences disable the expansion transitions.
+The expand control navigates to `/assistant`; minimize returns to the previous
+page. A shared named view transition animates between the capsule and full-page
+surface. Both presentations keep the same runtime mounted, preserving drafts
+and conversation state without duplicate assistant instances.
+
+At the user's request, the wide single-silhouette experiments were reverted
+to the original separate capsules. The connector was subsequently widened
+10% from 120px to 132px. To eliminate residual seams, the expanded pills and
+bridge now share one SVG perimeter and shadow in `JoinedPillSurface.tsx`;
+individual capsule borders, bridge overlays, and inset shadows are suppressed
+in that state. The narrow-connector silhouette is retained.
+The compact capsule is 540px wide and the navbar is 520px wide.
+Navbar icon paths were
+provided by the user; the terminal motion is adapted from AnimateIcons by
+Avijit Dey (@avijit07x), MIT, using the already-installed Framer Motion runtime.
+Trials and Corpus now share one Trials dock entry and a local section switcher.
+The user-supplied animated Pleroma mark is used for Evidence; the previous
+Evidence logs icon is used for Runs. The pasted SVG nesting was repaired and
+reduced motion renders the completed Pleroma mark without animation.
+
+Assistant motion uses a fixed-size silhouette with an interruptible 640ms path
+morph for opening/closing, rather than stretching a fading SVG through layout
+height changes. The navbar stays anchored. Full-page expansion/minimization
+shares the assistant surface's bounds through the View Transitions API, with
+coordinated corner interpolation and a delayed content reveal. Reduced motion
+skips the morph and shortens the page transition; the runtime remains mounted.

@@ -202,6 +202,46 @@ uv run cross-examine serve
 
 Use `--no-layer-b` for a Layer-A-only compatibility pass. The web form accepts a local path or Git URL and streams stage progress over SSE.
 
+## Embedded assistant
+
+Open `/assistant` in the local app (the **Assistant** sidebar destination). The
+assistant-ui Thread connects directly to FastAPI; there is no separate Node chat
+server. Conversations, tool receipts, and run reports are stored in SQLite.
+
+For AI conversations, add the following to the **repository root** `.env.local`
+and restart `uv run cross-examine serve`:
+
+```dotenv
+OPENAI_API_KEY=your-key-here
+CROSS_EXAMINE_CHAT_MODEL=gpt-5.6-sol
+```
+
+The model setting is optional. The Python server loads this file without
+overriding existing environment variables. Never prefix this key with `VITE_`;
+the browser only calls the local API. Repository characterization continues to
+use its existing model independently of the chat model setting.
+
+Try “Cross-examine https://github.com/OWNER/REPO/pull/123”, or provide a local
+Python repository plus its base and head refs. The agent can start one new
+investigation per message, stream its progress, retrieve reports, list runs,
+and inspect the corpus. Evidence cards render saved commands and output; AI
+prose explains those results and does not determine the verdict.
+
+Without a key, these explicit commands work through a labeled offline handler:
+
+- `Run offline hero demo` — real local pipeline with deterministic characterization.
+- `Show recent runs`, `Show corpus`, `/report RUN_ID` — saved data.
+- `Explain the result` or `Show the evidence` — reopen the latest investigation in this chat.
+
+Use **New chat** or the saved-conversation selector to switch conversations.
+Reload restores history. **Stop generating** stops the chat response; submitted
+verification jobs continue and remain available in **Runs**. Editing/regeneration
+is intentionally unavailable because it could repeat execution. Attachments are
+not enabled. Public GitHub PR refs are fetched explicitly during ingest.
+
+Hosted deployments retain their fixture-only execution boundary. This remains a
+local, single-operator application, not an authenticated multi-user chat service.
+
 ## Tests
 
 The complete judge-facing verification is:

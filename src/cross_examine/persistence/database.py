@@ -36,6 +36,20 @@ CREATE TABLE IF NOT EXISTS corpus_checks (
   updated_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS corpus_repo_idx ON corpus_checks(repo);
+
+CREATE TABLE IF NOT EXISTS conversations (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id TEXT NOT NULL,
+  conversation_id TEXT NOT NULL REFERENCES conversations(id),
+  role TEXT NOT NULL,
+  content_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (conversation_id, id)
+);
 """
 
 

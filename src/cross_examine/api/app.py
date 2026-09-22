@@ -52,6 +52,7 @@ def create_app(
     pipeline_factory: Callable[[], PipelineLike] | None = None,
     runs_root: str | Path | None = None,
     hosted_mode: bool = False,
+    chat_client_factory: Callable | None = None,
 ) -> FastAPI:
     database = Database(database_path)
     run_repository = RunRepository(database)
@@ -222,6 +223,11 @@ def create_app(
             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
         )
 
+    from cross_examine.api.chat import register_chat
+
+    register_chat(app, database, run_repository, corpus, create_hero_run, create_run,
+                  hosted_mode=hosted_mode, client_factory=chat_client_factory)
+
     static_root = Path(__file__).resolve().parents[1] / "static"
     assets_root = static_root / "assets"
     if assets_root.is_dir():
@@ -245,6 +251,9 @@ def create_app(
 def create_dev_app() -> FastAPI:
     """Uvicorn factory for local development and browser verification."""
 
+    from dotenv import load_dotenv
+
+    load_dotenv(Path.cwd() / ".env.local", override=False)
     database_path = Path(os.environ.get("CROSS_EXAMINE_DB", ".cross-examine/cross-examine.db"))
     runs_root = Path(os.environ.get("CROSS_EXAMINE_RUNS", ".cross-examine/runs"))
     return create_app(database_path, runs_root=runs_root)

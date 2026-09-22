@@ -1,14 +1,13 @@
-import { useState } from "react";
 import {
   createBrowserRouter,
   Outlet,
   RouterProvider,
   type RouteObject,
-  useLocation,
 } from "react-router-dom";
 
 import { loadBrokenFixture, loadCorpus, loadRun, loadRuns } from "@/app/api";
-import { SessionNavBar } from "@/components/ui/session-nav-bar";
+import { CrossExamineCommandDock } from "@/features/navigation/CrossExamineCommandDock";
+import { PointerCursor } from "@/components/ui/pointer-cursor";
 import { CorpusPage } from "@/features/corpus/CorpusPage";
 import { EvidenceLandingPage } from "@/features/evidence/EvidenceLandingPage";
 import { WelcomePage } from "@/features/welcome/WelcomePage";
@@ -16,63 +15,15 @@ import { RunHistoryPage } from "@/features/runs/RunHistoryPage";
 import { RunLocallyPage } from "@/features/runs/RunLocallyPage";
 import { FixtureRunPage, RunPage } from "@/features/runs/RunPage";
 import { TrialsPage } from "@/features/trials/TrialsPage";
-
-function activeNavigation(pathname: string): string {
-  if (pathname.startsWith("/corpus")) return "corpus";
-  if (pathname.startsWith("/run")) return "runs";
-  if (pathname.startsWith("/trials")) return "trials";
-  if (pathname.startsWith("/runs") || pathname.startsWith("/fixtures")) return "runs";
-  return "evidence";
-}
+import { TrialsNavigation } from "@/features/trials/TrialsNavigation";
 
 function AppShell() {
-  const [sidebarOpen, setSidebarOpen] = useState(
-    () => typeof window === "undefined" || window.innerWidth >= 768,
-  );
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
-  const location = useLocation();
-
   return (
-    <div className="flex min-h-screen bg-background/80">
-      <aside
-        aria-hidden={!sidebarOpen}
-        className={`fixed inset-y-0 left-0 z-30 shrink-0 overflow-hidden bg-sidebar shadow-xl transition-[width,opacity] duration-300 motion-reduce:transition-none md:fixed md:inset-y-0 md:left-0 md:shadow-none ${
-          sidebarOpen
-            ? sidebarCollapsed
-              ? "w-[15rem] opacity-100 md:w-[3.05rem]"
-              : "w-[15rem] opacity-100"
-            : "w-0 opacity-0"
-        }`}
-        inert={!sidebarOpen ? true : undefined}
-      >
-        <nav aria-label="Primary" className="h-screen w-[15rem]">
-          <SessionNavBar
-            activeId={activeNavigation(location.pathname)}
-            activeWorkspace="Cross-Examine"
-            className="w-full"
-            onCollapsedChange={setSidebarCollapsed}
-            onSelect={() => {
-              if (window.innerWidth < 768) setSidebarOpen(false);
-            }}
-          />
-        </nav>
-      </aside>
-      {sidebarOpen && (
-        <button
-          aria-label="Close sidebar"
-          className="fixed inset-0 z-20 bg-black/20 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-          type="button"
-        />
-      )}
-
-      <div
-        className={`min-w-0 flex-1 transition-[margin] duration-300 motion-reduce:transition-none ${
-          sidebarOpen ? (sidebarCollapsed ? "md:ml-[3.05rem]" : "md:ml-[15rem]") : "md:ml-0"
-        }`}
-      >
+    <div className="min-h-screen bg-background/80">
+      <div className="min-w-0 pb-44">
         <Outlet />
       </div>
+      <CrossExamineCommandDock />
     </div>
   );
 }
@@ -92,6 +43,7 @@ export const appRoutes: RouteObject[] = [
     element: <AppShell />,
     hydrateFallbackElement: <LoadingShell />,
     children: [
+      { path: "assistant", element: null },
       { index: true, loader: loadBrokenFixture, element: <EvidenceLandingPage /> },
       { path: "run", loader: loadRuns, element: <RunLocallyPage /> },
       { path: "runs", loader: loadRuns, element: <RunHistoryPage /> },
@@ -105,8 +57,8 @@ export const appRoutes: RouteObject[] = [
         loader: loadBrokenFixture,
         element: <FixtureRunPage />,
       },
-      { path: "corpus", loader: loadCorpus, element: <CorpusPage /> },
-      { path: "trials", element: <TrialsPage /> },
+      { path: "corpus", loader: loadCorpus, element: <><TrialsNavigation /><CorpusPage /></> },
+      { path: "trials", element: <><TrialsNavigation /><TrialsPage /></> },
     ],
   },
 ];
@@ -114,5 +66,10 @@ export const appRoutes: RouteObject[] = [
 const browserRouter = createBrowserRouter(appRoutes);
 
 export function App() {
-  return <RouterProvider router={browserRouter} />;
+  return (
+    <>
+      <RouterProvider router={browserRouter} />
+      <PointerCursor />
+    </>
+  );
 }

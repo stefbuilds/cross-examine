@@ -78,3 +78,26 @@ def test_ingest_materializes_both_revisions_and_discovers_symbols(tmp_path: Path
     assert "worktree add --detach" in commands[3]
     assert "worktree add --detach" in commands[4]
     assert "diff --unified=80" in commands[5]
+
+
+def test_ingest_fetches_pr_refs_missing_from_normal_clone(tmp_path: Path) -> None:
+    repo, base_sha, head_sha = create_changed_repository(tmp_path)
+    git(repo, "update-ref", "refs/pull/42/head", head_sha)
+    result = IngestService().ingest(
+        RunSpec(repo=str(repo), base_ref=base_sha, head_ref="refs/pull/42/head"),
+        tmp_path / "pr-run",
+    )
+    assert result.base_sha == base_sha
+    assert result.head_sha == head_sha
+    assert any("fetch --no-tags origin refs/pull/42/head" in e.command for e in result.evidence)
+
+
+def test_ingest_resolves_non_default_remote_branches(tmp_path: Path) -> None:
+    repo, base_sha, head_sha = create_changed_repository(tmp_path)
+    git(repo, "branch", "base-branch", base_sha)
+    git(repo, "branch", "candidate-branch", head_sha)
+    result = IngestService().ingest(
+        RunSpec(repo=str(repo), base_ref="base-branch", head_ref="candidate-branch"),
+        tmp_path / "branch-run",
+    )
+    assert (result.base_sha, result.head_sha) == (base_sha, head_sha)

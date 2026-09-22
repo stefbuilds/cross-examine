@@ -3,7 +3,7 @@
 // with product routes, React Router navigation, and accessible link semantics.
 import type React from "react";
 import { motion } from "framer-motion";
-import { Blocks, FlaskConical, LayoutDashboard, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Blocks, FlaskConical, LayoutDashboard, MessageSquare, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -54,6 +54,7 @@ type NavItemData = {
 };
 
 const items: NavItemData[] = [
+  { id: "assistant", title: "Assistant", icon: MessageSquare, href: "/assistant" },
   { id: "trials", title: "Trials", icon: FlaskConical, href: "/trials" },
   { id: "corpus", title: "Corpus", icon: Blocks, href: "/corpus" },
 ];

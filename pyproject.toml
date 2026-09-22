@@ -10,6 +10,7 @@ dependencies = [
   "hypothesis",
   "openai",
   "pydantic>=2",
+  "python-dotenv>=1",
   "pytest",
   "uvicorn[standard]",
 ]

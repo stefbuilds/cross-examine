@@ -1,0 +1,1876 @@
+/*!
+ * UImaxxing™ — © 2026 Yogi Suria. All rights reserved.
+ * Free to use, modify and ship in your own products, commercial ones
+ * included. Not for republication as a component library, and not as
+ * machine-learning training data. See LICENSE.
+ * @author Yogi Suria <yogi@jumper.xyz>
+ * @license SEE LICENSE IN LICENSE
+ * @preserve
+ * provenance-mark: uim1-1ea983e5.4ff5a28a
+ */
+@import "tailwindcss";
+
+@theme {
+  /* Surfaces — mapped from Figma variables */
+  /* True black, because the hero's scene renders on one: the scene is opaque
+     and its ground is #000, so any lighter page put a visible seam straight
+     across the fold where the hero ended. Measured rather than guessed —
+     swatches laid over the hero, and #000 was the only one that disappeared
+     into it. */
+  --color-bg: #000000; /* surface/background */
+  --color-surface: #0d0d0d; /* surface/raised */
+  --color-stage: #0c0c0c; /* surface/stage */
+  --color-stage-2: #101010;
+  --color-border: #1c1c1c; /* line/border */
+  --color-border-strong: #262626;
+  /* Dropped from #151515 once the page went to true black: a 21-point slab on
+     a black ground read as a light grey rectangle rather than as a card. At 15
+     points it still separates from the page, and the preview inside it still
+     has room to sink below it. Light keeps pure white — a card there is
+     *nearer* the reader, and that direction did not change. */
+  --color-frame: #0f0f0f; /* borderless card chrome */
+  --color-well: #0e0e0e; /* inset preview well inside a frame */
+
+  /* Neutral steps components used to hardcode. Named by role rather than by
+     luminance, because the whole ramp reverses direction in light mode:
+     `raised` is always nearer the reader than the surface it sits on, `sunk`
+     always further. The ramp is read inside a card, against `frame` — it is
+     not measured against the page, which is why `sunk` sitting *above* the
+     page ground rather than below it costs nothing now that the ground is
+     true black. */
+  --color-sunk: #0a0a0a; /* deepest surface inside a card */
+  --color-sunk-2: #0b0b0c;
+  --color-raised: #141414; /* one step toward the reader from a panel */
+  --color-raised-2: #191919;
+  --color-chip: #212121; /* small inset control bodies */
+  --color-hairline: #2e2e2e; /* visible dividers, avatar rings */
+
+  /* Text — mapped from Figma variables */
+  --color-fg: #f5f5f5; /* text/primary */
+  --color-fg-secondary: #a1a1a1; /* text/secondary */
+  --color-fg-muted: #737373; /* text/muted */
+
+  /* Accents */
+  --color-accent-indigo: #6d7cff;
+  --color-accent-violet: #9a7bff;
+  --color-accent-peach: #ffb37a;
+  --color-accent-blue: #5b8dee;
+
+  /* Semantic */
+  --color-positive: #34d399;
+  --color-positive-bg: #112b1f;
+  --color-negative: #f87171;
+  --color-negative-bg: #2a1414;
+  /* One step stronger, for diff gutters and inline change marks. */
+  --color-positive-bg-strong: #1e251c;
+  --color-negative-bg-strong: #5b363a;
+  /* Inline change marks — the tint that sits directly under code. */
+  --color-positive-mark: #485f43;
+  --color-negative-mark: #5b363a;
+  /* The selected-row highlight in a file list. */
+  --color-select-bg: #2d2336;
+  --color-select-bg-2: #3a3044;
+  --color-select-line: #5e4672;
+
+  /* Ink for text and glyphs sitting on the brand gradients (.bg-orb,
+     .bg-orb-tilt, .fill-exchange, the OrgMark ramps). Those gradients carry
+     their own light and are identical in both themes, so this deliberately
+     has no light-theme override — inverting it would put pale text on a pale
+     orb. It is the one colour in the sheet that must not mirror. */
+  --color-on-brand: #0e1018;
+
+  /* Code and diff palette. Kept apart from the accents because syntax colour
+     has a different job: eight hues that must stay distinguishable from each
+     other *and* legible, which is a tighter constraint than a brand accent. */
+  --color-code-keyword: #86a5fe;
+  --color-code-fn: #ec8cc2;
+  --color-code-string: #f1948d;
+  --color-code-accent: #c798f2;
+  --color-code-add: #80b876;
+  --color-code-add-dim: #71a168;
+  --color-code-del: #c8717a;
+  --color-code-del-dim: #b0646c;
+
+  /* The width at which the page can carry the section index beside the grid.
+     The index is 11rem and its gap 2rem, so it needs 208px of side gutter on
+     top of the grid's own 6xl measure and the page padding — 1408. Below this
+     it is not rendered at all: taking that out of the measure instead would
+     put the four columns under the 240px stage every card is audited against,
+     and the index would be paid for by the cards. */
+  --breakpoint-wide: 1400px;
+
+  /* Radii */
+  --radius-control: 12px;
+  --radius-card: 20px;
+  --radius-pill: 999px;
+
+  --animate-blink: blink 1.1s steps(2, start) infinite;
+}
+
+@theme inline {
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+  /* Display serif, hero heading only. Routed through the private stack
+     below for the same reason the body rule is. */
+  --font-serif: var(--uim-serif);
+}
+
+/*
+ * The same two stacks again, under names nobody else uses.
+ *
+ * `--font-sans` is a name shared with every other Tailwind sheet in the
+ * project, and shadcn's own writes `--font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif` — a
+ * self-reference it expects the host application to break by defining the
+ * variable from its font loader. Where it does not, the reference is circular
+ * and the `var()` fails. A failed `var()` does not fall through to the next
+ * font in the list; it invalidates the whole declaration, and the text lands
+ * on the browser's default serif. Which sheet loads last decides whose
+ * definition wins, and that is not something this file can control.
+ *
+ * So the body rule below reads these instead. They cannot be overwritten by
+ * accident, and the fallback inside each `var()` means an absent webfont
+ * degrades to the system stack rather than to Times.
+ */
+:root {
+  --uim-sans: var(--font-geist-sans, "Geist"), ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --uim-serif: var(--font-instrument-serif, "Instrument Serif"), ui-serif,
+    Georgia, "Times New Roman", serif;
+}
+
+/* ══ Themes ═════════════════════════════════════════════════════════════
+   The light theme is the dark theme's sister, not a separate design: the same
+   hierarchy at inverted luminance. `sunk` stays the surface furthest from the
+   reader and `raised` the nearest — only which direction that *is* flips. The
+   accent hues do not invert; they are the brand, and they read on both grounds.
+
+   Two levers do most of the work:
+
+   `--color-white` — Tailwind v4 compiles every `bg-white/[0.04]`,
+   `border-white/10` and friends to `color-mix(in oklab, var(--color-white) N%,
+   transparent)`. Pointing that variable at near-black turns all ~200 raise
+   tints in the library into shade tints in one line. Without this lever the
+   light theme would mean editing every component.
+
+   `--ink` — the same idea for the hand-written `rgba(255,255,255,α)` inside
+   this sheet's stroke and fill utilities, which Tailwind never sees.
+
+   `color-scheme` is not decoration: it tells the browser to render form
+   controls, scrollbars and the canvas behind the page in the right polarity. */
+
+:root {
+  color-scheme: dark;
+  --ink: 255 255 255; /* the raise tint, as channels */
+  --shade: 0 0 0; /* the sink tint */
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --ink: 17 17 24;
+  --shade: 90 90 110;
+
+  /* The lever. Near-black rather than pure black so tints stay in family with
+     the cool neutrals instead of going flat grey. */
+  --color-white: #111118;
+
+  /* Surfaces, mirrored. A card is still nearer the reader than the page and a
+     well is still further, which is why frame goes to pure white and the page
+     does not. */
+  --color-bg: #f1f1f4;
+  --color-surface: #ffffff;
+  --color-stage: #fafafb;
+  --color-stage-2: #f4f4f6;
+  --color-frame: #ffffff;
+  --color-well: #f5f5f8;
+  --color-border: #e4e4e9;
+  --color-border-strong: #d3d3db;
+
+  --color-sunk: #e8e8ed;
+  --color-sunk-2: #ededf1;
+  --color-raised: #fafafc;
+  --color-raised-2: #ffffff;
+  --color-chip: #ececf1;
+  --color-hairline: #dcdce3;
+
+  /* Text, mirrored. */
+  --color-fg: #0d0d12;
+  --color-fg-secondary: #4a4a55;
+  --color-fg-muted: #696977;
+
+  /* Accents keep their hue and lose a little lightness, because the same
+     chroma that reads as glowing on near-black reads as washed on white. */
+  --color-accent-indigo: #4e5ce6;
+  --color-accent-violet: #7c56e8;
+  --color-accent-peach: #b25c15;
+  --color-accent-blue: #3a6fd8;
+
+  --color-positive: #0a7d55;
+  --color-positive-bg: #e2f5ec;
+  --color-negative: #c22b2b;
+  --color-negative-bg: #fdeaea;
+  --color-positive-bg-strong: #cdeedd;
+  --color-negative-bg-strong: #fbd3d3;
+
+  --color-code-keyword: #2f52c8;
+  --color-code-fn: #93266c;
+  --color-code-string: #b03a34;
+  --color-code-accent: #6d3fa8;
+  --color-code-add: #2c7a3d;
+  --color-code-add-dim: #3d6a45;
+  --color-code-del: #b1372f;
+  --color-code-del-dim: #8f4039;
+
+  --color-positive-mark: #bfe6cd;
+  --color-negative-mark: #f8c9c9;
+  --color-select-bg: #ece6f6;
+  --color-select-bg-2: #e3dcf2;
+  --color-select-line: #b9a6dd;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--uim-sans);
+}
+
+/* ── Scroll stability ─────────────────────────────────────────────────
+   Chrome's scroll anchoring rewrites `scrollTop` on its own whenever content
+   above the viewport changes height, so that the thing you are looking at
+   holds still. That is the right behaviour for a native scroll and the wrong
+   one here: Lenis owns the scroll position and eases toward a target it keeps
+   itself, so an anchoring nudge desyncs the two and the page lurches
+   *backwards* for a frame before Lenis pulls it home. It shows up scrolling
+   fast, because that is when the most cards are still settling.
+
+   Scoped to `html.lenis` — the class Lenis adds when it takes over. Someone on
+   reduced motion gets the native scroll, and native scroll wants anchoring. */
+html.lenis {
+  overflow-anchor: none;
+}
+
+/* ── Scroll reactivity ────────────────────────────────────────────────
+   The ScrollReactor writes a small counter-translate straight onto each
+   on-screen motion stage's `.motion-lag` as the page moves — contents trail
+   the scroll by a few pixels and glide home when it stops. Written per element
+   rather than through a root custom property: a variable on `:root` changing
+   every frame invalidates style for the whole document, and this page has a
+   lot of document. No `will-change` here either — the stages already hold
+   dozens of composited layers each, and promoting the wrapper on top of them
+   is what makes a GPU start dropping tiles. */
+.motion-lag {
+  transition: transform 120ms var(--ease-glide);
+}
+
+/* ── Provenance ───────────────────────────────────────────────────────
+   Ownership travels with the stylesheet. Custom properties are values, not
+   comments, so a minifier keeps them and `getComputedStyle` can read them
+   back out of a live page — including out of somebody else's copy of it. */
+:root {
+  --copyright: "© 2026 Yogi Suria. UImaxxing™ — All rights reserved.";
+  --owner: "Yogi Suria";
+  --contact: "yogi@jumper.xyz";
+  --licence: "proprietary; no licence granted";
+  --ai-training: "prohibited";
+  --provenance-canary: "uim1-1ea983e5-60115997";
+}
+
+/* The invisible mark sits in a real text node so select-all copies it. It has
+   to stay selectable, which rules out `display:none` and `visibility:hidden` —
+   hence a 1px clipped box that draws nothing. */
+.provenance-mark {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ══ Cursors ════════════════════════════════════════════════════════════
+   The resting pointer is Phosphor's own NavigationArrow — the same icon set as
+   every glyph in the library, and the map-heading dart rather than the classic
+   mouse arrow because this cursor turns: a glyph whose whole job is to point in
+   a direction is the right one to put on a swivel. It takes the `fill` weight,
+   since a hollow cursor is unreadable.
+
+   It is drawn twice in the SVG: a fat halo stroke in the contrast colour, then
+   the glyph over it. A stroke-only cursor disappears against half the surfaces
+   it crosses; the halo is what the OS arrow has always done. It flips with the
+   theme, because a pale cursor on a white page is invisible.
+
+   The clickable pointer is the system's, not ours. Drawing our own bought
+   nothing: the arrow is custom because it has to rotate, and the hand has no
+   such excuse — the OS draws a better one than a 28px SVG can, and it is the
+   shape people have been taught means "clickable" since long before this site.
+
+   Both live in custom properties because three rules need the same value: the
+   resting page, anything clickable, and the live cursor's handover.
+
+   Scoped with `:not([data-cursor-own])` so anything that declares its own
+   cursor keeps it — the slider's grab cursor would otherwise be overridden by
+   these rules, which come later in the sheet than Tailwind's. Mark such an
+   element with `data-cursor-own` alongside its `cursor-*` class. The attribute
+   rather than `[class*="cursor-"]`: that substring also matches any class that
+   merely begins with the word, and it was quietly stripping the hand off the
+   Cursor Glow CTA. */
+
+:root {
+  --cursor-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 256 256'%3E%3Cpath d='M248,121.58a15.76,15.76,0,0,1-11.29,15l-.2.06-78,21.84-21.84,78-.06.2a15.77,15.77,0,0,1-15,11.29h-.3a15.77,15.77,0,0,1-15.07-10.67L41,61.41a1,1,0,0,1-.05-.16A16,16,0,0,1,61.25,40.9l.16.05,175.92,65.26A15.78,15.78,0,0,1,248,121.58Z' fill='none' stroke='%230b0b0f' stroke-width='30' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M248,121.58a15.76,15.76,0,0,1-11.29,15l-.2.06-78,21.84-21.84,78-.06.2a15.77,15.77,0,0,1-15,11.29h-.3a15.77,15.77,0,0,1-15.07-10.67L41,61.41a1,1,0,0,1-.05-.16A16,16,0,0,1,61.25,40.9l.16.05,175.92,65.26A15.78,15.78,0,0,1,248,121.58Z' fill='%23f5f5f5'/%3E%3C/svg%3E") 4 4, default;
+  /* The system hand, not a drawn one. The steering arrow is ours because it
+     has to turn; the click cursor has no such excuse, and every OS draws a
+     better hand than a 28px SVG can — it is the shape people have been taught
+     means "clickable" since before this site existed. */
+  --cursor-hand: pointer;
+}
+:root[data-theme="light"] {
+  --cursor-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 256 256'%3E%3Cpath d='M248,121.58a15.76,15.76,0,0,1-11.29,15l-.2.06-78,21.84-21.84,78-.06.2a15.77,15.77,0,0,1-15,11.29h-.3a15.77,15.77,0,0,1-15.07-10.67L41,61.41a1,1,0,0,1-.05-.16A16,16,0,0,1,61.25,40.9l.16.05,175.92,65.26A15.78,15.78,0,0,1,248,121.58Z' fill='none' stroke='%23ffffff' stroke-width='30' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M248,121.58a15.76,15.76,0,0,1-11.29,15l-.2.06-78,21.84-21.84,78-.06.2a15.77,15.77,0,0,1-15,11.29h-.3a15.77,15.77,0,0,1-15.07-10.67L41,61.41a1,1,0,0,1-.05-.16A16,16,0,0,1,61.25,40.9l.16.05,175.92,65.26A15.78,15.78,0,0,1,248,121.58Z' fill='%23111118'/%3E%3C/svg%3E") 4 4, default;
+}
+
+body {
+  cursor: var(--cursor-arrow);
+}
+
+a:not([data-cursor-own]),
+button:not([data-cursor-own]),
+summary:not([data-cursor-own]),
+[role="button"]:not([data-cursor-own]),
+[role="slider"]:not([data-cursor-own]),
+.interactive:not([data-cursor-own]) {
+  cursor: var(--cursor-hand);
+}
+
+/* Typing wants the I-beam; a hand over a text field is a lie about what a
+   click there does. */
+input:not([type="button"]):not([type="submit"]),
+textarea,
+[contenteditable="true"] {
+  cursor: text;
+}
+
+/* ── The live cursor ──────────────────────────────────────────────────────
+   A `cursor: url()` is a fixed bitmap, so it cannot turn. The arrow that
+   steers with the pointer is therefore a real element (PointerCursor), and the
+   OS pointer has to get out of its way.
+
+   `data-cursor="live"` is only ever written by that component, and only on a
+   fine pointer, so touch devices and a page whose JS never arrives keep the
+   static cursors above. Nothing is hidden until something is drawn in its
+   place.
+
+   One rule does the hiding, and it hides exactly one thing: the arrow the page
+   would otherwise show at rest. `cursor` inherits, so everything that does not
+   declare its own cursor picks the hiding up, and everything that does — the
+   hand on a button, the I-beam on a field, a component's own grab cursor —
+   keeps it, along with all of its children.
+
+   The earlier version of this was `* { cursor: none !important }` plus an
+   exception list, and it was wrong in a way worth remembering: the exceptions
+   named the button but not the span inside it, so a cursor over the label of
+   any button whose surface is made of child elements — which is most of them —
+   got `none` from the universal rule while the component hid the steering
+   arrow, and no cursor was drawn at all. Inheritance is the whole mechanism
+   here; overriding it on every element is what broke it. */
+
+:root {
+  --cursor-ink: #f5f5f5;
+  --cursor-halo: #0b0b0f;
+}
+:root[data-theme="light"] {
+  --cursor-ink: #111118;
+  --cursor-halo: #ffffff;
+}
+
+:root[data-cursor="live"] body {
+  cursor: none;
+}
+
+/*
+ * While the drawn cursor is live, nothing else draws one.
+ *
+ * `body { cursor: none }` only reaches what inherits, and the two rules above
+ * deliberately do not: a link declares the hand, a field declares the I-beam.
+ * With an arrow being drawn as an element, both of those put a second cursor
+ * on screen next to it — the OS hand and our arrow, at once, which is worse
+ * than either alone and is what the hand was there to avoid.
+ *
+ * Overriding the two variables rather than the rules keeps the static
+ * fallback intact: on a touch device, or before the script arrives, nothing
+ * sets `data-cursor` and the hand and the I-beam are still the right answer.
+ */
+:root[data-cursor="live"] {
+  --cursor-hand: none;
+}
+:root[data-cursor="live"] input:not([type="button"]):not([type="submit"]),
+:root[data-cursor="live"] textarea,
+:root[data-cursor="live"] [contenteditable="true"] {
+  cursor: none;
+}
+/* Three components declare a grab cursor for their drag surface. Same story as
+   the hand and the I-beam: a real cursor beside a drawn one. Matched on the
+   class rather than changed in the components, because the components are also
+   installed elsewhere, where nothing sets `data-cursor` and the grab cursor is
+   the right answer. */
+:root[data-cursor="live"] [class*="cursor-grab"],
+:root[data-cursor="live"] [class*="cursor-grabbing"] {
+  cursor: none;
+}
+
+.pointer-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  /* Above the dock, the panel and anything a component pins — the cursor is
+     the one thing that is never allowed to go behind. */
+  z-index: 2147483000;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  /* The point, so rotation pivots on the hotspot and the dart's apex stays
+     exactly where the click will land. */
+  transform-origin: 3.94px 3.94px;
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 120ms linear;
+}
+/* Nothing to see until the component takes over; and if it never does, this
+   element must not sit in the corner of the page. */
+:root:not([data-cursor="live"]) .pointer-cursor {
+  display: none;
+}
+.pointer-cursor[data-ready] {
+  opacity: 1;
+}
+/* Over a control, or off the page entirely. */
+.pointer-cursor[data-hidden] {
+  opacity: 0;
+}
+.pointer-cursor-glyph {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Keep the press on the glyph: scaling the positioned parent also scales
+     its viewport translation and pulls the cursor away from the click. */
+  transform-box: view-box;
+  transform-origin: 3.94px 3.94px;
+  scale: 1;
+  transition: scale 200ms var(--ease-snap);
+}
+
+.pointer-cursor[data-press] .pointer-cursor-glyph {
+  scale: 0.84;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pointer-cursor,
+  .pointer-cursor-glyph {
+    transition: none;
+  }
+}
+
+/* ══ Seek rail ══════════════════════════════════════════════════════════
+   One hairline per component down the right edge — where you are in the
+   gallery, and a scrub bar for getting somewhere else.
+
+   The rail is a fixed-height column and the ticks are flex children, so the
+   pitch falls out of the arithmetic: eighty components in 62vh give a 6px
+   pitch, nine (after a search) give fifty. Nothing has to know the count.
+
+   Each tick's hit area is the full row and the full width of the rail — the
+   line itself is one pixel tall, which is not a target. */
+
+.seek-rail {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  z-index: 40;
+  display: none;
+  height: min(62vh, 520px);
+  transform: translateY(-50%);
+  flex-direction: column;
+  justify-content: space-between;
+  padding-right: 10px;
+  /* The rail is a scrub surface, so it takes the pointer; the ticks inside it
+     are buttons in their own right. */
+  touch-action: none;
+  transition: opacity 320ms var(--ease-glide);
+}
+/* Out of the way while the hero has the viewport; `SeekRail` lifts this as
+   the library arrives. */
+.seek-rail-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+/* Below 640 the page is one column edge to edge and the rail would sit on top
+   of the cards; above it there is margin to live in. */
+@media (min-width: 640px) {
+  .seek-rail {
+    display: flex;
+  }
+}
+
+.seek-tick {
+  position: relative;
+  display: flex;
+  min-height: 4px;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: flex-end;
+  padding-left: 28px;
+}
+
+.seek-line {
+  height: 1px;
+  width: 8px;
+  border-radius: 1px;
+  background: rgb(var(--ink) / 0.18);
+  transition:
+    width 220ms var(--ease-glide),
+    background-color 220ms var(--ease-glide),
+    box-shadow 220ms var(--ease-glide);
+}
+/* Ground already covered reads solid; ground ahead is a whisper. */
+.seek-tick[data-state="past"] .seek-line {
+  background: rgb(var(--ink) / 0.34);
+}
+/* A section's first component carries the chapter mark. */
+.seek-tick[data-lead] .seek-line {
+  width: 14px;
+  background: rgb(var(--ink) / 0.42);
+}
+.seek-tick[data-state="here"] .seek-line {
+  width: 16px;
+  background: var(--color-accent-indigo);
+  box-shadow: 0 0 12px -2px var(--color-accent-indigo);
+}
+.seek-rail:hover .seek-line,
+.seek-rail[data-seeking] .seek-line {
+  width: 12px;
+}
+.seek-rail:hover .seek-tick[data-lead] .seek-line,
+.seek-rail[data-seeking] .seek-tick[data-lead] .seek-line {
+  width: 18px;
+}
+.seek-rail:hover .seek-tick[data-state="here"] .seek-line,
+.seek-rail[data-seeking] .seek-tick[data-state="here"] .seek-line,
+.seek-tick:hover .seek-line,
+.seek-tick:focus-visible .seek-line {
+  width: 22px;
+  background: var(--color-accent-indigo);
+}
+
+/* Room opens up once the page has margins to spare. */
+@media (min-width: 1024px) {
+  .seek-tick[data-state="here"] .seek-line {
+    width: 22px;
+  }
+  .seek-rail:hover .seek-tick[data-state="here"] .seek-line,
+  .seek-rail[data-seeking] .seek-tick[data-state="here"] .seek-line,
+  .seek-tick:hover .seek-line,
+  .seek-tick:focus-visible .seek-line {
+    width: 28px;
+  }
+}
+
+/* The name, only for the tick under the pointer. Eighty labels at once would
+   be a wall of text; one is a tooltip. */
+.seek-name {
+  position: absolute;
+  right: calc(100% + 4px);
+  white-space: nowrap;
+  border-radius: 9999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--color-fg-secondary);
+  background: var(--color-frame);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 8px 22px -10px rgb(var(--shade) / 0.7);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(6px);
+  transition:
+    opacity 160ms var(--ease-snap),
+    transform 160ms var(--ease-snap),
+    visibility 160ms;
+}
+.seek-tick:hover .seek-name,
+.seek-tick:focus-visible .seek-name {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seek-line,
+  .seek-name {
+    transition: none;
+  }
+}
+
+/* ══ Corner dock ════════════════════════════════════════════════════════
+   The floating theme switch and chat launcher, and the progressive blur that
+   sits behind them.
+
+   A single `backdrop-filter: blur()` produces a hard-edged frosted rectangle —
+   the give-away that a blur was bolted on. A progressive blur ramps instead:
+   several stacked layers, each blurring twice as hard as the one below it and
+   each masked to a tighter radius, so the strength climbs smoothly toward the
+   corner and reaches nothing at the outer edge. Each layer's backdrop includes
+   the layers already painted beneath it, which is what makes the blur
+   accumulate rather than merely overlap.
+
+   The mask is radial and centred on the buttons, so only the bottom-left
+   corner is touched — the rest of the page is untouched, including the text a
+   reader may be in the middle of. */
+
+.dock-blur {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+  /* Big enough to hold the ramp and no bigger: --dock-r past the buttons'
+     centroid in each direction. */
+  --dock-r: 150px;
+  --cx: 54px;
+  --cy: calc(100% - 44px);
+  width: calc(var(--cx) + var(--dock-r));
+  height: calc(44px + var(--dock-r));
+  pointer-events: none;
+}
+
+.dock-blur > span {
+  position: absolute;
+  inset: 0;
+  display: block;
+  /* Centre tracks the buttons: ~64px right of and above the corner. */
+  /* `backdrop-filter` is set inline on each layer, not here: this project's CSS
+     pipeline strips the declaration out of the built stylesheet — with a var
+     and without one — while leaving every other declaration in this rule
+     intact. Inline styles never pass through it, and the blur radius is
+     per-layer data anyway, so that is where it belongs. Verified by reading
+     the served `cssRules` back out of the page. */
+  -webkit-mask-image: radial-gradient(
+    circle var(--dock-r) at var(--cx) var(--cy),
+    #000 0,
+    #000 var(--in),
+    transparent var(--out)
+  );
+  mask-image: radial-gradient(
+    circle var(--dock-r) at var(--cx) var(--cy),
+    #000 0,
+    #000 var(--in),
+    transparent var(--out)
+  );
+}
+
+/* Flipping the theme changes a colour on almost every element on the page, and
+   most of them carry `transition-colors`. Left alone, one click starts hundreds
+   of simultaneous 200ms transitions and the switch reads as a slow smear rather
+   than a switch. Suppressing transitions for the single frame in which the
+   attribute changes makes it instant. */
+:root[data-theme-switching] *,
+:root[data-theme-switching] *::before,
+:root[data-theme-switching] *::after {
+  transition: none !important;
+}
+
+/* The dock itself and the panel it opens. */
+.dock-orb {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  flex: none;
+}
+
+/* Both glyphs are in the DOM and CSS picks one. Deriving the icon from React
+   state instead would mean the server rendering an icon it cannot know is
+   right, then a hydration mismatch or a visible swap on first paint. */
+.theme-glyph-to-light {
+  display: block;
+}
+.theme-glyph-to-dark {
+  display: none;
+}
+:root[data-theme="light"] .theme-glyph-to-light {
+  display: none;
+}
+:root[data-theme="light"] .theme-glyph-to-dark {
+  display: block;
+}
+
+/* Print and PDF carry the notice visibly — a screenshot or a saved PDF is the
+   most common way this design leaves the site, and it is the one route where
+   an invisible mark is lost. */
+@media print {
+  body::after {
+    content: var(--copyright) "  ·  " var(--contact);
+    display: block;
+    padding-top: 12px;
+    font-size: 9pt;
+    color: #666;
+    text-align: center;
+  }
+}
+
+::selection {
+  background: var(--color-accent-indigo);
+  color: #fff;
+}
+
+/* ── Panel fill ───────────────────────────────────────────────────────
+   The house surface gradient: dark at the left edge, lifting toward the
+   right. Panels and cards use this instead of a flat fill so the surface
+   catches light across its width (matches the task list, markets table
+   and request button, which were built with it inline). */
+.fill-panel {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-surface) 0%,
+    var(--color-raised) 55%,
+    var(--color-raised-2) 100%
+  );
+}
+
+/* Inner wells sitting on a .fill-panel — one step lighter, same direction. */
+.fill-well {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-stage-2) 0%,
+    color-mix(in oklab, var(--color-raised) 70%, var(--color-raised-2)) 60%,
+    var(--color-raised-2) 100%
+  );
+}
+
+/* ── Action pill surface ──────────────────────────────────────────────
+   The Figma "Action — Request" body (156:13383 / 156:13354): a near-black
+   pill lit from the top-right, sunk on a deep drop shadow with a 1px inner
+   highlight along the top edge. Pair it with .stroke-lit for the hairline. */
+.fill-action {
+  background-color: var(--color-surface);
+  background-image: linear-gradient(
+    223deg,
+    var(--color-chip) 0%,
+    var(--color-chip) 44%,
+    color-mix(in oklab, var(--color-surface) 80%, var(--color-raised)) 73%,
+    var(--color-raised) 100%
+  );
+  box-shadow:
+    0 9px 21px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgb(var(--ink) / 0.07);
+}
+
+/* Orb finish on the action pills — the same palette as .bg-orb with the
+   light rolled around the sphere: periwinkle body upper-left, pale cyan
+   pooling lower-left, a warm tan lobe bottom-right, deep navy at the
+   edges. Sampled from the Figma "Orb" layers (156:13384 / 156:13355). */
+.bg-orb-tilt {
+  background:
+    linear-gradient(
+      154deg,
+      rgba(106, 142, 254, 0) 4%,
+      rgba(106, 142, 254, 0.45) 19%,
+      #6a8efe 35%,
+      rgba(106, 142, 254, 0.45) 52%,
+      rgba(106, 142, 254, 0) 67%
+    ),
+    radial-gradient(69% 227% at 22% 70%, #a5c7c9 0%, #a1745b 45%, #2d2d50 100%);
+}
+
+/* ── Exchange CTA ─────────────────────────────────────────────────────
+   The one saturated fill in the system: the orb gradient rolled to green
+   (Figma "CTA / Exchange (r60)", 156:13358). Deliberately scoped to this
+   one button — semantic positives everywhere else stay on --color-positive,
+   so this does not become a second green. */
+.fill-exchange {
+  background:
+    radial-gradient(
+      54% 54% at 65% 43%,
+      #6afec3 0%,
+      rgba(106, 254, 224, 0.45) 60%,
+      rgba(170, 254, 106, 0) 100%
+    ),
+    radial-gradient(65% 65% at 32% 13%, #a5c7c9 0%, #5ba17c 45%, #2d502d 100%);
+}
+
+
+/* ── Stroke system ────────────────────────────────────────────────────
+   Sampled from the Figma. Three tiers:
+   1. .stroke-aurora / -tr / -soft — the signature multi-hue 1px ring.
+      Reserved for hero elements (prompt bars, install chip, swap widget).
+   2. .stroke-lit / -tl / -tr / -bl / .stroke-bevel — neutral white-alpha
+      hairline with a directional hot spot that fades to nothing.
+   3. Flat hairlines (plain border-white/[0.04..0.08]) for inner chips.
+   Implemented as a 1px masked ring overlay (::before), so it works over
+   any background and inherits the element's radius. Elements using these
+   classes must NOT also have a border-* class. */
+
+.stroke-aurora,
+.stroke-aurora-tr,
+.stroke-aurora-soft,
+.stroke-aurora-mono,
+.stroke-lit,
+.stroke-lit-tl,
+.stroke-lit-tr,
+.stroke-lit-bl,
+.stroke-sheen,
+.stroke-bevel {
+  position: relative;
+}
+
+.stroke-aurora::before,
+.stroke-aurora-tr::before,
+.stroke-aurora-soft::before,
+.stroke-aurora-mono::before,
+.stroke-lit::before,
+.stroke-lit-tl::before,
+.stroke-lit-tr::before,
+.stroke-lit-bl::before,
+.stroke-sheen::before,
+.stroke-bevel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--stroke);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* NOTE: Figma angular gradients normalize to the element's bounding box,
+   so CSS conic-gradient (true angles) smears on wide bars. The aurora
+   strokes are therefore built from aspect-independent layers: a dark
+   directional base + radial hotspots pinned by percentage to the audited
+   anchor positions. */
+
+/* Hot bottom-left: periwinkle pooling up the left edge, near-white
+   crossover (~33% of the bottom) into a salmon peak at bottom-center,
+   dark navy top / dark warm right. (floating ask bar, install chip) */
+.stroke-aurora {
+  --stroke:
+    radial-gradient(
+      ellipse 22% 160% at 33% 100%,
+      rgba(235, 237, 244, 0.95) 0%,
+      rgba(235, 237, 244, 0) 60%
+    ),
+    radial-gradient(
+      ellipse 30% 170% at 52% 100%,
+      rgba(252, 162, 155, 0.5) 0%,
+      rgba(252, 162, 155, 0) 62%
+    ),
+    radial-gradient(
+      ellipse 55% 260% at 0% 100%,
+      #8aa5fc 0%,
+      #5e7cdc 30%,
+      rgba(94, 124, 220, 0) 68%
+    ),
+    linear-gradient(120deg, #2b3352 0%, #2f3546 45%, #362e33 100%);
+}
+
+/* Mirrored + brighter: pale periwinkle-white along the whole right edge,
+   near-white at the top-right quarter, salmon at top-center, periwinkle at
+   bottom-right, dark plum left / navy bottom-left. (neon prompt bar) */
+.stroke-aurora-tr {
+  --stroke:
+    radial-gradient(
+      ellipse 26% 170% at 48% 0%,
+      rgba(242, 144, 136, 0.5) 0%,
+      rgba(242, 144, 136, 0) 60%
+    ),
+    radial-gradient(
+      ellipse 20% 150% at 72% 0%,
+      rgba(237, 239, 244, 0.9) 0%,
+      rgba(237, 239, 244, 0) 60%
+    ),
+    radial-gradient(
+      ellipse 45% 320% at 100% 50%,
+      #d7dff6 0%,
+      #b6c6f7 35%,
+      rgba(182, 198, 247, 0) 70%
+    ),
+    radial-gradient(
+      ellipse 24% 160% at 80% 100%,
+      rgba(147, 172, 250, 0.8) 0%,
+      rgba(147, 172, 250, 0) 60%
+    ),
+    linear-gradient(
+      to left,
+      #6f87c8 0%,
+      #435898 28%,
+      #2c2c48 58%,
+      #352738 85%,
+      #372737 100%
+    );
+}
+
+/* Desaturated aurora — identical light placement to .stroke-aurora with
+   saturation 0 (grayscale). Used on the hero install chip. */
+.stroke-aurora-mono {
+  --stroke:
+    radial-gradient(
+      ellipse 22% 160% at 33% 100%,
+      rgba(240, 240, 240, 0.95) 0%,
+      rgba(240, 240, 240, 0) 60%
+    ),
+    radial-gradient(
+      ellipse 30% 170% at 52% 100%,
+      rgba(206, 206, 206, 0.95) 0%,
+      rgba(206, 206, 206, 0) 62%
+    ),
+    radial-gradient(
+      ellipse 55% 260% at 0% 100%,
+      #a4a4a4 0%,
+      #7e7e7e 30%,
+      rgba(126, 126, 126, 0) 68%
+    ),
+    linear-gradient(120deg, #333333 0%, #333333 45%, #313131 100%);
+}
+
+/* Muted: blue across the top (saturated top-right corner), warm gray down
+   the left into salmon at the lower-left, near-invisible right/bottom.
+   (swap widget) */
+.stroke-aurora-soft {
+  --stroke:
+    radial-gradient(
+      ellipse 38% 200% at 0% 78%,
+      rgba(90, 63, 55, 0.9) 0%,
+      rgba(90, 63, 55, 0) 60%
+    ),
+    radial-gradient(
+      ellipse 30% 160% at 100% 0%,
+      rgba(35, 43, 68, 0.9) 0%,
+      rgba(35, 43, 68, 0) 65%
+    ),
+    linear-gradient(115deg, #454a55 0%, #333849 32%, #1d1f29 62%, #17161a 100%);
+}
+
+/* Oversized, centered layers — the composition the strokes were audited
+   against. Static: motion lives in the colors, not the position. */
+.stroke-aurora::before,
+.stroke-aurora-tr::before,
+.stroke-aurora-soft::before,
+.stroke-aurora-mono::before {
+  background-size: 140% 140%;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+}
+
+/* Shimmer: the gradients keep their exact colors while the light sweeps
+   across the element and glides back — one horizontal pass each way, like a
+   sheen catching the edge. The oversized layers (140%) give the hotspots a
+   40%-of-element travel range. */
+@keyframes aurora-shimmer {
+  0%,
+  100% {
+    background-position: 38% 55%;
+  }
+  50% {
+    background-position: 62% 45%;
+  }
+}
+
+/* Solid-color blurred glows have no background to pan, so their filter-free
+   wrapper glides side to side instead — same colors, same shimmer feel. */
+@keyframes glow-shimmer {
+  0%,
+  100% {
+    transform: translateX(-1.25%);
+  }
+  50% {
+    transform: translateX(1.25%);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bg-orb,
+  .stroke-aurora::before,
+  .stroke-aurora-tr::before,
+  .stroke-aurora-soft::before,
+  .stroke-aurora-mono::before {
+    animation: aurora-shimmer 9s ease-in-out infinite;
+  }
+  .animate-drift {
+    animation: glow-shimmer 9s ease-in-out infinite;
+  }
+}
+
+/* Neutral lit hairlines — hot spot placement per variant. */
+.stroke-lit {
+  --stroke: radial-gradient(
+    140% 120% at 50% 0%,
+    rgb(var(--ink) / 0.22),
+    rgb(var(--ink) / 0.07) 45%,
+    rgb(var(--ink) / 0.03) 100%
+  );
+}
+.stroke-lit-tl {
+  --stroke: radial-gradient(
+    140% 130% at 18% 0%,
+    rgb(var(--ink) / 0.24),
+    rgb(var(--ink) / 0.06) 50%,
+    rgb(var(--ink) / 0.02) 100%
+  );
+}
+.stroke-lit-tr {
+  --stroke: radial-gradient(
+    140% 130% at 82% 0%,
+    rgb(var(--ink) / 0.17),
+    rgb(var(--ink) / 0.06) 50%,
+    rgb(var(--ink) / 0.02) 100%
+  );
+}
+.stroke-lit-bl {
+  --stroke: radial-gradient(
+    140% 130% at 10% 100%,
+    rgb(var(--ink) / 0.13),
+    rgb(var(--ink) / 0.04) 45%,
+    rgb(var(--ink) / 0) 100%
+  );
+}
+/* Centre-lit sheen for wide filled CTAs: invisible at both ends, brightest
+   halfway across. (exchange CTA) */
+.stroke-sheen {
+  --stroke: linear-gradient(
+    94deg,
+    rgb(var(--ink) / 0),
+    rgb(var(--ink) / 0.4) 50%,
+    rgb(var(--ink) / 0)
+  );
+}
+
+/* Top-lit bevel for small raised buttons (Copy pill): bright top edge,
+   even sides/bottom. */
+.stroke-bevel {
+  --stroke: linear-gradient(
+    180deg,
+    rgb(var(--ink) / 0.32),
+    rgb(var(--ink) / 0.17) 40%,
+    rgb(var(--ink) / 0.15) 100%
+  );
+}
+
+/* Signature "aurora orb" sphere — stops sampled from the Figma orbs
+   (send buttons, voice orb, avatars): pale-blue key light upper-left,
+   warm peach rim light on top, periwinkle core falling to deep indigo. */
+.bg-orb {
+  background:
+    radial-gradient(circle at 68% 6%, rgba(233, 167, 128, 0.9) 0%, rgba(233, 167, 128, 0) 32%),
+    radial-gradient(circle at 27% 16%, rgba(182, 211, 230, 0.85) 0%, rgba(182, 211, 230, 0) 44%),
+    radial-gradient(circle at 8% 44%, rgba(160, 124, 130, 0.5) 0%, rgba(160, 124, 130, 0) 36%),
+    linear-gradient(
+      180deg,
+      #98a4cf 0%,
+      #7588db 32%,
+      #6a88ee 52%,
+      #47579c 82%,
+      #313763 100%
+    );
+  background-size: 130% 130%;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+}
+
+.bg-noise {
+  background-image: radial-gradient(
+    ellipse 80% 60% at 50% 0%,
+    rgb(var(--ink) / 0.05),
+    transparent 60%
+  );
+}
+
+/* ══ Interaction & motion ═══════════════════════════════════════════════
+   One easing and one duration scale for every interaction in the library.
+   Hovers settle snappily — fast out of the gate, gentle landing — and
+   reveals and dropdowns share the curve so nothing feels out of family. */
+
+@theme {
+  --ease-snap: cubic-bezier(0.2, 0.9, 0.25, 1);
+  --ease-glide: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-text-shimmer: text-shimmer 4.5s linear infinite;
+  --animate-graph-breathe: graph-breathe 7s ease-in-out infinite;
+  --animate-graph-flow: graph-flow 9s linear infinite;
+}
+
+/* Every interactive surface shares this. It transitions the properties an
+   interaction actually touches — never `all`, which fights the gradient
+   and blur work elsewhere in the system. */
+.interactive {
+  transition-property: color, background-color, border-color, box-shadow,
+    opacity, transform, filter;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-snap);
+}
+.interactive:active {
+  transform: scale(0.975);
+  transition-duration: 90ms;
+}
+
+/* Icon affordances. The icon moves, not the button, so the hit target and
+   any ring stay put. */
+.hover-spin > svg,
+.hover-spin > * > svg {
+  transition: transform 220ms var(--ease-snap);
+}
+.hover-spin:hover > svg,
+.hover-spin:hover > * > svg {
+  transform: rotate(90deg);
+}
+
+.hover-tilt > svg {
+  transition: transform 220ms var(--ease-snap);
+}
+.hover-tilt:hover > svg {
+  transform: rotate(-12deg) scale(1.08);
+}
+
+.hover-nudge > svg {
+  transition: transform 200ms var(--ease-snap);
+}
+.hover-nudge:hover > svg {
+  transform: translateX(2px);
+}
+
+.hover-flip > svg {
+  transition: transform 260ms var(--ease-snap);
+}
+.hover-flip:hover > svg {
+  transform: rotate(180deg);
+}
+
+/* Rows in tables and lists. */
+.row-hover {
+  transition:
+    background-color 160ms var(--ease-snap),
+    color 160ms var(--ease-snap);
+}
+.row-hover:hover {
+  background-color: rgb(var(--ink) / 0.035);
+}
+
+/* Cards that lift under the pointer. */
+.hover-raise {
+  transition:
+    transform 200ms var(--ease-snap),
+    box-shadow 200ms var(--ease-snap);
+}
+.hover-raise:hover {
+  transform: translateY(-2px);
+}
+
+/* Hover is a statement about where the pointer is, and during a fast scroll it
+   is not one the page can honestly make: the pointer is still and the cards are
+   the things moving, so every card that passes under it lifts, shadows and
+   drops again in the few frames it takes to go by. Read as intent it is wrong —
+   nobody hovered anything — and drawn it is a row of tiles flickering.
+
+   So the lift stands down above a speed, and the transition with it, because a
+   card caught mid-lift when the flag goes up should be flat on the next frame
+   rather than easing there while it travels. `data-scrolling` is set by the
+   scroll runner, which is the only thing that knows the velocity. */
+:root[data-scrolling] .hover-raise,
+:root[data-scrolling] .hover-tilt {
+  transition: none;
+}
+:root[data-scrolling] .hover-raise:hover {
+  transform: none;
+}
+
+/* ── Text treatments ────────────────────────────────────────────────── */
+
+/* A sheen crawling across text — "this is live". Override the two custom
+   properties to re-tint it. */
+.text-shimmer {
+  --shimmer-base: var(--color-fg-muted);
+  --shimmer-peak: var(--color-fg);
+  /* A wide, soft band: at 28→48→68 the sheen takes about a fifth of the
+     cycle to cross a word, which reads as a light gliding through. The old
+     34→62 crossed in half that and read as a blink. */
+  background-image: linear-gradient(
+    100deg,
+    var(--shimmer-base) 28%,
+    var(--shimmer-peak) 48%,
+    var(--shimmer-base) 68%
+  );
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* The travel has to be a whole number of pattern periods or the band
+   teleports at the loop. The image is 260% wide and repeats, so a period is
+   2.6x the span; a background-position percentage moves the image by
+   1.6x the span. Two periods therefore need 5.2 / 1.6 = 325% of travel,
+   centred on 50% so the sheen sits where it always did mid-cycle. Anything
+   else (190% -> -90% travelled 1.72 periods) snaps once per cycle. */
+@keyframes text-shimmer {
+  from {
+    background-position: 212.5% 0;
+  }
+  to {
+    background-position: -112.5% 0;
+  }
+}
+
+/* Per-character entrance: rolls up out of a blur. Used by the typing field
+   as each character lands, and by the ticker on reveal. */
+@keyframes roll-blur-in {
+  from {
+    opacity: 0;
+    filter: blur(7px);
+    transform: translateY(0.42em) scaleY(1.08);
+  }
+  60% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+}
+
+.roll-in {
+  display: inline-block;
+  white-space: pre;
+  animation: roll-blur-in 420ms var(--ease-glide) both;
+}
+
+/* Caret: breathes rather than blinking on and off, so there is no hard
+   edge. Its position is eased by the component, so it glides between
+   characters instead of jumping. */
+@keyframes caret-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
+
+.caret-smooth {
+  transition: transform 110ms var(--ease-snap);
+  animation: caret-pulse 1.15s var(--ease-glide) infinite;
+}
+.caret-smooth[data-typing="true"] {
+  animation: none;
+  opacity: 1;
+}
+
+/* ── Graphs ─────────────────────────────────────────────────────────── */
+
+/* A streaming series. The chart renders its own data twice, end to end, and
+   this slides the pair left by exactly one copy — so the moment the loop
+   restarts, copy two is sitting where copy one was and the series reads as
+   one continuous feed rather than a clip that rewinds. The data is periodic
+   (see lib/series.ts), so the seam between the copies never shows.
+   `--stream-w` is the width of one copy in SVG user units. */
+@keyframes graph-stream {
+  to {
+    transform: translateX(calc(var(--stream-w) * -1px));
+  }
+}
+
+/* Charts stay alive without redrawing: the plot breathes a fraction of a
+   pixel, and dashed overlays flow along their own path. */
+@keyframes graph-breathe {
+  0%,
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(-1.5px) scaleY(1.012);
+  }
+}
+
+@keyframes graph-flow {
+  to {
+    stroke-dashoffset: -240;
+  }
+}
+
+/* ── Scrolling ──────────────────────────────────────────────────────── */
+
+/* Snappy, contained scrolling that settles on a row or card rather than
+   drifting to a stop mid-item. */
+.scroll-snappy {
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--ink) / 0.14) transparent;
+}
+.scroll-snappy::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-snappy::-webkit-scrollbar-thumb {
+  background: rgb(var(--ink) / 0.14);
+  border-radius: 999px;
+}
+.scroll-snappy::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--ink) / 0.24);
+}
+.scroll-snappy::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.snap-x-list {
+  scroll-snap-type: x proximity;
+}
+.snap-y-list {
+  scroll-snap-type: y proximity;
+}
+.snap-item {
+  scroll-snap-align: start;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* No page-level scroll-snap and no native `scroll-behavior: smooth` here:
+     Lenis owns the page scroll (see components/landing/smooth-scroll.tsx) and
+     both of those fight it for control of the same scrollTop. The per-component
+     snap lists (.snap-x-list, .snap-y-list) are their own scroll containers and
+     are untouched. */
+  .text-shimmer {
+    animation: var(--animate-text-shimmer);
+  }
+  .graph-breathe {
+    animation: var(--animate-graph-breathe);
+    transform-origin: bottom;
+  }
+  .graph-stream {
+    /* Linear, always: any easing would make the feed surge and stall, which
+       reads as a rewinding clip rather than time passing at a steady rate. */
+    animation: graph-stream var(--stream-dur, 20s) linear infinite;
+  }
+  .graph-flow {
+    animation: var(--animate-graph-flow);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roll-in,
+  .caret-smooth {
+    animation: none;
+  }
+}
+
+/* Scrolls where a visible bar would crowd the design (pill nav strips). */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* A row of numbers that cannot reflow gets its own scroll track rather than
+   bursting the card. The cut edge has to read as "more this way" instead of as
+   clipped content, so the track is masked where it overflows: 28px of fade on
+   whichever side still has travel left. The initial values give a static
+   right-hand fade, which is already correct at rest and is what browsers
+   without scroll-driven animation keep. */
+@property --track-fade-l {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --track-fade-r {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 28px;
+}
+
+.scroll-track {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--track-fade-l),
+    #000 calc(100% - var(--track-fade-r)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--track-fade-l),
+    #000 calc(100% - var(--track-fade-r)),
+    transparent 100%
+  );
+}
+.scroll-track::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Scroll-linked, not autonomous: the mask only tracks the reader's own scroll
+   position, so it stays on under prefers-reduced-motion. Declaring 0px here
+   also means a track with nothing to scroll fades neither edge — an inactive
+   scroll timeline drops the animation and leaves these values standing. */
+@supports (animation-timeline: scroll()) {
+  .scroll-track {
+    --track-fade-l: 0px;
+    --track-fade-r: 0px;
+    animation: scroll-track-fade linear both;
+    animation-timeline: scroll(self inline);
+  }
+}
+
+@keyframes scroll-track-fade {
+  from {
+    --track-fade-l: 0px;
+    --track-fade-r: 28px;
+  }
+  to {
+    --track-fade-l: 28px;
+    --track-fade-r: 0px;
+  }
+}
+
+/* Leading marker on a live series — a slow halo pulse, no position change. */
+@keyframes marker-pulse {
+  0%,
+  100% {
+    opacity: 0.18;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.42;
+    transform: scale(1.35);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .marker-pulse {
+    animation: marker-pulse 2.6s ease-in-out infinite;
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Dot matrix field
+
+   Shared by every matrix loader. The field only ever sets geometry and the two
+   rest tones; each loader animates `opacity` and `transform` on the dots and
+   nothing else, so the whole set stays one visual family however different the
+   motions are. `--dot-lit` is the bloom the bright end of a ramp picks up — it
+   rides the dot's own opacity rather than being a second animated layer.
+--------------------------------------------------------------------------- */
+.dot-matrix {
+  /* 5 × 3px + 4 × 2px = 23px. Below the 32px control cap on purpose: a loader
+     is a status indicator, not a control, and at 32px it was the loudest thing
+     in a quarter tile. Every keyframe offset is expressed in --dot-pitch, so
+     the motion scales down with the field rather than needing to be re-tuned. */
+  --dot-size: 3px;
+  --dot-gap: 2px;
+  --dot-pitch: calc(var(--dot-size) + var(--dot-gap));
+  --dot-rest: 0.09;
+  display: grid;
+  gap: var(--dot-gap);
+  place-items: center;
+}
+
+/* The pyramid. Bigger dots than the square field — ten of them have to carry
+   what twenty-five do — and the height is one pitch of an equilateral lattice
+   shorter than the width, which is what keeps the triangle from looking
+   stretched. */
+.dot-matrix--tri {
+  /* A pyramid is 4 rows to the square field's 5, so it takes a bigger dot to
+     read as the same weight. */
+  --dot-size: 4px;
+  --dot-gap: 3px;
+  display: block;
+  position: relative;
+  width: calc(3 * var(--dot-pitch) + var(--dot-size));
+  height: calc(3 * var(--dot-pitch) * 0.866 + var(--dot-size));
+}
+
+.dot-matrix--tri > .dot-matrix-dot {
+  position: absolute;
+}
+
+.dot-matrix-dot {
+  display: block;
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: 9999px;
+  background: var(--color-fg);
+  opacity: var(--dot-rest);
+  will-change: opacity, transform;
+}
+
+/* A `round` field hides its corners. `visibility` rather than opacity, so a
+   loader's own opacity keyframes cannot bring them back. */
+.dot-matrix-dot[data-off] {
+  visibility: hidden;
+}
+
+/* Opt-in bloom. Applied to the dot, it only reads at high opacity, which is
+   exactly where the reference shows a halo. */
+.dot-lit {
+  box-shadow: 0 0 6px
+    color-mix(in oklab, var(--color-accent-indigo) 40%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot-matrix-dot {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+/* ══ Waitlist page ═══════════════════════════════════════════════════════
+   Furniture for the `/waitlistdsnmx` route: the drawn grid the composition
+   hangs on, the two corner glows, and the travelling shines down the rails.
+   Transcribed from the signed-off waitlist house scale — grid column 780,
+   text measure 620, card column 560, rules at y=80 and y=715 — with every
+   colour taken from the house palette rather than that design's own ramp:
+   its violet-black ground is `sunk` under an `accent-violet` wash here, and
+   its lilac rail shines are `accent-violet` outright.
+
+   One multiplier, `--wl-s`, drives every length: 1 at a 1920 viewport,
+   stepping down so the composition keeps its proportions on a smaller screen
+   instead of pinning absolute pixels to a smaller canvas. */
+.wl {
+  --wl-s: 1;
+  --wl-rail-w: calc(780px * var(--wl-s)); /* the grid column */
+  --wl-content-w: calc(620px * var(--wl-s)); /* top bar and hero measure */
+  --wl-col-w: calc(560px * var(--wl-s)); /* tabs and cards share this edge */
+  --wl-y-top: calc(80px * var(--wl-s));
+  /* The bottom rule sits at 715 on the artboard, but must not fall off a
+     short viewport: hold 650 as the floor, otherwise 40px up from the edge. */
+  --wl-y-bottom: min(calc(715px * var(--wl-s)), max(calc(650px * var(--wl-s)), calc(100dvh - 40px)));
+
+  position: relative;
+  min-height: max(100dvh, calc(var(--wl-y-bottom) + 40px));
+  overflow: hidden;
+  /* The ground: the page's deepest surface with a violet wash over it, which
+     is how the reference's ruby-black is reached without a new colour. */
+  background-color: var(--color-sunk);
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-accent-violet) 7%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent-violet) 3%, transparent) 100%
+  );
+  isolation: isolate;
+}
+
+@media (max-width: 1860px) { .wl { --wl-s: 0.96; } }
+@media (max-width: 1740px) { .wl { --wl-s: 0.92; } }
+@media (max-width: 1620px) { .wl { --wl-s: 0.88; } }
+@media (max-width: 1500px) { .wl { --wl-s: 0.85; } }
+@media (max-width: 1380px) { .wl { --wl-s: 0.82; } }
+@media (max-width: 1260px) { .wl { --wl-s: 0.8; } }
+@media (max-width: 1080px) { .wl { --wl-s: 0.78; } }
+
+/* ── The glows ────────────────────────────────────────────────────────
+   Two soft ellipses pinned to the viewport's bottom corners rather than to
+   artboard coordinates, so they stay in the corners at any width. */
+.wl-glow {
+  position: absolute;
+  bottom: -46vh;
+  z-index: 1;
+  width: 80vw;
+  height: 92vh;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(60px);
+}
+.wl-glow-l {
+  left: -36vw;
+  background-image: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--color-accent-violet) 26%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent-indigo) 12%, transparent) 55%,
+    transparent 100%
+  );
+}
+.wl-glow-r {
+  right: -38vw;
+  background-image: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--color-accent-indigo) 24%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent-violet) 12%, transparent) 55%,
+    transparent 100%
+  );
+}
+
+/* ── The grid ─────────────────────────────────────────────────────────
+   Two verticals a grid column apart, two horizontals, a dot at each of the
+   four intersections, and a lit segment falling down each rail. */
+.wl-rails {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.wl-rails-inner {
+  position: relative;
+  width: min(var(--wl-rail-w), 100vw);
+  height: 100%;
+  margin-inline: auto;
+}
+.wl-vline {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  background: rgb(var(--ink) / 0.1);
+}
+.wl-vline-l {
+  left: 1px;
+  height: 100%;
+}
+.wl-vline-r {
+  right: 1px;
+  height: 90.6%;
+}
+.wl-hline {
+  position: absolute;
+  left: 0;
+  width: calc(779px * var(--wl-s));
+  max-width: 100%;
+  height: 1px;
+  background: rgb(var(--ink) / 0.1);
+}
+.wl-hline-top { top: var(--wl-y-top); }
+.wl-hline-bottom { top: var(--wl-y-bottom); }
+.wl-dot {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 1px;
+  background: rgb(var(--ink) / 0.2);
+}
+.wl-dot-tl { left: 0; top: var(--wl-y-top); }
+.wl-dot-tr { left: calc(777px * var(--wl-s)); top: var(--wl-y-top); }
+.wl-dot-bl { left: 0; top: var(--wl-y-bottom); }
+.wl-dot-br { left: calc(777px * var(--wl-s)); top: var(--wl-y-bottom); }
+
+.wl-shine {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  will-change: transform;
+}
+.wl-shine-l {
+  left: 1px;
+  height: calc(150px * var(--wl-s));
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-accent-violet) 15%, transparent) 0%,
+    color-mix(in oklab, var(--color-accent-violet) 80%, transparent) 35%,
+    transparent 100%
+  );
+  animation: wl-fall 9s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+.wl-shine-r {
+  right: 1px;
+  height: calc(200px * var(--wl-s));
+  background-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in oklab, var(--color-accent-violet) 70%, transparent) 50%,
+    transparent 100%
+  );
+  animation: wl-fall 12s cubic-bezier(0.4, 0, 0.3, 1) 2.4s infinite;
+}
+@keyframes wl-fall {
+  from { transform: translateY(-210px); }
+  to { transform: translateY(100dvh); }
+}
+
+/* The static accent low on the right rail. */
+.wl-pf {
+  position: absolute;
+  right: 0.5px;
+  top: calc(825px * var(--wl-s));
+  width: 1.5px;
+  height: calc(197px * var(--wl-s));
+  background-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in oklab, var(--color-accent-violet) 45%, transparent) 22%,
+    color-mix(in oklab, var(--color-accent-violet) 45%, transparent) 82%,
+    transparent 100%
+  );
+}
+
+/* ── The content column ───────────────────────────────────────────────
+   Three edges and no more: the measure, the column, and the column's text
+   inset. The headline is display type on the measure and does not join the
+   column's spine. */
+.wl-page {
+  position: relative;
+  z-index: 3;
+  width: min(var(--wl-content-w), 100vw - 48px);
+  margin-inline: auto;
+  padding-top: calc(14px * var(--wl-s));
+}
+.wl-top {
+  display: flex;
+  height: calc(52px * var(--wl-s));
+  align-items: center;
+  justify-content: space-between;
+}
+.wl-tabs { margin-top: calc(54px * var(--wl-s)); margin-left: calc(11px * var(--wl-s)); }
+.wl-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(48px * var(--wl-s));
+  margin-top: calc(28px * var(--wl-s));
+  margin-left: calc(11px * var(--wl-s));
+}
+.wl-h1 {
+  font-size: calc(80px * var(--wl-s));
+  line-height: 1.18;
+}
+.wl-lede { font-size: calc(17px * var(--wl-s)); line-height: 1.55; }
+.wl-form {
+  display: flex;
+  width: min(var(--wl-col-w), 100%);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(6px * var(--wl-s));
+}
+.wl-card { width: min(var(--wl-col-w), 100%); }
+
+@media (max-width: 900px) {
+  .wl {
+    --wl-y-top: 72px;
+    --wl-y-bottom: 700px;
+  }
+  .wl-h1 { font-size: clamp(40px, 9vw, 96px); }
+  .wl-lede { font-size: 15px; }
+  .wl-hero { gap: 44px; margin-left: 0; }
+  .wl-tabs { margin-top: 68px; margin-left: 0; }
+  .wl-dot-tr, .wl-dot-br { left: auto; right: 0; }
+}
+@media (max-width: 560px) {
+  .wl-page { width: min(var(--wl-content-w), 100vw - 32px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Parked rather than removed: the two segments still sit on the rails, one
+     high and one low, so the grid keeps its lit accents. */
+  .wl-shine { animation: none; }
+  .wl-shine-l { transform: translateY(8px); }
+  .wl-shine-r { transform: translateY(280px); }
+}
+
+/* ══ Hero scene ══════════════════════════════════════════════════════════
+   The box for the exported scene behind the hero copy
+   (`components/landing/hero-scene.tsx`). The scene brings its own colours and
+   its own motion, so there is nothing to tune here — only where it sits.
+
+   It is flush to the viewport on every side and nothing crops it: no inset, no
+   radius, no mask. No negative top either, now that the hero is pinned and
+   pulls itself back over the header's in-flow strip: the hero box *is* the
+   viewport, so insetting to it is insetting to the screen. Pulling the scene
+   up again on top of that would only push 3rem of it off the top edge. The nav
+   carries z-50 in the page's own stacking context, so it still floats above
+   this rather than cutting it.
+
+   Pointer events are deliberately left on. The scene has a mouse-trail layer,
+   and the element sits behind the copy, so a cursor crossing empty hero space
+   reaches it while every control above it still takes its own clicks. */
+.hero-scene {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -10;
+}
+
+/* The scene does not appear in the light theme at all, and lowering its opacity
+   is not an alternative: it renders an *opaque dark ground*, so any amount of it
+   over a light page composites to grey — the copy ends up on mud rather than on
+   a tint. Hidden, the light theme is the page it was before.
+
+   The real fix, if this should live in both themes, is a second export: the
+   scene's own runtime takes presets and variables, so a light preset could be
+   switched on the theme rather than dimmed. That is a change to the scene, not
+   to this sheet. */
+:root[data-theme="light"] .hero-scene {
+  display: none;
+}
+
+/* ══ Cropped preview ══════════════════════════════════════════════════════
+   A card is as tall as its component, which is right until the component is a
+   settings panel or a poster: at half the measure those run past 900px and the
+   tile stops being a preview and becomes a page section. So a preview has a
+   height cap, and one that reaches it is cut at the bottom with the cut faded
+   out — "there is more of this below", rather than a line where the layout
+   appears to have broken.
+
+   Both the crop and the fade are switched on by the card *measuring* the
+   overflow, not applied to every preview: on one that already fits, the mask
+   would fade the component's own last row for no reason, and the clip would
+   tighten the bleed a glow ornament is allowed to make into the stage's
+   padding. A preview that fits is left exactly as it was. */
+/*
+ * Inside a preview stage, the page is the only thing that scrolls.
+ *
+ * A card in this grid is a picture of a component, not a place to use one. Any
+ * scrollable region inside it competes with the page for the wheel, and the
+ * reader loses: the gesture goes into the card, and whether the page moves then
+ * depends on where the pointer happened to be resting. Reaching a hundred and
+ * twenty-two components by scrolling past them should never depend on that.
+ *
+ * Both axes, because a trackpad gesture is rarely pure. A two-finger swipe
+ * meant as vertical usually carries some horizontal, and a horizontally
+ * scrollable element under the cursor is happy to claim it — one of the two
+ * here even sets `overscroll-behavior: contain`, which is correct in a real
+ * application and, in a gallery, a promise never to hand the gesture back.
+ *
+ * Only `auto` and `scroll` are named. A blanket `overflow-*` match would also
+ * catch the two components that set `overflow-visible` on purpose and clip the
+ * glow they are deliberately letting escape. The two house classes are listed
+ * by name because they set their overflow in this sheet rather than through a
+ * utility, which is exactly why the first version of this rule missed them.
+ *
+ * Scoped to the gallery. The copy a consumer installs keeps its scrolling,
+ * where it was always the right behaviour.
+ */
+.stage-crop [class*="overflow-auto"],
+.stage-crop [class*="overflow-scroll"],
+.stage-crop [class*="overflow-x-auto"],
+.stage-crop [class*="overflow-y-auto"],
+.stage-crop [class*="overflow-x-scroll"],
+.stage-crop [class*="overflow-y-scroll"],
+.stage-crop .scroll-track,
+.stage-crop .scroll-snappy {
+  overflow: hidden;
+}
+
+.stage-crop[data-clipped] {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 4rem), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 4rem), transparent);
+}

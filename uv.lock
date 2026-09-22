@@ -142,6 +142,7 @@ dependencies = [
     { name = "openai" },
     { name = "pydantic" },
     { name = "pytest" },
+    { name = "python-dotenv" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -163,6 +164,7 @@ requires-dist = [
     { name = "pytest" },
     { name = "pytest-asyncio", marker = "extra == 'dev'" },
     { name = "pytest-cov", marker = "extra == 'dev'" },
+    { name = "python-dotenv", specifier = ">=1" },
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "uvicorn", extras = ["standard"] },
 ]

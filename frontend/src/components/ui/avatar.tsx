@@ -3,16 +3,34 @@ import { Avatar as AvatarPrimitive } from "radix-ui";
 
 import { cn } from "@/lib/utils";
 
+type AvatarProps = React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> & {
+  seed?: number;
+  size?: "sm" | "md" | "lg";
+};
+
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Root
-    ref={ref}
-    className={cn("relative flex size-8 shrink-0 overflow-hidden rounded-full", className)}
-    {...props}
-  />
-));
+  AvatarProps
+>(({ className, seed, size, children, style, ...props }, ref) => {
+  const uimaxAvatar = seed !== undefined || size !== undefined;
+  const dims = size === "sm" ? "size-5" : size === "lg" ? "size-10" : "size-7";
+  const hue = ((seed ?? 0) % 3) * 14;
+  return (
+    <AvatarPrimitive.Root
+      ref={ref}
+      aria-hidden={uimaxAvatar || undefined}
+      className={cn(
+        "relative flex shrink-0 overflow-hidden rounded-full",
+        uimaxAvatar ? cn("bg-orb inline-block", dims) : "size-8",
+        className,
+      )}
+      style={uimaxAvatar && hue ? { ...style, filter: `hue-rotate(-${hue}deg)` } : style}
+      {...props}
+    >
+      {children}
+    </AvatarPrimitive.Root>
+  );
+});
 Avatar.displayName = AvatarPrimitive.Root.displayName;
 
 const AvatarFallback = React.forwardRef<
@@ -27,4 +45,12 @@ const AvatarFallback = React.forwardRef<
 ));
 AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
 
-export { Avatar, AvatarFallback };
+const AvatarImage = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Image>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Image ref={ref} className={cn("aspect-square size-full", className)} {...props} />
+));
+AvatarImage.displayName = AvatarPrimitive.Image.displayName;
+
+export { Avatar, AvatarFallback, AvatarImage };

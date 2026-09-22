@@ -20,6 +20,9 @@ test("runs the offline hero from the browser without model credentials", async (
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/run");
+  // First-run installations disclose the form from the empty state.
+  const start = page.getByRole("button", { name: "Start local verification" });
+  if (await start.isVisible()) await start.click();
   await page.getByRole("button", { name: "Run offline hero demo" }).click();
 
   await expect(page).toHaveURL(/\/runs\/[a-f0-9]+$/);

@@ -38,20 +38,28 @@ class IngestService:
             deadline=deadline,
             evidence=evidence,
         )
-        base_sha = self._execute(
-            ["git", "-C", str(repo_path), "rev-parse", f"{spec.base_ref}^{{commit}}"],
-            cwd=root,
-            timeout=spec.command_timeout_seconds,
-            deadline=deadline,
-            evidence=evidence,
-        ).stdout.strip()
-        head_sha = self._execute(
-            ["git", "-C", str(repo_path), "rev-parse", f"{spec.head_ref}^{{commit}}"],
-            cwd=root,
-            timeout=spec.command_timeout_seconds,
-            deadline=deadline,
-            evidence=evidence,
-        ).stdout.strip()
+        def resolve_revision(revision: str) -> str:
+            def execute(arguments: list[str]) -> CommandEvidence:
+                return self._execute(
+                    ["git", "-C", str(repo_path), *arguments],
+                    cwd=root,
+                    timeout=spec.command_timeout_seconds,
+                    deadline=deadline,
+                    evidence=evidence,
+                )
+
+            try:
+                return execute(["rev-parse", f"{revision}^{{commit}}"]).stdout.strip()
+            except IngestError:
+                if evidence[-1].timed_out or evidence[-1].output_truncated:
+                    raise
+                # Non-default branches and GitHub PR refs are not local refs in
+                # a normal clone. Fetch only the explicitly requested revision.
+                execute(["fetch", "--no-tags", "origin", revision])
+                return execute(["rev-parse", "FETCH_HEAD^{commit}"]).stdout.strip()
+
+        base_sha = resolve_revision(spec.base_ref)
+        head_sha = resolve_revision(spec.head_ref)
         self._execute(
             ["git", "-C", str(repo_path), "worktree", "add", "--detach", str(base_path), base_sha],
             cwd=root,

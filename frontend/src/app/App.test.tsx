@@ -46,7 +46,7 @@ describe("application routes", () => {
     vi.unstubAllGlobals();
   });
 
-  it("loads the grounded fixture inside the sourced dashboard shell", async () => {
+  it("loads the grounded fixture inside the sourced command dock shell", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(
@@ -64,17 +64,22 @@ describe("application routes", () => {
     expect(
       screen.getByRole("navigation", { name: "Primary" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "Primary" }).closest("aside")).toHaveClass(
-      "md:fixed",
-      "md:inset-y-0",
-      "md:left-0",
+    expect(screen.getByRole("navigation", { name: "Primary" })).toHaveClass(
+      "fixed",
+      "bottom-4",
+      "command-dock-dark",
     );
-    expect(screen.getByRole("button", { name: "Runs" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Corpus" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Evidence" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("button", { name: "Assistant" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("link", { name: "Verify" })).toHaveAttribute("href", "/run");
+    expect(screen.getByRole("link", { name: "Runs" })).toHaveAttribute("href", "/runs");
+    expect(screen.getByRole("link", { name: "Trials" })).toHaveAttribute("href", "/trials");
+    expect(screen.queryByRole("link", { name: "Corpus" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "Search Cross-Examine" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "About" })).not.toBeInTheDocument();
     expect(screen.queryByText("Independent verification harness")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Created By Deerflow" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Expand sidebar" })).toBeInTheDocument();
 
     const accessibility = await axe.run(document.body, {
       rules: { "color-contrast": { enabled: false } },
