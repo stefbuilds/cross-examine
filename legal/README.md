@@ -8,9 +8,9 @@ It keeps Cross-Examine's five stages and rules, applied to legal records:
 
 | Stage | Module | What it does |
 |---|---|---|
-| Ingest | `ingest.py` | Original bytes → immutable `SourceVersion` (sha256, 0-based original pages, printed labels kept separate, rejected portions disclosed). Extractor `text-v1`: strict UTF-8, form-feed pagination, no normalisation. |
+| Ingest | `ingest.py` | Original bytes → immutable `SourceVersion` (sha256, 0-based original pages, printed labels kept separate, rejected portions disclosed). Extractors: `text-v1` (strict UTF-8, form-feed pages, no normalisation) and `pdf-v1` (PDF text layer via pinned pypdf 6.1.1; `/PageLabels` kept as printed labels; pages without text marked unreadable, no OCR). |
 | Characterize | `characterize.py` | Untrusted citation proposals → typed predicate requests, or a `Rejection` with a reason. |
-| Cross-examine | `predicates.py`, `cross_examine.py` | Layer A fixed predicates: `quote_at`, `source_current`, `evidence_processed`. Each result carries the canonical replayable command, captured output, exit status (0 verified / 1 refuted / 2 incomplete) and a receipt hash. |
+| Cross-examine | `predicates.py`, `typed.py`, `cross_examine.py`, `layer_b.py` | Layer A fixed predicates: `quote_at`, `source_current`, `evidence_processed`, typed `chronology` and `arithmetic` over confirmed operands. Layer B: bounded lexical retrieval with disclosed coverage, and validation of untrusted challenge proposals (every citation Layer A-checked, always labelled unreviewed). Each result carries the canonical replayable command, captured output, exit status (0 verified / 1 refuted / 2 incomplete) and a receipt hash. |
 | Aggregate | `aggregate.py` | Pure claim status: `mechanically_supported` / `contradicted` / `unresolved`; unresolved material claims are risk, never "no defect". |
 | Render | `render.py` | Validates receipts and emits plain data. |
 
