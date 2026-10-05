@@ -39,7 +39,8 @@ class BlobResolver:
         if data is None or self.extractor is None:
             return None
         try:
-            return extract("replay", 0, data, "text/plain", self.extractor)
+            media = "application/pdf" if self.extractor == "pdf-v1" else "text/plain"
+            return extract("replay", 0, data, media, self.extractor)
         except IngestError:
             return None
 

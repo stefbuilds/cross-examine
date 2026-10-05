@@ -3,7 +3,13 @@
 from cross_examine_legal.aggregate import aggregate, claim_status
 from cross_examine_legal.characterize import QuoteProposal, Rejection, characterize_quote
 from cross_examine_legal.cross_examine import SourceResolver, run_check, run_typed
-from cross_examine_legal.ingest import IngestError, extract, extract_text_v1, sha256_hex
+from cross_examine_legal.ingest import (
+    IngestError,
+    extract,
+    extract_pdf_v1,
+    extract_text_v1,
+    sha256_hex,
+)
 from cross_examine_legal.schema import (
     Aggregate,
     CheckOutcome,
@@ -51,7 +57,7 @@ __all__ = [
     "characterize_quote",
     "claim_status",
     "extract",
-    "extract_text_v1",
+    "extract_pdf_v1", "extract_text_v1",
     "run_check",
     "run_typed",
     "sha256_hex",
