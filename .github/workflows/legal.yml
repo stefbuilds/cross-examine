@@ -1,0 +1,27 @@
+name: Legal adapter
+
+on:
+  push:
+    branches: [main]
+    paths: ["legal/**", ".github/workflows/legal.yml"]
+  pull_request:
+    paths: ["legal/**", ".github/workflows/legal.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  legal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: legal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - run: uv sync
+      - run: uv run ruff check .
+      - run: uv run pytest -q
