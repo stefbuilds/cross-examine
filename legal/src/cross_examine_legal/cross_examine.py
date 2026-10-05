@@ -9,10 +9,12 @@ in-process and pure; no subprocess, shell or model is involved.
 from __future__ import annotations
 
 import base64
+import json
 import shlex
+from dataclasses import asdict
 from typing import Protocol
 
-from cross_examine_legal import predicates
+from cross_examine_legal import predicates, typed
 from cross_examine_legal.schema import (
     EXIT_STATUS,
     CheckResult,
@@ -44,6 +46,57 @@ def encode_quote(quote: str) -> str:
 
 def decode_quote(value: str) -> str:
     return base64.urlsafe_b64decode(value.encode("ascii")).decode("utf-8")
+
+
+TypedRequest = typed.Chronology | typed.Arithmetic
+
+
+def encode_request(req: TypedRequest) -> str:
+    raw = json.dumps(asdict(req), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return base64.urlsafe_b64encode(raw.encode()).decode("ascii")
+
+
+def _quote_from(d: dict) -> QuoteAt:
+    return QuoteAt(d["source_sha256"], d["quote"], d.get("page"), d.get("char_start"))
+
+
+def decode_request(kind: str, value: str) -> TypedRequest:
+    d = json.loads(base64.urlsafe_b64decode(value.encode("ascii")).decode())
+    if kind == "chronology":
+        mk = lambda o: typed.TimeOperand(o["label"], o["literal"], _quote_from(o["quote"]),
+                                         o["value"])
+        return typed.Chronology(mk(d["a"]), mk(d["b"]), d["relation"], d.get("max_gap_minutes"))
+    ops = tuple(typed.NumberOperand(o["label"], o["literal"], _quote_from(o["quote"]), o["value"],
+                                    o["unit"]) for o in d["operands"])
+    return typed.Arithmetic(d["operation"], ops, d["claimed"], d["unit"])
+
+
+def _operands(req: TypedRequest) -> tuple[typed.Operand, ...]:
+    return (req.a, req.b) if isinstance(req, typed.Chronology) else req.operands
+
+
+def run_typed(req: TypedRequest, resolver: SourceResolver, extractor: str = "text-v1") -> CheckResult:
+    shas = tuple(dict.fromkeys(o.quote.source_sha256 for o in _operands(req)))
+    sources = {s: v for s in shas if (v := resolver.source(s)) is not None}
+    if isinstance(req, typed.Chronology):
+        kind, out, establishes = (PredicateKind.CHRONOLOGY, typed.chronology(req, sources),
+                                  typed.CHRONOLOGY_ESTABLISHES)
+    else:
+        kind, out, establishes = (PredicateKind.ARITHMETIC, typed.arithmetic(req, sources),
+                                  typed.ARITHMETIC_ESTABLISHES)
+    output = "\n".join([*out.lines, f"establishes: {establishes}"])
+    truncated = len(output) > MAX_OUTPUT_CHARS
+    if truncated:
+        output = output[:MAX_OUTPUT_CHARS] + "\n[output truncated]"
+    command = shlex.join(["cross-examine-legal", "check", kind.value, "--extractor", extractor,
+                          "--request-b64", encode_request(req)])
+    status = EXIT_STATUS[out.outcome]
+    return CheckResult(
+        kind=kind, outcome=out.outcome, command=command, output=output, exit_status=status,
+        receipt=Receipt(command, output, status, evidence_hash(command, output, status)),
+        source_dependencies=shas, parameters=asdict(req), establishes=establishes,
+        detail=out.detail, output_truncated=truncated,
+    )
 
 
 def render_command(req: PredicateRequest, extractor: str | None) -> tuple[str, dict[str, object]]:

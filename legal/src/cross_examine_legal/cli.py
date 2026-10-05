@@ -14,7 +14,7 @@ import os
 import sys
 from pathlib import Path
 
-from cross_examine_legal.cross_examine import decode_quote, run_check
+from cross_examine_legal.cross_examine import decode_quote, decode_request, run_check, run_typed
 from cross_examine_legal.ingest import IngestError, extract
 from cross_examine_legal.schema import (
     EvidenceProcessed,
@@ -61,8 +61,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="cross-examine-legal")
     sub = parser.add_subparsers(dest="cmd", required=True)
     check = sub.add_parser("check")
-    check.add_argument("predicate", choices=["quote_at", "source_current", "evidence_processed"])
-    check.add_argument("--source", type=_sha, required=True)
+    check.add_argument("predicate", choices=["quote_at", "source_current", "evidence_processed",
+                                             "chronology", "arithmetic"])
+    check.add_argument("--source", type=_sha)
+    check.add_argument("--request-b64")
     check.add_argument("--extractor")
     check.add_argument("--quote-b64")
     check.add_argument("--page", type=int)
@@ -78,6 +80,17 @@ def main(argv: list[str] | None = None) -> int:
         return 64
     extractor = None if args.extractor in (None, "unavailable") else args.extractor
     resolver = BlobResolver(Path(args.blobs), extractor)
+    if args.predicate in ("chronology", "arithmetic"):
+        if not args.request_b64:
+            print("--request-b64 is required", file=sys.stderr)
+            return 64
+        result = run_typed(decode_request(args.predicate, args.request_b64), resolver,
+                           extractor or "text-v1")
+        sys.stdout.write(result.output)
+        return result.exit_status
+    if args.source is None:
+        print("--source is required", file=sys.stderr)
+        return 64
     if args.predicate == "quote_at":
         if args.quote_b64 is None:
             print("--quote-b64 is required", file=sys.stderr)

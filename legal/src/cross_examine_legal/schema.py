@@ -34,6 +34,8 @@ class PredicateKind(str, Enum):
     QUOTE_AT = "quote_at"
     SOURCE_CURRENT = "source_current"
     EVIDENCE_PROCESSED = "evidence_processed"
+    CHRONOLOGY = "chronology"
+    ARITHMETIC = "arithmetic"
 
 
 class PageStatus(str, Enum):
